@@ -133,7 +133,7 @@ flowchart LR
 
 [![Website](https://img.shields.io/badge/網站-wizerdbache.com-1f2328?style=for-the-badge)](https://wizerdbache.com/)
 [![YouTube](https://img.shields.io/badge/YouTube-@wizerdbache-c4302b?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@wizerdbache)
-[![Threads](https://img.shields.io/badge/Threads-@wizerd.bache-1f2328?style=for-the-badge&logo=threads&logoColor=white)](https://www.threads.com/@wizerd.bache)
+[![Threads](https://img.shields.io/badge/Threads-%40wizerd.bache-1f2328?style=for-the-badge&logo=threads&logoColor=white)](https://www.threads.com/@wizerd.bache)
 [![GitHub](https://img.shields.io/badge/GitHub-WizerdBaChe-1f2328?style=for-the-badge&logo=github&logoColor=white)](https://github.com/WizerdBaChe)
 
 ## 授權
