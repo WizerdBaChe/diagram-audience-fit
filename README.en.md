@@ -129,6 +129,8 @@ Four principles run through everything: **a diagram without a model is a screens
 
 Run only on Windows 11 + Node 24.22 + Python 3.12. This release did not re-run the in-page geometry check in a browser, and appearance was not re-confirmed by a person. The full limits list and the manual acceptance checklist are in [`docs/DEVELOPER.md`](docs/DEVELOPER.md#範圍與限制) (Traditional Chinese) and spec §8; what this release did not claim is in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
+Not every method rule above is enforced by code. Code enforces that a source is filled in, the geometry, and that a reader edition invents no number (a screen over numbers with 3+ significant digits); control A1 checks that bytes reproduce; that a source really supports its edge, that an ambiguous reference draws no edge, that another session reviews the gap table, that a reader edition softened nothing, and paired delivery all rest on the workflow and human review. Which file and line enforces each rule: [EVIDENCE · Enforcement map](docs/EVIDENCE.md#enforcement-map--which-rules-a-program-enforces-which-only-the-workflow-asks-for).
+
 ## Author
 
 **BaChe 巴哲** (NathanBaChe) — packaging the AI work system I use daily into shareable pieces.

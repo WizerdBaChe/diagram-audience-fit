@@ -131,6 +131,8 @@ flowchart LR
 
 只在 Windows 11 + Node 24.22 + Python 3.12 實跑過；這一版沒有在瀏覽器裡重跑頁內幾何自檢，外觀也沒重新人工確認。完整清單見 [開發者文件 · 範圍與限制](docs/DEVELOPER.md#範圍與限制)。
 
+上面列的方法規則不全由程式擋。程式擋的是「有填來源」「幾何」與讀者版的「發明數字」（只篩 3 位以上有效數字），「位元組可重現」由驗收控制 A1 檢查；「來源真的佐證這條線」「候選不唯一就不畫線」「缺口表由別人重審」「讀者版沒有改輕」「成對交付」都要靠流程與人審。每條規則由哪個檔哪一行執行，見 [EVIDENCE · 規則執行表 (Enforcement map)](docs/EVIDENCE.md#enforcement-map--which-rules-a-program-enforces-which-only-the-workflow-asks-for)。
+
 ## 作者
 
 **巴哲 BaChe**（NathanBaChe）— 把自己日常用的 AI 工作系統整理成可分享的包。

@@ -1,11 +1,29 @@
 # AGENTS.md — how to use this repository
 
-You are an agent asked to build (or install and adapt) two capabilities in your user's environment:
+## What this repository is (facts, for any reader)
+
+- **Contents:** two agent skills (`diagram-authoring`, `audience-fit`), a Node renderer library
+  (`archdiag`, no third-party dependencies) and a stdlib-only Python gate (`afgate`), plus worked
+  example pages and two-sided acceptance controls. Index: `llms.txt`.
+- **What is enforced by code and what is only a workflow rule:** `docs/EVIDENCE.md` "Enforcement map".
+  Several of the central rules (no edge on an ambiguous reference, the gap table reviewed by another
+  session, paired reader delivery) are process only.
+- **What was run:** Windows 11, Node 24.22.1, Python 3.12.7, git. The recorded results are
+  `verify/controls_run.txt`; what was not run or not claimed is in `docs/EVIDENCE.md`.
+- **Network and side effects:** no network calls; `archdiag/anchors.mjs` spawns `git`, `archdiag/m1.mjs`
+  spawns `python` (against an unshipped origin tool), `git` and `node`, nothing else in the library or gate starts a
+  process; the acceptance script copies `reference-impl/` into a scratch folder, mutates and deletes it.
+- **If you only read and do not execute:** read `docs/EVIDENCE.md`, then `verify/controls_run.txt` as
+  the result record, then the two `SKILL.md` files. Everything below this section is installation
+  steps addressed to an agent its user asked to install the pack; reading it does not require following it.
+
+## For an installing agent
+
+Your user has asked you to build (or install and adapt) two capabilities in their environment:
 **diagram authoring** (verifiable architecture/audit diagrams with a gap report) and **audience fit**
-(reader-facing editions of builder-voiced deliverables). This file is your entry point. The human-facing
-introduction is `README.md` (Traditional Chinese; English mirror `README.en.md`); you do not need it.
-A machine-readable index is `llms.txt`; the structure tree and component diagrams for human builders
-are in `docs/DEVELOPER.md` (Traditional Chinese).
+(reader-facing editions of builder-voiced deliverables). The human-facing introduction is `README.md`
+(Traditional Chinese; English mirror `README.en.md`); you do not need it. The structure tree and
+component diagrams for human builders are in `docs/DEVELOPER.md` (Traditional Chinese).
 
 ## Reading order
 

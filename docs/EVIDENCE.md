@@ -4,7 +4,7 @@ audience: agent (builder) and human
 version: 1.0.0
 ---
 
-# Evidence — what is measured, what each rule came from, what is not claimed
+# Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
 
 Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-01
 against the files exactly as shipped (transcript: `verify/controls_run.txt`). "Origin record" = stated
@@ -47,7 +47,9 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   logs 59 `layout WARN` and still emits the A2 bytes. Switched to `rev: 2` it logs 21 and emits
   different bytes (the 2026-10-24 edition measured 18 before hops; L5/L7 are new kinds).
 - **M11 Envelope and anchors (spec A15).** Both self-tests print `SELFTEST PASS`. Neither runs inside
-  the shipped example builds (they declare no archview), so the end-to-end path is origin-side only.
+  the three example builds (they declare no archview), so the envelope's end-to-end path is
+  origin-side only. The self-portrait build (`docs/self-portrait/self-audit.build.mjs:118`) calls
+  `resolveAnchors` directly and fails on any unresolved anchor.
 - **M12 Flowchart kinds and hops (spec A16, new).** `flow-selftest.mjs`: 39 `ok` cases, PASS (kinds,
   decision-vertex anchoring at router, build assert and in-page check #11, hop plan, junction dots).
   Audit page as shipped: 0 `L7 bare-crossing`. Pinned plain: 2 `L7` (`tsm` t5×t7, `txd` d5×d9) and the
@@ -77,6 +79,32 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
 - **Vendored geometry.** What was borrowed from the MIT-licensed upstream and what was not. →
   `outputs/skill-reviews/archify-integration-analysis-2026-08-28.md`, `THIRD_PARTY_NOTICES.md`.
 
+## Enforcement map — which rules a program enforces, which only the workflow asks for
+
+A rule stated in a SKILL.md or in `docs/DEVELOPER.md` is not enforced by code unless this table says
+so. "Process only" means the agent is asked to follow it and nothing in the shipped code fails when it
+does not. Line numbers are at this release's commit (paths under `reference-impl/`).
+
+| rule | enforced by | what the code checks — and what it does not |
+|---|---|---|
+| every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:68`, `:92` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
+| a source anchor points at a real file and line range | code, opt-in: `tools/archdiag/anchors.mjs:164`, enabled by `archview.anchors` (`index.mjs:70`) | the path exists at the pinned commit and the range is inside the file; not that the line supports the edge; the three example pages do not enable it, the self-portrait build calls `resolveAnchors` directly (`docs/self-portrait/self-audit.build.mjs:118`) |
+| an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:38` (Step 0) | — |
+| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:70` | — |
+| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:130` | — |
+| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:97`) |
+| sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:99-106`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:130`); verifying means rebuilding and comparing |
+| at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:48` (build fails) | the declared count; over 3 means split the view |
+| no overlap outranks fewer crossings | code, router `rev: 2` only: `tools/archdiag/route.mjs:61` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
+| a junction dot only where two edges share an endpoint | code: `tools/archdiag/hops.mjs:123` | edges declared without `from`/`to` skip the shared-endpoint test (`hops.mjs:123-124`) |
+| readability findings warn, never fail a build | code: `tools/archdiag/index.mjs:45-51` (logged, page bytes unchanged) | the standalone `topology.mjs` CLI exits 1 on any warning (`topology.mjs:221`); wiring it into CI is your call |
+| a coverage declaration is present and well formed | code, shape only: `tools/archdiag/envelope.mjs:46-62` (when a page declares `archview`) | the keys and the `verifiedAt` format; not that the coverage is complete or true |
+| a reader edition invents no number | code, screen: afgate `values` (`tools/audience-fit-gate/afgate.py:212`) | only numbers with 3+ significant digits; a number explained by any original number passes, wherever it stands (`:221`) |
+| a reader edition does not widen scope | code, warn: afgate `scope` (`afgate.py:300-319`) | flags a universal quantifier the original never used; a narrowed or softened claim is not detected |
+| a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:243`) | lists the original's limitation lines; a human rules |
+| a reader edition carries no builder apparatus (paths, hashes, run ids) | code: afgate `voice` FAIL outside the provenance block | pattern match; known false positives are listed under "Not claimed" |
+| a reader edition ships as a pair with its original | process only: spec A12 (review) | — |
+
 ## Not claimed
 
 - Appearance: no page in this repo was visually re-checked for this release; the origin's human gates
@@ -85,6 +113,10 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
 - `m1.mjs` was not run from this repo: it needs the origin's envelope discovery (not shipped).
 - The in-page geometry check (spec A6) was not executed in a browser for this release.
 - The example audit is of one product of the origin environment; its findings say nothing about yours.
+- afgate known gaps at this release (found by an outside read-only review, not yet fixed): `values`
+  does not see a number glued to a preceding CJK character (`高33.6%` is skipped; `約1,234` is read as
+  `234`); `voice` treats any standalone 8+ digit number as a hash and FAILs it (tax ids, phone
+  numbers). Python 3.10 is the minimum the gate's syntax needs; only 3.12 was run.
 
 ## Decisions behind the design (keep unless the new owner decides otherwise)
 

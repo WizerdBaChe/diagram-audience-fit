@@ -4,6 +4,13 @@
 
 Start at AGENTS.md. Pin a release tag, not main. Code MIT, documentation CC BY 4.0.
 
+## Read-only route (no command execution)
+
+- [docs/EVIDENCE.md](docs/EVIDENCE.md): read first; its "Enforcement map" says which rules code enforces (with file:line) and which are process only, and "Not claimed" lists known gaps
+- [verify/controls_run.txt](verify/controls_run.txt): the recorded acceptance run; read it as the result instead of running the controls
+- [reference-impl/skills/diagram-authoring/SKILL.md](reference-impl/skills/diagram-authoring/SKILL.md) and [reference-impl/skills/audience-fit/SKILL.md](reference-impl/skills/audience-fit/SKILL.md): the two methods; the reusable part if you adopt nothing else
+- [AGENTS.md](AGENTS.md): its first section is facts about the repo; the rest is installation steps for an agent whose user asked for an install
+
 ## Entry points
 
 - [AGENTS.md](AGENTS.md): reading order, first command, install table into ~/.claude, adaptation rules, what not to adopt
