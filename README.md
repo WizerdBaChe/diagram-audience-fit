@@ -1,25 +1,85 @@
+<div align="center">
+
 # diagram-audience-fit
 
-**可驗證的架構圖／稽核圖，以及給非建造者看的版本**——兩個 Claude Code skill（`diagram-authoring`、`audience-fit`）連同它們實際在用的程式庫、檢查工具、範例與驗收腳本。給 agent 讀、照著在自己的環境裡做出同類能力。
+**讓 AI agent 畫出「每條線都追得到來源」的架構圖，再把同一份發現重畫給不是作者的人看。**
 
-> English: two agent skills plus a Node renderer library and a Python gate for verifiable architecture/audit diagrams and their reader-facing editions. Agents start at [`AGENTS.md`](AGENTS.md); the contract is [`docs/BUILD-SPEC.md`](docs/BUILD-SPEC.md).
+兩個 Claude Code skill ＋ 一個免安裝的 Node 繪圖程式庫 ＋ 一個 Python 檢查工具 ＋ 實際範例與驗收腳本。
 
-## 這是什麼
+**繁體中文** · [English](README.en.md)
 
-兩種能力，接在同一條線的兩端：
+[![release](https://img.shields.io/github/v/release/WizerdBaChe/diagram-audience-fit?style=flat-square)](https://github.com/WizerdBaChe/diagram-audience-fit/releases/latest)
+[![code: MIT](https://img.shields.io/badge/code-MIT-22863a?style=flat-square)](LICENSE)
+[![docs: CC BY 4.0](https://img.shields.io/badge/docs-CC_BY_4.0-22863a?style=flat-square)](LICENSE-DOCS)
+[![Claude Code skill](https://img.shields.io/badge/Claude_Code-skill-1f2328?style=flat-square)](AGENTS.md)
+[![Node 24](https://img.shields.io/badge/node-24_tested-1f2328?style=flat-square)](docs/DEVELOPER.md#環境需求)
+[![Python 3.12](https://img.shields.io/badge/python-3.12_tested-1f2328?style=flat-square)](docs/DEVELOPER.md#環境需求)
+[![npm install: none](https://img.shields.io/badge/npm_install-none-1f2328?style=flat-square)](docs/DEVELOPER.md#環境需求)
 
-1. **畫圖（diagram authoring）**：把程式、設定、設計文件、使用者資料畫成**可驗證**的圖。每個節點和連線都追得到來源，追不到的標 `[assumed]`；圖是一份文字模型（節點／邊表）的投影；先由機器驗結構與幾何，再由人看外觀。每次一定附**缺口報告**，寫出「資料答不了什麼」。
-2. **對讀者調校（audience fit）**：工程版的稽核頁、報告、介面文字，改成**不是作者的人**也用得上的版本；數字、因果強度、範圍、不確定性一律不准改輕。
+[看範例](#一眼看懂) · [快速開始](#快速開始交給你的-agent) · [運作流程](#運作流程) · [開發者文件](docs/DEVELOPER.md) · [給 agent 的入口](AGENTS.md) · [版本紀錄](CHANGELOG.md)
 
-兩者的接點：工程稽核頁要給擁有者看時，**重畫**成少量可讀節點的展示圖，而不是在原圖旁邊加註解。
+<img src="docs/assets/hero.zh-TW.png" alt="左邊是工程稽核圖：密集的節點與連線，每條都標了來源；右邊是同一份稽核重畫成的擁有者視圖：少量大節點、清楚的分層。中間的箭頭寫著「重畫，不加註」。" width="960">
 
-四條原則貫穿全部內容：**沒有模型的圖只是截圖**（建置腳本一定隨圖交付）；**結構與幾何機器驗、外觀人驗，互不代替**；**檢查只對能判定的事下判決**；**給讀者的版本只換讀者，不換發現**。
+</div>
 
-## 怎麼用
+## 它解決什麼
 
-**下載**：到 [Releases](../../releases) 下載最新版的 zip，或 `git clone` 後切到某個版本標籤（例如 `v1.0.0`）。建議固定版本，不要直接用 `main`。
+請 AI 畫系統架構圖，常見的結果是：**圖很漂亮，但線是猜的**；或者圖很精確，**只有作者自己看得懂**。
 
-**交給 agent**：把整個資料夾給它，貼這段：
+這個 repo 把兩件事接成一條線：
+
+| | 你得到的 | 怎麼保證 |
+|---|---|---|
+| **① 畫圖**（diagram-authoring） | 架構圖、狀態機、流程圖、稽核視圖組 | 每個節點與連線追得到來源，追不到的標 `[assumed]`；先寫文字模型再出圖；頁面自帶幾何自檢；一定附**缺口報告**（資料答不了什麼） |
+| **② 對讀者調校**（audience-fit） | 給擁有者、主管、非工程讀者的版本 | 只換讀者、不換發現：數字、因果強度、範圍、限制一律不准改輕；改寫版與原版成對交付 |
+
+## 一眼看懂
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**同一份稽核的五張視圖**<br>
+<sub>系統情境、進程與通道、匯入分層、狀態機、branch 疊層；右上角是頁內幾何自檢</sub>
+
+<img src="docs/assets/audit-tabs.gif" alt="依序切換稽核頁的五個分頁，每張圖右上角都顯示幾何自檢 PASS" width="100%">
+
+</td>
+<td width="50%" valign="top">
+
+**流程圖記號**<br>
+<sub>起訖、判斷菱形、退回線、旁註；判斷拉出的線一定接在菱形頂點</sub>
+
+<img src="docs/assets/flowchart.png" alt="畫圖交付流程的流程圖：列來源、寫文字模型、判斷來源撐不撐得住、渲染自檢，未通過時用紅色虛線退回" width="100%">
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**跳線（line hop）**<br>
+<sub>兩條線只是經過，就畫小半圓跳過去；真的相接才畫實心點。不會再有「看起來像相接」的 +</sub>
+
+<img src="docs/assets/line-hop.png" alt="水平實線在與紅色虛線交叉的地方畫成一個小半圓，表示兩線沒有相接" width="100%">
+
+</td>
+<td valign="top">
+
+**給擁有者看的重畫版**<br>
+<sub>不在原圖旁邊加註解，而是重畫成少量可讀節點；已知缺陷、待裁決事項用編號對回原圖</sub>
+
+<a href="docs/assets/owner-view.png"><img src="docs/assets/owner-view.png" alt="擁有者視圖全頁：上方是系統全貌圖，下方是一個任務的生命週期與編號註記" width="100%"></a>
+
+</td>
+</tr>
+</table>
+
+<sub>範例是作者環境裡一個媒體下載工具的實際稽核頁，所以圖內文字是中文；看的是做法，不是內容。原始頁面在 [`reference-impl/outputs/diagram-authoring/`](reference-impl/outputs/diagram-authoring/)，下載後用瀏覽器直接打開。</sub>
+
+## 快速開始：交給你的 agent
+
+1. 到 [Releases](https://github.com/WizerdBaChe/diagram-audience-fit/releases/latest) 下載 zip，或 `git clone` 後切到版本標籤（建議固定版本，不要直接用 `main`）。
+2. 把整個資料夾交給你的 agent（Claude Code、Codex、Cursor 等能讀檔、跑指令的都可以），貼這段：
 
 ```text
 請先讀 AGENTS.md，照它的閱讀順序讀完 docs/BUILD-SPEC.md 和 docs/EVIDENCE.md；reference-impl/ 是實際在用的原檔，當範例看，不要整份照貼。
@@ -28,83 +88,56 @@
 之後照規格第 2 節幫我畫第一張稽核圖：先列來源（第 0 步）、先寫文字模型、先開缺口報告，最後才產圖；缺口表要另找一個沒參與畫圖的 subagent 審過。
 ```
 
-需要：Node 24、Python 3.12（只在這兩個版本實跑過；程式庫不必 `npm install`，檢查工具只用 Python 標準庫），以及 `git`（驗收的 A15 會建一個暫時的 git repo）。
+3. 需要 Node 24、Python 3.12、`git`（只在這些版本實跑過；程式庫不必 `npm install`，檢查工具只用 Python 標準庫）。
 
-## 這一版（v1.0.0，2026-11-01）新增
+## 運作流程
 
-- **流程圖記號**：起訖、判斷（菱形）、註記三種節點與連線註解；從判斷拉出的線一定接在菱形的頂點上。
-- **跨線跳線（line hop）成為預設**：兩條線只是經過時，橫的那條畫一個小半圓跳過去；真的相接才畫實心接點；仍然畫成「+」交叉的地方會發警告。舊圖可以固定成舊畫法，位元組不動。
-- 稽核要畫的標準圖多一種：會分支或失敗重試的多步驟流程，要有一張流程圖。
-- 給讀者看的展示圖多一條規則（R13：交叉不能看起來像相接），共用同一套跳線計算。
-- 包裡的稽核範例改成跳線版重新產出；新增一張流程圖記號示範頁。
-- 驗收新增 A16（流程圖與跳線），機器部分 12 項全過。
-- 多附四份參考資料：範例的量測紀錄、外部借用程式碼的來源分析、驗證等級規則、介面文案的決策點契約。
+```mermaid
+flowchart LR
+  S["來源<br/>程式・設定・設計文件"] --> M["文字模型<br/>節點表・邊表・狀態表"]
+  M --> G{"結構檢查<br/>schema・斷言"}
+  G -- 不通過 --> M
+  G -- 通過 --> R["渲染<br/>路由・跳線・頁內自檢"]
+  R --> P["工程稽核頁<br/>＋缺口報告"]
+  P --> V["另一個乾淨脈絡<br/>審缺口表"]
+  P --> A["audience-fit<br/>重畫給讀者"]
+  A --> K{"afgate 檢查<br/>數字・範圍・用語"}
+  K --> O["擁有者視圖<br/>與原版成對交付"]
+```
 
-先前三版（2026-10-11、10-19、10-24）是資料夾＋zip 的形式，沿革見 [`CHANGELOG.md`](CHANGELOG.md)。
+四條原則貫穿全部內容：**沒有模型的圖只是截圖**（建置腳本隨圖交付）· **結構與幾何機器驗、外觀人驗** · **檢查只對能判定的事下判決** · **讀者版只換讀者，不換發現**。
 
-## 裡面有什麼
+各元件、程式庫模組、目錄結構與設計取捨，見 [開發者文件](docs/DEVELOPER.md)。
 
-| 路徑 | 給誰 | 用途 |
+## 這一版
+
+**v1.0.0（2026-11-01）**：流程圖記號、預設跳線、稽核標準圖多一張流程圖、展示圖規則 R13（交叉不能像相接）；機器驗收 12 項全過。完整內容見 [`CHANGELOG.md`](CHANGELOG.md)。
+
+## 文件導覽
+
+| 你想… | 讀這份 | 語言 |
 |---|---|---|
-| [`AGENTS.md`](AGENTS.md) | agent | 入口：閱讀順序、第一步要跑什麼、怎麼裝進 `~/.claude`、改編時不能丟的原則 |
-| [`docs/BUILD-SPEC.md`](docs/BUILD-SPEC.md) | agent | 規格（英文）：元件、畫圖流程、程式庫、對讀者調校、檢查的設計原則、驗收表 A1–A16、要依環境調整的地方、宣告修改 |
-| [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | agent／你 | 哪些是這一版實測、每條規則從哪次失手來、哪些沒有宣稱 |
-| `reference-impl/` | agent | 實際在用的原檔（約 1.1 MB，其中截圖約 240 KB），照原環境 `~/.claude` 的相對位置擺，建置腳本解開就能跑 |
-| `verify/` | agent | 驗收腳本（每項同時跑會過與不會過兩種輸入，印出兩邊的值）、我們這邊的執行紀錄、沒附的路徑清單與產生它的腳本 |
-| [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) | 所有人 | 借用的外部程式碼與規則的 MIT 授權聲明 |
+| 快速知道它做什麼 | 本頁 | 中文 / [English](README.en.md) |
+| 了解結構、流程、設計取捨、限制、人工驗收 | [`docs/DEVELOPER.md`](docs/DEVELOPER.md) | 中文 |
+| 讓 agent 開始建置 | [`AGENTS.md`](AGENTS.md) → [`docs/BUILD-SPEC.md`](docs/BUILD-SPEC.md) | 英文 |
+| 看哪些是實測、哪些沒宣稱 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | 英文 |
+| 機器讀的索引（llms.txt 格式） | [`llms.txt`](llms.txt) | 英文 |
 
-`reference-impl/` 內容：
+## 限制（摘要）
 
-| 路徑 | 是什麼 |
-|---|---|
-| `skills/diagram-authoring/` | 畫圖的做法本體＋記號精準度、載體手冊 |
-| `skills/audience-fit/` | 對讀者調校的做法本體＋5 份參照（重繪規則、誠實數據、給一般讀者、介面文案、去 AI 味） |
-| `skills/product-design-thinking/references/` | 「哪個問題用哪種圖」選型表、視圖健全性檢查與缺口報告欄位 |
-| `skills/ux-walkthrough/references/` | 介面文案用的「決策點契約」 |
-| `rules/` | 圖要附哪兩種證據、版面何時停手、交付文件的讀者版、驗證等級 |
-| `references/design-axes/part-principles.md` | 跨媒材通則（中文） |
-| `tools/archdiag/` | 畫稽核圖的程式庫（Node，免安裝套件）：模型→結構檢查→輸出→頁內幾何自檢；路由、跳線、拓撲與版面可讀性警告、涵蓋宣告、證據錨點 |
-| `tools/audience-fit-gate/` | 讀者版的機械檢查（Python，只用標準庫） |
-| `outputs/diagram-authoring/` | 同一份稽核的工程原版＋量測紀錄＋擁有者視圖（含建置腳本與截圖）；流程圖記號示範頁 |
-| `outputs/skill-reviews/` | 外部借用程式碼的來源分析 |
+只在 Windows 11 + Node 24.22 + Python 3.12 實跑過；這一版沒有在瀏覽器裡重跑頁內幾何自檢，外觀也沒重新人工確認。完整清單見 [開發者文件 · 範圍與限制](docs/DEVELOPER.md#範圍與限制)。
 
-## 設計上刻意的幾件事（改之前請先看）
+## 作者
 
-1. **稽核以「實際在跑的環境」為來源，設計文件只是待核對的主張。** 每個共用資源，把它的路徑在環境裡 grep 一遍；找到但沒畫的讀者，各記一列 `reality-gap`。只照設計文件畫的稽核，只能證明文件自己吻合自己。
-2. **覆蓋宣告**：標準視圖集的每一張、grep 找到的每一類入口，都要標「畫了」或「排除＋理由」。
-3. **缺口表不由畫圖的人自己簽「沒缺口」**，要另一個乾淨脈絡的讀者重審。
-4. **節點位置是輸入不是輸出**：位置有意義時一律顯式座標；程式只排連線。
-5. **同樣的輸入產生同樣的位元組**，所以收據（sha256）有意義、能重生驗證。
-6. **讀者版一定成對交付**：原版＋改寫＋放在同一視野的對照。單獨交改寫無法驗收。
-7. **不重疊優先於少交叉**：新版路由器會為了讓線分開而多一些交叉，這是刻意的；剩下的交叉用跳線畫，讓它看起來不像相接。不要為了壓低交叉數把線併回去。
-8. **可讀性只發警告**：排成一直線、線擠在同一段、「+」交叉這類問題，程式只警告、不讓建置失敗，因為「好不好讀」不是幾何算得出來的；會讓建置失敗的警告，最後會被關掉而不是被讀。
+**巴哲 BaChe**（NathanBaChe）— 把自己日常用的 AI 工作系統整理成可分享的包。
 
-## 範圍與限制
-
-- 只在 **Windows 11 + Node 24.22 + Python 3.12** 實跑過。
-- 頁內幾何自檢（規格 A6）這次沒有在瀏覽器裡重跑；外觀也沒有為這一版重新人工確認，原頁當初的人工驗收只適用原頁。
-- `tools/archdiag/m1.mjs` 需要原環境另一個元件（沒附），在這裡跑不起來。
-- 已知弱點：模型裡有指向不存在節點的連線時，建置會失敗，但是先由路由器崩潰（`TypeError`），不是由結構檢查點名（規格 A3）。
-- 原檔中提到的 50 個路徑**沒有附**（其他 skill、規則索引、審查紀錄、提案單、幾支別的檢查工具）；跑程式庫、檢查工具、範例都不需要它們。清單在 `verify/unshipped_paths.txt`。
-- 文中的 hook、瀏覽器面板規則、決策紀錄、「使用者裁定」是原環境的機制，讀成「為什麼這樣設計」，不是你也得照做的規則。
-- 範例是原環境某個產品（一個貼文媒體下載工具）的稽核頁，內容與你無關，看的是做法與重畫前後的取捨。
-- 相對原檔的修改只有五類（其餘逐位元組相同）：外部交流對象的名稱與編號、一個 session 編號與本機分析頁路徑、原環境專案資料夾的磁碟根目錄改成 `<projects>`（工具類專案名與檔名保留）、家目錄路徑改成 `~/.claude`、研究專案的出處改寫成中性說法（日期與教訓編號保留）。逐條見規格第 9 節。
-
-## 人工驗收清單（程式與測試證明不了的）
-
-**A 必驗**
-1. 在瀏覽器打開 `reference-impl/outputs/diagram-authoring/mfp-audit-f3.html`，切換各分頁：頁面上的幾何自檢報告 0 個問題，圖沒有被裁掉。這項和字型有關；若不是 0，先看是哪幾處、是不是字型較高造成的。
-2. 同一頁上，兩條線交叉的地方是小半圓跳線，真的相接的地方才有實心圓點，沒有看起來像相接的「+」。
-3. 工程原版和擁有者視圖（`mfp-audit-f3-owner-view-v3.html`）並排看：擁有者視圖沒有新增或刪掉任何發現，數字與限制對得上。
-4. agent 依規格畫出的第一張稽核圖：缺口表有 `reviewer` 欄，而且審的人不是畫圖的那個 session。
-
-**B 體驗**
-5. 擁有者視圖在手機寬度下仍讀得懂（對照 `mfp-audit-f3-owner-view-v3.png`）。
-6. 顏色換成灰階後，節點種類與連線種類仍分得出來（形狀＋顏色雙重編碼）。
-7. `flowchart-notation-demo.html` 一頁看得懂每個流程圖記號的意思。
+[![Website](https://img.shields.io/badge/網站-wizerdbache.com-1f2328?style=for-the-badge)](https://wizerdbache.com/)
+[![YouTube](https://img.shields.io/badge/YouTube-@wizerdbache-c4302b?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@wizerdbache)
+[![Threads](https://img.shields.io/badge/Threads-@wizerd.bache-1f2328?style=for-the-badge&logo=threads&logoColor=white)](https://www.threads.com/@wizerd.bache)
+[![GitHub](https://img.shields.io/badge/GitHub-WizerdBaChe-1f2328?style=for-the-badge&logo=github&logoColor=white)](https://github.com/WizerdBaChe)
 
 ## 授權
 
 - 程式碼（`.mjs`、`.py`，以及產出頁裡嵌入的程式）：MIT，見 [`LICENSE`](LICENSE)。
 - 文件與其他內容（skill、規則、規格、紀錄、頁面文字與圖）：CC BY 4.0，見 [`LICENSE-DOCS`](LICENSE-DOCS)；轉用時請標示出處。
-- 借用的外部材料（archify、sepia、diagram-design、anatomy 為 MIT；graphify 只借兩個概念、沒有複製文字或程式碼）：見 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+- 借用的外部材料（archify、sepia、diagram-design、anatomy 為 MIT；graphify 只借兩個概念）：見 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。

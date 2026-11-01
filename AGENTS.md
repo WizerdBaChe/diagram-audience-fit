@@ -3,7 +3,9 @@
 You are an agent asked to build (or install and adapt) two capabilities in your user's environment:
 **diagram authoring** (verifiable architecture/audit diagrams with a gap report) and **audience fit**
 (reader-facing editions of builder-voiced deliverables). This file is your entry point. The human-facing
-introduction is `README.md` (Traditional Chinese); you do not need it.
+introduction is `README.md` (Traditional Chinese; English mirror `README.en.md`); you do not need it.
+A machine-readable index is `llms.txt`; the structure tree and component diagrams for human builders
+are in `docs/DEVELOPER.md` (Traditional Chinese).
 
 ## Reading order
 

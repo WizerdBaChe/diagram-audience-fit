@@ -2,6 +2,19 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
+## v1.0.1 — unreleased
+
+Documentation only; nothing under `reference-impl/` or `verify/` changed.
+
+- README rebuilt as an overview: hero image (engineering audit vs owner view), a picture grid of the
+  capabilities (tab-cycling GIF, flowchart, line hop, owner view), a mermaid flow, a reading-route table,
+  author links.
+- `README.en.md` English mirror with a language switch on both.
+- `docs/DEVELOPER.md` takes the technical sections (structure tree, component and workflow diagrams,
+  module map, environment, verify, deliberate design, limits, manual acceptance).
+- `llms.txt` machine-readable index; `AGENTS.md` names it and the developer doc.
+- `docs/assets/build_assets.py` regenerates every README image from the shipped example pages.
+
 ## v1.0.0 — 2026-11-01
 
 First release as a public repository. Continues the folder-and-zip editions below; same structure,

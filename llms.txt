@@ -1,0 +1,31 @@
+# diagram-audience-fit
+
+> Two agent skills (diagram-authoring, audience-fit), a zero-install Node renderer library (archdiag) and a stdlib-only Python gate (afgate) for verifiable architecture/audit diagrams with a gap report, plus reader-facing redraws that never change the findings. Built and run with Claude Code; any agent that reads files and runs commands can build it from the spec. Tested on Windows 11, Node 24.22, Python 3.12.
+
+Start at AGENTS.md. Pin a release tag, not main. Code MIT, documentation CC BY 4.0.
+
+## Entry points
+
+- [AGENTS.md](AGENTS.md): reading order, first command, install table into ~/.claude, adaptation rules, what not to adopt
+- [docs/BUILD-SPEC.md](docs/BUILD-SPEC.md): the contract; §2 diagram workflow, §3 library contract, §4 audience-fit contract, §5 gate design, §7 acceptance A1-A16, §8 environment adaptation, §9 declared edits
+- [docs/EVIDENCE.md](docs/EVIDENCE.md): what this release measured, origin records behind each rule, what is not claimed
+
+## Run
+
+- [verify/run_controls.py](verify/run_controls.py): `python -X utf8 verify/run_controls.py reference-impl <new-empty-dir>`; two-sided controls, every line must end in `-> ok`
+- [verify/controls_run.txt](verify/controls_run.txt): reference transcript to compare sha256 values and counts against
+
+## Reference implementation
+
+- [reference-impl/skills/diagram-authoring/SKILL.md](reference-impl/skills/diagram-authoring/SKILL.md): diagram method
+- [reference-impl/skills/audience-fit/SKILL.md](reference-impl/skills/audience-fit/SKILL.md): reader-edition method
+- [reference-impl/tools/archdiag/README.md](reference-impl/tools/archdiag/README.md): renderer library API
+- [reference-impl/tools/audience-fit-gate/README.md](reference-impl/tools/audience-fit-gate/README.md): reader-edition gate
+- [reference-impl/outputs/diagram-authoring/](reference-impl/outputs/diagram-authoring/): worked example pages with their build scripts
+
+## Optional
+
+- [docs/DEVELOPER.md](docs/DEVELOPER.md): structure tree, component and workflow diagrams, design choices, limits, manual acceptance (Traditional Chinese)
+- [README.en.md](README.en.md): English overview; [README.md](README.md): Traditional Chinese overview
+- [CHANGELOG.md](CHANGELOG.md): versions
+- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md): borrowed material and licences
