@@ -1,0 +1,65 @@
+# afgate run 2026-11-01, repo root:
+# python -X utf8 reference-impl/tools/audience-fit-gate/afgate.py all docs/self-portrait/self-audit.html docs/self-portrait/self-owner-view.html
+target: self-owner-view.html
+  ruler: 7 numbers in the reader's text: 1 certified (3+ significant digits, 0 via a named transform), 6 NOT certified (1-2 digits: counting words, thresholds, round figures) — stated, not hidden. This is a SCREEN, not a proof.
+  0 FAIL, 0 WARN, 0 INFO, 0 UNDET
+
+target: self-owner-view.html
+  [INFO ] limitation    缺口報告     #  缺口／發現  種類  憑據      G1  擁有者視圖不經 build()：它是手畫 SVG，只借 asserts.mjs 的 a11y 斷言；頁內幾何自
+           a line with the same marker exists in the companion — a human decides whether it is the same limitation
+  ruler: 1 limitation lines in the original, 0 with no lexical counterpart. This check RULES ON NOTHING — audience-fit keeps limitations in the main text, and only a reader can say whether a reworded one still says it.
+  0 FAIL, 0 WARN, 1 INFO, 0 UNDET
+
+target: self-owner-view.html
+  ruler: 0 lines carry a universal quantifier (每篇/一定/固定/所有/always…). This is a SCREEN: it never rules on whether the claim holds, only on whether it was added.
+  0 FAIL, 0 WARN, 0 INFO, 0 UNDET
+
+target: self-owner-view.html
+  [WARN ] builder-word  commit
+           appears 1x in the reader's main text; keep only if the declared audience is power_user or maintainer
+  [WARN ] builder-word  建置腳本
+           appears 1x in the reader's main text; keep only if the declared audience is power_user or maintainer
+  ruler: 2107 chars of reader main text, 0 chars of delivery apparatus (provenance + 對照); only the main text can close as FAIL
+  0 FAIL, 2 WARN, 0 INFO, 0 UNDET
+
+target: self-owner-view.html
+  ruler: 23 node labels, 0 prose strings one edit away. This is a SCREEN: a near-name can be a different thing.
+  0 FAIL, 0 WARN, 0 INFO, 0 UNDET
+
+target: self-owner-view.html
+  ruler: 0 total cells recomputed against the rows above them. SCREEN: a total row that is not a plain sum (an average, a subset) also warns.
+  0 FAIL, 0 WARN, 0 INFO, 0 UNDET
+
+target: self-owner-view.html
+  [WARN ] de-count      圖例：藍方塊是做事的步驟，琥珀是你拿到的成品，灰膠囊是你的系統；:12
+           3「的」in one sentence
+  [WARN ] de-count      方塊和工程版的對照     這張圖上  工程版的元素  省略了什麼      你:20
+           4「的」in one sentence
+  [WARN ] long-sentence 這一格代表你要畫的對象  —    ① 畫圖的做法  DA・DAR・PDT  三…:20
+           77 characters; split it so each sentence makes one claim
+  [WARN ] de-count      這一格代表你要畫的對象  —    ① 畫圖的做法  DA・DAR・PDT  三:20
+           4「的」in one sentence
+  [WARN ] long-sentence 流程圖記號的示範頁（B3→H3）是記號樣本，未單畫    工程稽核圖＋缺口報告 …:20
+           148 characters; split it so each sentence makes one claim
+  [WARN ] de-count      流程圖記號的示範頁（B3→H3）是記號樣本，未單畫    工程稽核圖＋缺口報告 :20
+           5「的」in one sentence
+  [WARN ] long-sentence 線和工程版的對照     這張圖上的線  工程版的線  怎麼對應      你的…:21
+           275 characters; split it so each sentence makes one claim
+  [WARN ] de-count      線和工程版的對照     這張圖上的線  工程版的線  怎麼對應      你的:21
+           14「的」in one sentence
+  [WARN ] long-sentence 工程版的發現與限制（五條都在，改寫自工程版缺口表）     #  種類  工程版…:22
+           94 characters; split it so each sentence makes one claim
+  [WARN ] de-count      工程版的發現與限制（五條都在，改寫自工程版缺口表）     #  種類  工程版:22
+           4「的」in one sentence
+  [WARN ] long-sentence 在兩個能力之中，只有「對讀者調校」會呼叫它（驗收腳本也會跑它）    G3  探…:22
+           59 characters; split it so each sentence makes one claim
+  [WARN ] long-sentence 只看路徑會漏掉這條線，所以探針另外掃能力的名稱    G4  範圍外  原檔裡有…:22
+           84 characters; split it so each sentence makes one claim
+  [WARN ] de-count      只看路徑會漏掉這條線，所以探針另外掃能力的名稱    G4  範圍外  原檔裡有:22
+           4「的」in one sentence
+  [WARN ] long-sentence 畫了什麼、沒畫什麼     範圍  狀態      兩個能力、繪圖程式庫、讀者版…:23
+           74 characters; split it so each sentence makes one claim
+  ruler: by class de-count 7, long-sentence 7. SCREEN: counts are determinable, readability is not (sentence cap 50).
+  0 FAIL, 14 WARN, 0 INFO, 0 UNDET
+
+# exit code: 1 (1 = WARN only, 0 FAIL; 0 = clean; FAIL lines would read [FAIL ])

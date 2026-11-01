@@ -167,8 +167,8 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 [`docs/self-portrait/`](self-portrait/) 是 README 主圖的來源，也是這套做法的完整示範（照規格 §2 的順序）：
 
 1. **來源**：`probe_refs.py` 實讀 `reference-impl/` 的 44 個文字檔，記下每一條檔案間的引用（匯入、路徑引用、skill 互相點名），寫成 `refs.json`。圖不是照資料夾結構猜的。
-2. **工程版**：`self-audit.build.mjs` 的每條線都從 `refs.json` 查出處（查不到就建置失敗），再用 `anchors.mjs` 在固定 commit 上逐一核對檔案與行號；交叉超過 3 個時程式庫拒絕建置，所以版面重排過。頁內附缺口報告與覆蓋宣告。
-3. **讀者版**：`self-owner-view.build.mjs` 由工程版的模型重畫成 8 個節點，附對照表與原樣保留的發現；用 `afgate.py` 對照原版檢查（第一輪抓到 3 處給讀者看的頁面寫了檔案路徑，已改）。
+2. **工程版**：`self-audit.build.mjs` 的每條線都從 `refs.json` 查出處（查不到就建置失敗），再用 `anchors.mjs` 在固定 commit 上逐一核對檔案與行號；程式庫的 schema 不接受宣告超過 3 個交叉，所以版面重排到實際交叉 3 個（建置時印出 route stats）。頁內附缺口報告與覆蓋宣告。
+3. **讀者版**：`self-owner-view.build.mjs` 由工程版的模型重畫成 8 個節點，開頭是來源區塊（原版連結、讀者、基準 commit、原版重生要跟著改版），附方塊與線的對照表、改寫自工程版的五條發現（種類照原樣）；用 `afgate.py` 對照原版檢查，結果 0 FAIL、只有 WARN（exit 1），全文在 `docs/self-portrait/afgate_run.txt`。
 
 重生（repo 根目錄）：
 

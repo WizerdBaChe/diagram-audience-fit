@@ -9,7 +9,7 @@ Documentation only; nothing under `reference-impl/` or `verify/` changed.
 - `docs/self-portrait/`: the repository drawn by its own method. `probe_refs.py` reads the references
   between the 44 shipped text files (`refs.json`); `self-audit.html` traces every edge to a file and
   line resolved at a pinned commit, with a gap report; `self-owner-view.html` is its reader edition
-  (afgate 0 FAIL). This pair is the README hero image.
+  (afgate 0 FAIL, WARN only; run in `afgate_run.txt`). This pair is the README hero image.
 - README rebuilt as an overview: hero image (the self-portrait pair), a picture grid of the
   capabilities (tab-cycling GIF, flowchart, line hop, owner view), a mermaid flow, a reading-route table,
   author links.

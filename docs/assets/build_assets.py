@@ -38,7 +38,7 @@ HERO_TEXT = {
         "left": "① 工程版（diagram-authoring）",
         "left_sub": "20 條線各追到檔案與行號；39 處出處在固定版本上逐一核對過才出圖 · 附缺口報告",
         "right": "② 讀者版（audience-fit）",
-        "right_sub": "同一份模型重畫成 8 個節點；發現與限制原樣保留，讀者版檢查 0 FAIL",
+        "right_sub": "同一份模型重畫成 8 個節點；五條發現全數保留、改寫成白話，讀者版檢查 0 FAIL",
         "arrow": "重畫，不加註",
     },
     "en": {
@@ -47,7 +47,7 @@ HERO_TEXT = {
         "left": "① Engineering view (diagram-authoring)",
         "left_sub": "20 edges, each traced to a file and line; 39 citations resolved at a pinned commit before rendering · gap report attached",
         "right": "② Reader view (audience-fit)",
-        "right_sub": "Same model redrawn as 8 nodes; findings and limits kept as is; reader-edition gate 0 FAIL",
+        "right_sub": "Same model redrawn as 8 nodes; all five findings kept, reworded in plain words; reader-edition gate 0 FAIL",
         "arrow": "redraw, don't annotate",
     },
 }
@@ -96,7 +96,7 @@ def build(tmp: Path) -> None:
         audit_png = tmp / "audit.png"
         shot(b, SELF_ENG, audit_png, clip={"x": 150, "y": 228, "width": 1140, "height": 646})
         owner_png = tmp / "owner.png"
-        shot(b, SELF_OWN, owner_png, clip={"x": 140, "y": 290, "width": 1160, "height": 516})
+        shot(b, SELF_OWN, owner_png, clip={"x": 140, "y": 300, "width": 1160, "height": 530})
         for key, t in HERO_TEXT.items():
             html = tmp / f"hero.{key}.html"
             html.write_text(HERO_HTML.format(audit_png=audit_png.as_uri(), owner_png=owner_png.as_uri(), **t),

@@ -18,9 +18,9 @@
 
 [看範例](#一眼看懂) · [快速開始](#快速開始交給你的-agent) · [運作流程](#運作流程) · [開發者文件](docs/DEVELOPER.md) · [給 agent 的入口](AGENTS.md) · [版本紀錄](CHANGELOG.md)
 
-<img src="docs/assets/hero.zh-TW.png" alt="這個 repo 用自己的方法畫自己。左邊是工程版：做法、程式、範例三欄，20 條線各追到檔案與行號；右邊是讀者版：同一份模型重畫成 8 個節點，從你的系統、畫圖做法、工程稽核圖，到對讀者調校、讀者版檢查、給擁有者看的圖。中間箭頭寫著「重畫，不加註」。" width="960">
+<img src="docs/assets/hero.zh-TW.png" alt="這個 repo 用自己的方法畫自己。左邊是工程版：做法、程式、範例三欄，20 條線各追到檔案與行號；右邊是讀者版：同一份模型重畫成 8 個節點，你的系統、畫圖的做法、繪圖程式庫、工程稽核圖、對讀者調校、讀者版檢查、驗收腳本、給擁有者看的圖。中間箭頭寫著「重畫，不加註」。" width="960">
 
-<sub>上圖由本 repo 自己產生：探針實讀檔案間的引用 → 工程版（每條線的出處在固定版本上逐一核對）→ 讀者版（讀者版檢查 0 FAIL）。兩頁與建置腳本在 <a href="docs/self-portrait/"><code>docs/self-portrait/</code></a>。</sub>
+<sub>上圖由本 repo 自己產生：探針實讀檔案間的引用 → 工程版（每條線的出處在固定版本上逐一核對）→ 讀者版（讀者版檢查 0 FAIL，紀錄在 <code>afgate_run.txt</code>）。兩頁與建置腳本在 <a href="docs/self-portrait/"><code>docs/self-portrait/</code></a>。</sub>
 
 </div>
 
