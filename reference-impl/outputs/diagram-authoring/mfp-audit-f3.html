@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="zh-Hant" data-page-class="diagram">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>media-fetch-pipeline 稽核視圖組 F3</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #ffffff; color: #0f172a; font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif; }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+  header .sp { flex: 1; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; }
+  .tab.on { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+  #geoStatus { font-size: 13px; padding: 4px 10px; border-radius: 8px; }
+  #geoStatus.pass { background: #dcfce7; color: #166534; }
+  #geoStatus.fail { background: #fee2e2; color: #991b1b; }
+  .pane { display: none; border-bottom: 1px solid #e2e8f0; }
+  .pane.on, body.measuring .pane { display: block; }
+  svg.dia { display: block; width: 100%; height: auto; max-height: 78vh; }
+  main { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 18px; margin: 12px 16px 4px; }
+  h2 { font-size: 15px; margin: 20px 0 8px; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { border: 1px solid #e2e8f0; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #f8fafc; }
+  .note { font-size: 12.5px; color: #475569; margin: 8px 16px; }
+  #geoDetail { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; }
+  .legendbar { font-size: 12px; color: #334155; padding: 6px 16px; border-bottom: 1px solid #e2e8f0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<marker id="mOpen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#64748b" stroke-width="1.6"/></marker>
+<marker id="mFill" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0f172a"/></marker>
+<marker id="mProto" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#0369a1" stroke-width="1.6"/></marker>
+<marker id="mEgr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker>
+<marker id="mEps" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7c3aed" stroke-width="1.6"/></marker>
+</defs></svg>
+<h1>media-fetch-pipeline 稽核視圖組 F3（main 基底＋feat/transcribe-audio 疊層·未驗收）</h1>
+<div class="legendbar">節點：藍＝模組方塊、灰膠囊＝外部、琥珀＝資料存放、綠圓角＝狀態（深框＝終態集）、紫＝上層埠、<b>橘虛框＋未驗收徽章＝branch 疊層</b>（feat/transcribe-audio，未合併、六份 UAT 未跑）。邊：灰開箭頭＝同步呼叫/匯入、黑實＝資料流、藍＝async 協議/SSE、紅＝出口（跨進程邊界）、紫虛線＝ε（崩潰恢復）、灰點虛＋✕＝契約性無依賴（D-109）。虛線大框＝layer／進程。<b>本輪全部邊路徑與 pill 佈點由 channel router 生成（S2 field half）——零手排走廊。</b></div>
+<header><button class="tab on" data-tab="l1">C4-L1 系統情境</button><button class="tab" data-tab="l2p">進程與通道</button><button class="tab" data-tab="l3i">匯入分層（量測）</button><button class="tab" data-tab="tsm">Task 生命週期狀態機</button><button class="tab" data-tab="txd">文字子系統＋branch 疊層</button><span class="sp"></span><span id="geoStatus">幾何自檢：執行中…</span></header>
+
+<section class="pane on" id="pane-l1">
+  <p class="note">問題：mfp 由哪些可執行體構成、對外碰什麼、什麼永不跨界。三條邊界不變式：不登入（D-2，Cookie 不入 carried headers）、probe 費 budget／transfer 不費（D-34）、caption 是 untrusted 資料非指令（INV-B6）。　宣告：不登入（D-2）：憑證/Cookie 不存在於任何邊——這是缺席宣告，不畫 absent 邊（無自然錨點）；GUI 檔案顯示（reveal.ts 選取檔案）併入 e1 聚合，未單畫；agent-register 寫入他人 AGENTS.md 的邊（可逆、選擇性）未畫——見缺口 G8；交叉數 0/宣告 0</p>
+  <svg class="dia" data-view="l1" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-l1 d-l1">
+    <title id="t-l1">C4-L1 系統情境</title>
+    <desc id="d-l1">問題：mfp 由哪些可執行體構成、對外碰什麼、什麼永不跨界。三條邊界不變式：不登入（D-2，Cookie 不入 carried headers）、probe 費 budget／transfer 不費（D-34）、caption 是 untrusted 資料非指令（INV-B6）。</desc>
+    <g class="scene"><path d="M224 102 L336 102" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e1" data-from="USR" data-to="APP" data-pts="224,102,336,102"  />
+<path d="M224 534 L336 534" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e2" data-from="AGT" data-to="CLI" data-pts="224,534,336,534"  />
+<path d="M424 144 L424 240" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e3" data-from="APP" data-to="SRV" data-pts="424,144,424,240"  />
+<path d="M504 240 L504 144" fill="none" stroke="#0369a1" stroke-width="1.6"  marker-end="url(#mProto)" class="edge" data-edge="e4" data-from="SRV" data-to="APP" data-pts="504,240,504,144"  />
+<path d="M336 256 L32 256 L32 56 L744 56 L744 64" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="e5" data-from="SRV" data-to="CHR" data-pts="336,256,32,256,32,56,744,56,744,64"  />
+<path d="M592 512 L672 512 L672 152 L744 152 L744 128" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="e6" data-from="CLI" data-to="CHR" data-pts="592,512,672,512,672,152,744,152,744,128"  />
+<path d="M928 104 L1008 104" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="e7" data-from="CHR" data-to="PLT" data-pts="928,104,1008,104"  />
+<path d="M592 296 L656 296 L656 152 L1032 152 L1032 208" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="e8" data-from="SRV" data-to="CDN" data-pts="592,296,656,296,656,152,1032,152,1032,208"  />
+<path d="M592 528 L936 528 L936 240 L1008 240" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="e9" data-from="CLI" data-to="CDN" data-pts="592,528,936,528,936,240,1008,240"  />
+<path d="M592 280 L600 280 L600 152 L744 152 L744 208" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e10" data-from="SRV" data-to="BIN" data-pts="592,280,600,280,600,152,744,152,744,208"  />
+<path d="M576 576 L576 640 L936 640 L936 248 L928 248" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e11" data-from="CLI" data-to="BIN" data-pts="576,576,576,640,936,640,936,248,928,248"  />
+<path d="M336 320 L32 320 L32 640 L744 640 L744 632" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e12" data-from="SRV" data-to="VENV" data-pts="336,320,32,320,32,640,744,640,744,632"  />
+<path d="M592 552 L744 552 L744 560" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e13" data-from="CLI" data-to="VENV" data-pts="592,552,744,552,744,560"  />
+<path d="M928 592 L936 592 L936 552 L1026 552 L1026 512" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="e14" data-from="VENV" data-to="HUB" data-pts="928,592,936,592,936,552,1026,552,1026,512"  />
+<path d="M904 632 L904 640 L1024 640 L1024 616" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e15" data-from="VENV" data-to="MH" data-pts="904,632,904,640,1024,640,1024,616"  />
+<path d="M576 240 L576 152 L1256 152 L1256 360 L1232 360" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e16" data-from="SRV" data-to="OUT" data-pts="576,240,576,152,1256,152,1256,360,1232,360"  />
+<path d="M592 536 L936 536 L936 384 L1008 384" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e17" data-from="CLI" data-to="OUT" data-pts="592,536,936,536,936,384,1008,384"  />
+<circle class="junction" cx="656" cy="152" r="3.5" fill="#b91c1c"/>
+<circle class="junction" cx="1032" cy="152" r="3.5" fill="#b91c1c"/>
+<circle class="junction" cx="936" cy="528" r="3.5" fill="#b91c1c"/>
+<circle class="junction" cx="600" cy="152" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="744" cy="152" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="936" cy="248" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="936" cy="536" r="3.5" fill="#0f172a"/>
+<circle class="junction" cx="936" cy="384" r="3.5" fill="#0f172a"/>
+<metadata data-declared-crossings="0"></metadata>
+<g class="node" data-id="USR" data-x="48" data-y="64" data-w="176" data-h="56" data-kind="ext"><rect x="48" y="64" width="176" height="56" rx="28" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="136" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">使用者</text></g>
+<g class="node" data-id="AGT" data-x="48" data-y="496" data-w="176" data-h="56" data-kind="ext"><rect x="48" y="496" width="176" height="56" rx="28" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="136" y="516" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">AI agent（讀 SKILL.md）</text></g>
+<g class="node" data-id="APP" data-x="336" data-y="64" data-w="256" data-h="80" data-kind="block"><rect x="336" y="64" width="256" height="80" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="348" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">桌面應用 Electron＋React</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="348" y="105">gui/ FSD 六層＋electron/</tspan></text></g>
+<g class="node" data-id="SRV" data-x="336" data-y="240" data-w="256" data-h="96" data-kind="block"><rect x="336" y="240" width="256" height="96" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="348" y="260" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">mfp-sidecar.exe serve</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="348" y="281">/v1 loopback＋雙 worker 線</tspan></text></g>
+<g class="node" data-id="CLI" data-x="336" data-y="496" data-w="256" data-h="80" data-kind="block"><rect x="336" y="496" width="256" height="80" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="348" y="516" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">mfp.exe CLI</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="348" y="537">verbs ×15，stdout＝機器</tspan></text></g>
+<g class="node" data-id="CHR" data-x="720" data-y="64" data-w="208" data-h="64" data-kind="ext"><rect x="720" y="64" width="208" height="64" rx="32" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="824" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">Chrome（真瀏覽器）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="824" y="105">取 HTML，不渲染</tspan></text></g>
+<g class="node" data-id="PLT" data-x="1008" data-y="64" data-w="224" data-h="72" data-kind="ext"><rect x="1008" y="64" width="224" height="72" rx="36" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="1120" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">平台頁面</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="1120" y="105">IG/Threads/YT/X/Bili</tspan></text></g>
+<g class="node" data-id="BIN" data-x="720" data-y="208" data-w="208" data-h="64" data-kind="ext"><rect x="720" y="208" width="208" height="64" rx="32" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="824" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">yt-dlp／gallery-dl／ffmpeg</text></g>
+<g class="node" data-id="CDN" data-x="1008" data-y="208" data-w="224" data-h="64" data-kind="ext"><rect x="1008" y="208" width="224" height="64" rx="32" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="1120" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">媒體 CDN</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="1120" y="249">fbcdn/googlevideo/Bili 鏡像</tspan></text></g>
+<g class="node" data-id="OUT" data-x="1008" data-y="344" data-w="224" data-h="64" data-kind="store"><rect x="1008" y="344" width="224" height="64" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="1020" y="364" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">輸出根 output root</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="1020" y="385">post dirs＋run folders</tspan></text></g>
+<g class="node" data-id="HUB" data-x="1008" data-y="456" data-w="224" data-h="56" data-kind="ext"><rect x="1008" y="456" width="224" height="56" rx="28" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="1120" y="476" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">Hugging Face Hub</text></g>
+<g class="node" data-id="VENV" data-x="720" data-y="560" data-w="208" data-h="72" data-kind="ext"><rect x="720" y="560" width="208" height="72" rx="36" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="824" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">引擎環境 .asr-venv</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="824" y="601">faster-whisper/CTranslate2</tspan></text></g>
+<g class="node" data-id="MH" data-x="1008" data-y="560" data-w="224" data-h="56" data-kind="store"><rect x="1008" y="560" width="224" height="56" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="1020" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">模型資料夾 model home</text></g>
+<rect class="pillbg" x="263" y="93" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="280" y="106" font-size="11" fill="#334155" text-anchor="middle">操作</text>
+<rect class="pillbg" x="229.5" y="525" width="101" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="280" y="538" font-size="11" fill="#334155" text-anchor="middle">verbs（--json）</text>
+<rect class="pillbg" x="388" y="183" width="72" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="424" y="196" font-size="11" fill="#334155" text-anchor="middle">spawn＋/v1</text>
+<rect class="pillbg" x="474.5" y="183" width="59" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="504" y="196" font-size="11" fill="#334155" text-anchor="middle">SSE 事件</text>
+<rect class="pillbg" x="116.5" y="247" width="135" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="184" y="260" font-size="11" fill="#334155" text-anchor="middle">probe（共享 session）</text>
+<rect class="pillbg" x="628.5" y="323" width="87" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="672" y="336" font-size="11" fill="#334155" text-anchor="middle">probe（單次）</text>
+<rect class="pillbg" x="902" y="95" width="132" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="968" y="108" font-size="11" fill="#334155" text-anchor="middle">載貼文頁（費 budget）</text>
+<rect class="pillbg" x="765.5" y="143" width="157" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="844" y="156" font-size="11" fill="#334155" text-anchor="middle">httpx 傳輸（不費 budget）</text>
+<rect class="pillbg" x="747" y="519" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="764" y="532" font-size="11" fill="#334155" text-anchor="middle">傳輸</text>
+<rect class="pillbg" x="600.5" y="143" width="143" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="672" y="156" font-size="11" fill="#334155" text-anchor="middle">spawn（5 spawn sites）</text>
+<rect class="pillbg" x="914.5" y="435" width="43" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="936" y="448" font-size="11" fill="#334155" text-anchor="middle">spawn</text>
+<rect class="pillbg" x="323.5" y="631" width="129" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="388" y="644" font-size="11" fill="#334155" text-anchor="middle">辨識/翻譯 stdio JSON</text>
+<rect class="pillbg" x="631.5" y="543" width="73" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="668" y="556" font-size="11" fill="#334155" text-anchor="middle">stdio JSON</text>
+<rect class="pillbg" x="900.5" y="543" width="107" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="954" y="556" font-size="11" fill="#334155" text-anchor="middle">fetch_model 下載</text>
+<rect class="pillbg" x="909.5" y="631" width="109" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="964" y="644" font-size="11" fill="#334155" text-anchor="middle">載模型（依 kind）</text>
+<rect class="pillbg" x="990" y="143" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1018" y="156" font-size="11" fill="#334155" text-anchor="middle">檔案落地</text>
+<rect class="pillbg" x="788" y="527" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="816" y="540" font-size="11" fill="#334155" text-anchor="middle">檔案落地</text></g>
+  </svg>
+</section>
+
+<section class="pane" id="pane-l2p">
+  <p class="note">問題：哪些進程在跑、誰 spawn 誰、queue 為何不用鎖。答案的核心是 dispatch seam：queue 只有 owner loop 一個寫者，worker 做 IO 後把結果 post 回來（D-42）；probe lane 受 budget governor 節奏、transfer lane 一次一傳輸（D-36）——D-62 之前兩者同線，下載要等別列的解析。　宣告：CLI 對外 spawn 面（Chrome/yt-dlp/ffmpeg/引擎）與 serve 相同，V1 已畫——本圖不重複；events.stale 看門（client 端 ping watchdog）屬 GUI 內部，未畫；交叉數 0/宣告 0</p>
+  <svg class="dia" data-view="l2p" viewBox="0 0 1280 736" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-l2p d-l2p">
+    <title id="t-l2p">進程與通道</title>
+    <desc id="d-l2p">問題：哪些進程在跑、誰 spawn 誰、queue 為何不用鎖。答案的核心是 dispatch seam：queue 只有 owner loop 一個寫者，worker 做 IO 後把結果 post 回來（D-42）；probe lane 受 budget governor 節奏、transfer lane 一次一傳輸（D-36）——D-62 之前兩者同線，下載要等別列的解析。</desc>
+    <g class="scene"><rect x="48" y="64" width="368" height="256" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="CE" data-x="48" data-y="64" data-w="368" data-h="256"/>
+<text class="lbl" x="62" y="86" font-size="12" font-weight="600" fill="#475569">桌面應用（Electron 兩進程）</text>
+<rect x="488" y="64" width="744" height="384" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="CS" data-x="488" data-y="64" data-w="744" data-h="384"/>
+<text class="lbl" x="502" y="86" font-size="12" font-weight="600" fill="#475569">mfp-sidecar.exe serve（單一 queue 寫者）</text>
+<path d="M232 208 L232 168" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p1" data-from="RND" data-to="EM" data-pts="232,208,232,168"  />
+<path d="M392 152 L488 152" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p2" data-from="EM" data-to="CS" data-pts="392,152,488,152"  />
+<path d="M392 240 L528 240 L528 160" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p3" data-from="RND" data-to="GUARD" data-pts="392,240,528,240,528,160"  />
+<path d="M680 136 L720 136" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p4" data-from="GUARD" data-to="API" data-pts="680,136,720,136"  />
+<path d="M1008 160 L1008 296 L376 296 L376 288" fill="none" stroke="#0369a1" stroke-width="1.6"  marker-end="url(#mProto)" class="edge" data-edge="p5" data-from="EVB" data-to="RND" data-pts="1008,160,1008,296,376,296,376,288"  />
+<path d="M784 168 L784 200 L840 200 L840 224" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p6" data-from="API" data-to="QUE" data-pts="784,168,784,200,840,200,840,224"  />
+<path d="M704 344 L704 296 L800 296 L800 288" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="p7" data-from="WKP" data-to="QUE" data-pts="704,344,704,296,800,296,800,288"  />
+<path d="M840 344 L840 296 L872 296 L872 288" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="p8" data-from="WKT" data-to="QUE" data-pts="840,344,840,296,872,296,872,288"  />
+<path d="M584 424 L584 496 L616 496 L616 560" fill="none" stroke="#b91c1c" stroke-width="1.6"  marker-end="url(#mEgr)" class="edge" data-edge="p9" data-from="WKP" data-to="CHR2" data-pts="584,424,584,496,616,496,616,560"  />
+<path d="M648 424 L648 496 L720 496 L720 560" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p10" data-from="WKP" data-to="YD2" data-pts="648,424,648,496,720,496,720,560"  />
+<path d="M944 424 L944 496 L928 496 L928 560" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p11" data-from="WKT" data-to="FF2" data-pts="944,424,944,496,928,496,928,560"  />
+<path d="M960 408 L1256 408 L1256 640 L400 640 L400 560" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="p12" data-from="WKT" data-to="OUT2" data-pts="960,408,1256,408,1256,640,400,640,400,560"  />
+<path d="M936 96 L936 88 L1256 88 L1256 360 L1208 360" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p13" data-from="API" data-to="SJ" data-pts="936,96,936,88,1256,88,1256,360,1208,360"  />
+<path d="M1008 408 L1008 488 L960 488 L960 560" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p14" data-from="SJ" data-to="FF2" data-pts="1008,408,1008,488,960,488,960,560"  />
+<path d="M936 96 L936 56 L1256 56 L1256 584 L1232 584" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="p15" data-from="API" data-to="PY2" data-pts="936,96,936,56,1256,56,1256,584,1232,584"  />
+<path d="M232 440 L232 496" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="p16" data-from="CLI2" data-to="OUT2" data-pts="232,440,232,496"  />
+<circle class="junction" cx="936" cy="88" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="1256" cy="88" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="1256" cy="360" r="3.5" fill="#64748b"/>
+<metadata data-declared-crossings="0"></metadata>
+<g class="node" data-id="EM" data-x="72" data-y="96" data-w="320" data-h="72" data-kind="block"><rect x="72" y="96" width="320" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">electron main.ts</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="84" y="137">spawn＋containment/focus/reveal</tspan></text></g>
+<g class="node" data-id="RND" data-x="72" data-y="208" data-w="320" data-h="80" data-kind="block"><rect x="72" y="208" width="320" height="80" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">renderer（React FSD）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="84" y="249">app/pages/widgets/features/entities/shared</tspan></text></g>
+<g class="node" data-id="GUARD" data-x="512" data-y="96" data-w="168" data-h="64" data-kind="port"><rect x="512" y="96" width="168" height="64" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/><text class="lbl" x="524" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">loopback guard</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="524" y="137">Host/Origin/Sec-Fetch-Site</tspan></text></g>
+<g class="node" data-id="API" data-x="720" data-y="96" data-w="232" data-h="72" data-kind="block"><rect x="720" y="96" width="232" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="732" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">server.app /v1</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="732" y="137">routes ×5＋platform_gate</tspan></text></g>
+<g class="node" data-id="EVB" data-x="992" data-y="96" data-w="216" data-h="64" data-kind="block"><rect x="992" y="96" width="216" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="1004" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">EventBroadcaster</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="1004" y="137">coalesce_key：意義不節流</tspan></text></g>
+<g class="node" data-id="QUE" data-x="720" data-y="224" data-w="232" data-h="64" data-kind="store"><rect x="720" y="224" width="232" height="64" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="732" y="244" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">queue（tasks）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="732" y="265">owner loop 單一寫者</tspan></text></g>
+<g class="node" data-id="WKP" data-x="512" data-y="344" data-w="208" data-h="80" data-kind="block"><rect x="512" y="344" width="208" height="80" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="524" y="364" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">probe lane worker</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="524" y="385">budget governor 節奏</tspan></text></g>
+<g class="node" data-id="WKT" data-x="752" data-y="344" data-w="208" data-h="80" data-kind="block"><rect x="752" y="344" width="208" height="80" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="764" y="364" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">transfer lane worker</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="764" y="385">一次一傳輸（D-36）</tspan></text></g>
+<g class="node" data-id="SJ" data-x="992" data-y="344" data-w="216" data-h="64" data-kind="block"><rect x="992" y="344" width="216" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="1004" y="364" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">stack_jobs（in-mem）</text></g>
+<g class="node" data-id="CLI2" data-x="48" data-y="376" data-w="368" data-h="64" data-kind="block"><rect x="48" y="376" width="368" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="396" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">mfp.exe CLI（同核心、無 queue）</text></g>
+<g class="node" data-id="OUT2" data-x="48" data-y="496" data-w="368" data-h="64" data-kind="store"><rect x="48" y="496" width="368" height="64" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="60" y="516" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">輸出根</text></g>
+<g class="node" data-id="CHR2" data-x="488" data-y="560" data-w="176" data-h="64" data-kind="ext"><rect x="488" y="560" width="176" height="64" rx="32" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="576" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">Chrome</text></g>
+<g class="node" data-id="YD2" data-x="696" data-y="560" data-w="144" data-h="64" data-kind="ext"><rect x="696" y="560" width="144" height="64" rx="32" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="768" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">yt-dlp</text></g>
+<g class="node" data-id="FF2" data-x="872" data-y="560" data-w="144" data-h="64" data-kind="ext"><rect x="872" y="560" width="144" height="64" rx="32" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="944" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">ffmpeg</text></g>
+<g class="node" data-id="PY2" data-x="1048" data-y="560" data-w="184" data-h="72" data-kind="ext"><rect x="1048" y="560" width="184" height="72" rx="36" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="1140" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">引擎環境 python</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="1140" y="601">stdio JSON，腳本 ×3</tspan></text></g>
+<rect class="pillbg" x="169.5" y="179" width="125" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="232" y="192" font-size="11" fill="#334155" text-anchor="middle">IPC（contracts.ts）</text>
+<rect class="pillbg" x="324.5" y="143" width="173" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="411" y="156" font-size="11" fill="#334155" text-anchor="middle">spawn serve＋stdin EOF 看門</text>
+<rect class="pillbg" x="429.5" y="231" width="61" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="460" y="244" font-size="11" fill="#334155" text-anchor="middle">HTTP /v1</text>
+<rect class="pillbg" x="672" y="143" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="700" y="156" font-size="11" fill="#334155" text-anchor="middle">驗過才進</text>
+<rect class="pillbg" x="543" y="287" width="108" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="597" y="300" font-size="11" fill="#334155" text-anchor="middle">SSE（進度可節流）</text>
+<rect class="pillbg" x="744.5" y="191" width="135" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="812" y="204" font-size="11" fill="#334155" text-anchor="middle">ACTIONS：intent→轉移</text>
+<rect class="pillbg" x="707.5" y="287" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="752" y="300" font-size="11" fill="#334155" text-anchor="middle">dispatch 回寫</text>
+<rect class="pillbg" x="795.5" y="311" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="840" y="324" font-size="11" fill="#334155" text-anchor="middle">dispatch 回寫</text>
+<rect class="pillbg" x="524.5" y="451" width="119" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="584" y="464" font-size="11" fill="#334155" text-anchor="middle">共享 session probe</text>
+<rect class="pillbg" x="578.5" y="429" width="139" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="648" y="442" font-size="11" fill="#334155" text-anchor="middle">rung（每 rung 費一格）</text>
+<rect class="pillbg" x="886" y="451" width="116" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="944" y="464" font-size="11" fill="#334155" text-anchor="middle">mux（.v/.a→成品）</text>
+<rect class="pillbg" x="771" y="631" width="114" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="828" y="644" font-size="11" fill="#334155" text-anchor="middle">.part→os.replace</text>
+<rect class="pillbg" x="1176.5" y="351" width="97" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1225" y="364" font-size="11" fill="#334155" text-anchor="middle">/v1/stack jobs</text>
+<rect class="pillbg" x="969.5" y="427" width="77" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1008" y="440" font-size="11" fill="#334155" text-anchor="middle">抽幀/libass</text>
+<rect class="pillbg" x="1046.5" y="47" width="99" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1096" y="60" font-size="11" fill="#334155" text-anchor="middle">辨識/翻譯 spawn</text>
+<rect class="pillbg" x="215" y="459" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="232" y="472" font-size="11" fill="#334155" text-anchor="middle">直寫</text></g>
+  </svg>
+</section>
+
+<section class="pane" id="pane-l3i">
+  <p class="note">問題：52 個 Python 模組的依賴是否全部指向葉、有無反向邊。答案由本輪 AST 探針量測（非閱讀直覺）：module-scope cycle 0、core→server/cli 邊 0；葉的 fan-in：errors 28／models 20／config 14。橘虛框＝branch-only 模組（feat/transcribe-audio）。　宣告：全樹→葉（errors/models/config）的邊以 fan-in 數字承載，不畫（20+ 條平行邊零資訊）；文字子系統內其餘邊見 V5（一題一圖）；core→server/cli 反向邊：量測 0（IP）——與 HR §零 一致；交叉數 0/宣告 0</p>
+  <svg class="dia" data-view="l3i" viewBox="0 0 1280 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-l3i d-l3i">
+    <title id="t-l3i">匯入分層（量測）</title>
+    <desc id="d-l3i">問題：52 個 Python 模組的依賴是否全部指向葉、有無反向邊。答案由本輪 AST 探針量測（非閱讀直覺）：module-scope cycle 0、core→server/cli 邊 0；葉的 fan-in：errors 28／models 20／config 14。橘虛框＝branch-only 模組（feat/transcribe-audio）。</desc>
+    <g class="scene"><rect x="48" y="64" width="1184" height="88" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="LE" data-x="48" data-y="64" data-w="1184" data-h="88"/>
+<text class="lbl" x="62" y="86" font-size="12" font-weight="600" fill="#475569">入口層</text>
+<rect x="48" y="184" width="1184" height="96" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="LS2" data-x="48" data-y="184" data-w="1184" data-h="96"/>
+<text class="lbl" x="62" y="206" font-size="12" font-weight="600" fill="#475569">server 層</text>
+<rect x="48" y="312" width="560" height="80" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="LC" data-x="48" data-y="312" data-w="560" data-h="80"/>
+<text class="lbl" x="62" y="334" font-size="12" font-weight="600" fill="#475569">協調層</text>
+<rect x="632" y="312" width="600" height="80" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="LA" data-x="632" data-y="312" data-w="600" data-h="80"/>
+<text class="lbl" x="646" y="334" font-size="12" font-weight="600" fill="#475569">adapters</text>
+<rect x="48" y="424" width="1184" height="80" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="LD" data-x="48" data-y="424" data-w="1184" data-h="80"/>
+<text class="lbl" x="62" y="446" font-size="12" font-weight="600" fill="#475569">領域服務</text>
+<rect x="48" y="536" width="1184" height="144" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="LT" data-x="48" data-y="536" data-w="1184" data-h="144"/>
+<text class="lbl" x="62" y="558" font-size="12" font-weight="600" fill="#475569">文字子系統（Phase X–Z3 弧）</text>
+<path d="M72 128 L40 128 L40 440 L48 440" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i1" data-from="CLI3" data-to="LD" data-pts="72,128,40,128,40,440,48,440"  />
+<path d="M280 88 L280 80 L16 80 L16 552 L48 552" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i2" data-from="CLI3" data-to="LT" data-pts="280,88,280,80,16,80,16,552,48,552"  />
+<path d="M536 144 L536 184" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i3" data-from="SRV3" data-to="LS2" data-pts="536,144,536,184"  />
+<path d="M280 240 L312 240" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i4" data-from="APP3" data-to="RTS3" data-pts="280,240,312,240"  />
+<path d="M520 272 L520 280 L1240 280 L1240 552 L1232 552" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i5" data-from="RTS3" data-to="LT" data-pts="520,272,520,280,1240,280,1240,552,1232,552"  />
+<path d="M280 256 L304 256 L304 352 L328 352" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i6" data-from="APP3" data-to="QUE3" data-pts="280,256,304,256,304,352,328,352"  />
+<path d="M584 208 L584 200 L280 200 L280 336" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i7" data-from="WKR3" data-to="PIP3" data-pts="584,208,584,200,280,200,280,336"  />
+<path d="M584 272 L584 280 L472 280 L472 336" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="i8" data-from="WKR3" data-to="QUE3" data-pts="584,272,584,280,472,280,472,336"  />
+<path d="M280 392 L280 400 L648 400 L648 392" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i9" data-from="PIP3" data-to="LA" data-pts="280,392,280,400,648,400,648,392"  />
+<path d="M72 376 L64 376 L64 512 L184 512 L184 504" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i10" data-from="PIP3" data-to="LD" data-pts="72,376,64,376,64,512,184,512,184,504"  />
+<path d="M672 392 L672 408 L928 408 L928 424" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i11" data-from="BAS3" data-to="LD" data-pts="672,392,672,408,928,408,928,424"  />
+<path d="M288 592 L248 592" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i12" data-from="TR3" data-to="ST3" data-pts="288,592,248,592"  />
+<path d="M288 656 L232 656 L232 616" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i13" data-from="TRL3" data-to="ST3" data-pts="288,656,232,656,232,616"  />
+<path d="M1040 256 L1240 256 L1240 512 L232 512 L232 560" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="i14" data-from="EVS3" data-to="ST3" data-pts="1040,256,1240,256,1240,512,232,512,232,560"  />
+<metadata data-declared-crossings="0"></metadata>
+<g class="node" data-id="CLI3" data-x="72" data-y="88" data-w="224" data-h="56" data-kind="block"><rect x="72" y="88" width="224" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="108" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">cli.py</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="84" y="129">deferred 匯入 ×13</tspan></text></g>
+<g class="node" data-id="SRV3" data-x="328" data-y="88" data-w="224" data-h="56" data-kind="block"><rect x="328" y="88" width="224" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="340" y="108" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">serve.py＋sidecar.py</text></g>
+<g class="node" data-id="APP3" data-x="72" data-y="208" data-w="208" data-h="64" data-kind="block"><rect x="72" y="208" width="208" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">server.app</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="84" y="249">fan-out 11</tspan></text></g>
+<g class="node" data-id="RTS3" data-x="312" data-y="208" data-w="224" data-h="64" data-kind="block"><rect x="312" y="208" width="224" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="324" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">routes ×5＋platform_gate</text></g>
+<g class="node" data-id="WKR3" data-x="568" data-y="208" data-w="208" data-h="64" data-kind="block"><rect x="568" y="208" width="208" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="580" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">server.worker</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="580" y="249">fan-out 9</tspan></text></g>
+<g class="node" data-id="EVS3" data-x="808" data-y="208" data-w="232" data-h="64" data-kind="block"><rect x="808" y="208" width="232" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="820" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">events＋security＋stack_jobs</text></g>
+<g class="node" data-id="PIP3" data-x="72" data-y="336" data-w="224" data-h="56" data-kind="block"><rect x="72" y="336" width="224" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="356" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">pipeline</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="84" y="377">fan-out 8</tspan></text></g>
+<g class="node" data-id="QUE3" data-x="328" data-y="336" data-w="224" data-h="56" data-kind="block"><rect x="328" y="336" width="224" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="340" y="356" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">queue（狀態機）</text></g>
+<g class="node" data-id="BAS3" data-x="656" data-y="336" data-w="160" data-h="56" data-kind="block"><rect x="656" y="336" width="160" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="668" y="356" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">base</text></g>
+<g class="node" data-id="INS3" data-x="832" data-y="336" data-w="192" data-h="56" data-kind="block"><rect x="832" y="336" width="192" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="844" y="356" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">instagram ×5</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="844" y="377">fan-out 11</tspan></text></g>
+<g class="node" data-id="YTD3" data-x="1048" data-y="336" data-w="160" data-h="56" data-kind="block"><rect x="1048" y="336" width="160" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="1060" y="356" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">ytdlp</text></g>
+<g class="node" data-id="DL3" data-x="72" data-y="448" data-w="192" data-h="56" data-kind="block"><rect x="72" y="448" width="192" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="468" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">download</text></g>
+<g class="node" data-id="BUD3" data-x="288" data-y="448" data-w="168" data-h="56" data-kind="block"><rect x="288" y="448" width="168" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="300" y="468" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">budget＋policy</text></g>
+<g class="node" data-id="INP3" data-x="480" data-y="448" data-w="192" data-h="56" data-kind="block"><rect x="480" y="448" width="192" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="468" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">inputs＋naming</text></g>
+<g class="node" data-id="DOC3" data-x="696" data-y="448" data-w="232" data-h="56" data-kind="block"><rect x="696" y="448" width="232" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="708" y="468" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">doctor＋capabilities</text></g>
+<g class="node" data-id="MISC3" data-x="952" data-y="448" data-w="256" data-h="56" data-kind="block"><rect x="952" y="448" width="256" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="964" y="468" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">logs／redact／capture／agent…</text></g>
+<g class="node" data-id="ST3" data-x="72" data-y="560" data-w="176" data-h="56" data-kind="block"><rect x="72" y="560" width="176" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="84" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">stack</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="84" y="601">fan-in 4＝拆分觸發</tspan></text></g>
+<g class="node" data-id="TR3" data-x="288" data-y="560" data-w="176" data-h="56" data-kind="block"><rect x="288" y="560" width="176" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="300" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">transcript</text></g>
+<g class="node" data-id="ASR3" data-x="504" data-y="560" data-w="176" data-h="56" data-kind="block"><rect x="504" y="560" width="176" height="56" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="516" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">asr</text><text class="lbl" x="672" y="608" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="ASRM3" data-x="720" data-y="560" data-w="176" data-h="56" data-kind="block"><rect x="720" y="560" width="176" height="56" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="732" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">asr_models</text><text class="lbl" x="888" y="608" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="QUAL3" data-x="936" data-y="560" data-w="176" data-h="56" data-kind="block"><rect x="936" y="560" width="176" height="56" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="948" y="580" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">quality（純）</text><text class="lbl" x="1104" y="608" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="TRL3" data-x="288" data-y="640" data-w="176" data-h="48" data-kind="block"><rect x="288" y="640" width="176" height="48" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="300" y="660" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">translate</text><text class="lbl" x="456" y="680" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="COR3" data-x="504" data-y="640" data-w="176" data-h="48" data-kind="block"><rect x="504" y="640" width="176" height="48" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="516" y="660" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">correct</text><text class="lbl" x="672" y="680" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="RUNS3" data-x="720" data-y="640" data-w="176" data-h="48" data-kind="block"><rect x="720" y="640" width="176" height="48" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="732" y="660" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">runs</text><text class="lbl" x="888" y="680" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="ERR3" data-x="200" data-y="704" data-w="256" data-h="48" data-kind="block"><rect x="200" y="704" width="256" height="48" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="212" y="724" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">errors（fan-in 28）</text></g>
+<g class="node" data-id="MOD3" data-x="536" data-y="704" data-w="256" data-h="48" data-kind="block"><rect x="536" y="704" width="256" height="48" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="548" y="724" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">models（fan-in 20）</text></g>
+<g class="node" data-id="CFG3" data-x="872" data-y="704" data-w="256" data-h="48" data-kind="block"><rect x="872" y="704" width="256" height="48" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="884" y="724" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">config（fan-in 14）</text></g>
+<rect class="pillbg" x="12.5" y="275" width="79" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="52" y="288" font-size="11" fill="#334155" text-anchor="middle">deferred ×8</text>
+<rect class="pillbg" x="101" y="71" width="94" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="148" y="84" font-size="11" fill="#334155" text-anchor="middle">verbs→文字 ×6</text>
+<rect class="pillbg" x="478.5" y="155" width="115" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="536" y="168" font-size="11" fill="#334155" text-anchor="middle">app/worker/events</text>
+<rect class="pillbg" x="263.5" y="231" width="55" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="291" y="244" font-size="11" fill="#334155" text-anchor="middle">include</text>
+<rect class="pillbg" x="789" y="283" width="182" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="880" y="296" font-size="11" fill="#334155" text-anchor="middle">stack/transcript/asr/correct</text>
+<rect class="pillbg" x="276.5" y="295" width="55" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="304" y="308" font-size="11" fill="#334155" text-anchor="middle">actions</text>
+<rect class="pillbg" x="427.5" y="299" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="472" y="312" font-size="11" fill="#334155" text-anchor="middle">dispatch 回寫</text>
+<rect class="pillbg" x="241" y="387" width="78" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="280" y="400" font-size="11" fill="#334155" text-anchor="middle">strategy 鏈</text>
+<rect class="pillbg" x="51" y="515" width="146" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="124" y="528" font-size="11" fill="#334155" text-anchor="middle">download/budget/policy</text>
+<rect class="pillbg" x="214.5" y="583" width="83" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="256" y="596" font-size="11" fill="#334155" text-anchor="middle">caption 機械</text>
+<rect class="pillbg" x="209" y="647" width="86" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="252" y="660" font-size="11" fill="#334155" text-anchor="middle">第 4 個消費者</text>
+<rect class="pillbg" x="1083" y="247" width="114" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1140" y="260" font-size="11" fill="#334155" text-anchor="middle">stack_jobs→stack</text></g>
+  </svg>
+</section>
+
+<section class="pane" id="pane-tsm">
+  <p class="note">問題：一個任務可處於哪些狀態、崩潰後落在哪。LEGAL_TRANSITIONS 是白名單（不在表上＝拒絕）；完整性由下方轉移矩陣承載——本圖略畫 7 條 →CANCELLED 邊（宣告見矩陣），紫虛線＝RESTART_RECOVERY（崩潰恢復，非動作）。INV-5：COMPLETED 唯一出路是 retry 且必重 probe。　宣告：7 條 →CANCELLED 邊（自 PARSED/PROBING/READY/DOWNLOADING/PAUSED/EXPIRED/FAILED）略畫——完整集合見轉移矩陣；CANCELLED 的入邊畫齊會吃掉整張圖的走廊；RESTART_RECOVERY 兩列（PROBING→PAUSED、DOWNLOADING→PAUSED）每列都是 LEGAL 邊——test_queue.py 斷言（QP:L132）；交叉數 ≤2/宣告 2</p>
+  <svg class="dia" data-view="tsm" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-tsm d-tsm">
+    <title id="t-tsm">Task 生命週期狀態機</title>
+    <desc id="d-tsm">問題：一個任務可處於哪些狀態、崩潰後落在哪。LEGAL_TRANSITIONS 是白名單（不在表上＝拒絕）；完整性由下方轉移矩陣承載——本圖略畫 7 條 →CANCELLED 邊（宣告見矩陣），紫虛線＝RESTART_RECOVERY（崩潰恢復，非動作）。INV-5：COMPLETED 唯一出路是 retry 且必重 probe。</desc>
+    <g class="scene"><path d="M240 304 L328 304 L328 216" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t1" data-from="PARSED" data-to="PROBING" data-pts="240,304,328,304,328,216"  />
+<path d="M224 344 L224 480 L312 480" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t2" data-from="PARSED" data-to="FAILED" data-pts="224,344,224,480,312,480"  />
+<path d="M480 184 L552 184" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t3" data-from="PROBING" data-to="READY" data-pts="480,184,552,184"  />
+<path d="M400 216 L400 344 L408 344 L408 464" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t4" data-from="PROBING" data-to="FAILED" data-pts="400,216,400,344,408,344,408,464"  />
+<path d="M464 216 L464 272 L651 272 A5 5 0 0 1 661 272 L808 272 L808 320" fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#mEps)" class="edge" data-edge="t5" data-from="PROBING" data-to="PAUSED" data-pts="464,216,464,272,808,272,808,320"  />
+<path d="M720 192 L760 192 L760 184 L792 184" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t6" data-from="READY" data-to="DOWNLOADING" data-pts="720,192,760,192,760,184,792,184"  />
+<path d="M656 216 L656 320" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t7" data-from="READY" data-to="EXPIRED" data-pts="656,216,656,320"  />
+<path d="M552 192 L480 192" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t8" data-from="READY" data-to="PROBING" data-pts="552,192,480,192"  />
+<path d="M568 160 L568 152 L64 152 L64 480 L312 480" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t9" data-from="READY" data-to="FAILED" data-pts="568,160,568,152,64,152,64,480,312,480"  />
+<path d="M960 192 L1000 192 L1000 184 L1040 184" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t10" data-from="DOWNLOADING" data-to="COMPLETED" data-pts="960,192,1000,192,1000,184,1040,184"  />
+<path d="M856 216 L856 320" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t11" data-from="DOWNLOADING" data-to="PAUSED" data-pts="856,216,856,320"  />
+<path d="M960 200 L968 200 L968 384 L464 384 L464 464" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t12" data-from="DOWNLOADING" data-to="FAILED" data-pts="960,200,968,200,968,384,464,384,464,464"  />
+<path d="M896 320 L896 216" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t13" data-from="PAUSED" data-to="DOWNLOADING" data-pts="896,320,896,216"  />
+<path d="M792 352 L720 352" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t14" data-from="PAUSED" data-to="EXPIRED" data-pts="792,352,720,352"  />
+<path d="M808 376 L808 384 L648 384 L648 496 L480 496" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t15" data-from="PAUSED" data-to="FAILED" data-pts="808,376,808,384,648,384,648,496,480,496"  />
+<path d="M552 336 L432 336 L432 216" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t16" data-from="EXPIRED" data-to="PROBING" data-pts="552,336,432,336,432,216"  />
+<path d="M1056 160 L1056 152 L464 152 L464 160" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t17" data-from="COMPLETED" data-to="PROBING" data-pts="1056,160,1056,152,464,152,464,160"  />
+<path d="M384 464 L384 344 L360 344 L360 216" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t18" data-from="FAILED" data-to="PROBING" data-pts="384,464,384,344,360,344,360,216"  />
+<path d="M808 520 L808 528 L64 528 L64 200 L312 200" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="t19" data-from="CANCELLED" data-to="PROBING" data-pts="808,520,808,528,64,528,64,200,312,200"  />
+<circle class="junction" cx="224" cy="480" r="3.5" fill="#0f172a"/>
+<circle class="junction" cx="808" cy="384" r="3.5" fill="#0f172a"/>
+<circle class="junction" cx="648" cy="384" r="3.5" fill="#0f172a"/>
+<metadata data-declared-crossings="2"></metadata>
+<circle cx="24" cy="316" r="7" fill="#0f172a"/>
+<path d="M31 316 L72 316" stroke="#0f172a" stroke-width="1.6" marker-end="url(#mFill)"/>
+<g class="node" data-id="PARSED" data-x="72" data-y="288" data-w="168" data-h="56" data-kind="state"><rect x="72" y="288" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text class="lbl" x="84" y="308" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">PARSED</text></g>
+<g class="node" data-id="PROBING" data-x="312" data-y="160" data-w="168" data-h="56" data-kind="state"><rect x="312" y="160" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text class="lbl" x="324" y="180" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">PROBING</text></g>
+<g class="node" data-id="READY" data-x="552" data-y="160" data-w="168" data-h="56" data-kind="state"><rect x="552" y="160" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text class="lbl" x="564" y="180" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">READY</text></g>
+<g class="node" data-id="DOWNLOADING" data-x="792" data-y="160" data-w="168" data-h="56" data-kind="state"><rect x="792" y="160" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text class="lbl" x="804" y="180" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">DOWNLOADING</text></g>
+<g class="node" data-id="COMPLETED" data-x="1040" data-y="160" data-w="168" data-h="56" data-kind="stateT"><rect x="1040" y="160" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><rect x="1044" y="164" width="160" height="48" rx="12" fill="none" stroke="#16a34a" stroke-width="1.2"/><text class="lbl" x="1052" y="180" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">COMPLETED</text></g>
+<g class="node" data-id="EXPIRED" data-x="552" data-y="320" data-w="168" data-h="56" data-kind="state"><rect x="552" y="320" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text class="lbl" x="564" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">EXPIRED</text></g>
+<g class="node" data-id="PAUSED" data-x="792" data-y="320" data-w="168" data-h="56" data-kind="state"><rect x="792" y="320" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text class="lbl" x="804" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">PAUSED</text></g>
+<g class="node" data-id="FAILED" data-x="312" data-y="464" data-w="168" data-h="56" data-kind="stateT"><rect x="312" y="464" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><rect x="316" y="468" width="160" height="48" rx="12" fill="none" stroke="#16a34a" stroke-width="1.2"/><text class="lbl" x="324" y="484" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">FAILED</text></g>
+<g class="node" data-id="CANCELLED" data-x="792" data-y="464" data-w="168" data-h="56" data-kind="stateT"><rect x="792" y="464" width="168" height="56" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><rect x="796" y="468" width="160" height="48" rx="12" fill="none" stroke="#16a34a" stroke-width="1.2"/><text class="lbl" x="804" y="484" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">CANCELLED</text></g>
+<rect class="pillbg" x="244.5" y="295" width="79" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="284" y="308" font-size="11" fill="#334155" text-anchor="middle">probe/start</text>
+<rect class="pillbg" x="471.5" y="175" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="516" y="188" font-size="11" fill="#334155" text-anchor="middle">manifest 到手</text>
+<rect class="pillbg" x="580.5" y="263" width="111" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="636" y="276" font-size="11" fill="#334155" text-anchor="middle">崩潰恢復（僅此徑）</text>
+<rect class="pillbg" x="718.5" y="183" width="43" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="740" y="196" font-size="11" fill="#334155" text-anchor="middle">start</text>
+<rect class="pillbg" x="612.5" y="243" width="87" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="656" y="256" font-size="11" fill="#334155" text-anchor="middle">簽章 TTL 到期</text>
+<rect class="pillbg" x="485.5" y="195" width="61" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="516" y="208" font-size="11" fill="#334155" text-anchor="middle">re-probe</text>
+<rect class="pillbg" x="796" y="259" width="120" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="856" y="272" font-size="11" fill="#334155" text-anchor="middle">pause（崩潰同落點）</text>
+<rect class="pillbg" x="834.5" y="290" width="123" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="896" y="303" font-size="11" fill="#334155" text-anchor="middle">start（.part 續傳）</text>
+<rect class="pillbg" x="428" y="327" width="128" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="492" y="340" font-size="11" fill="#334155" text-anchor="middle">O-5：重 probe 不問人</text>
+<rect class="pillbg" x="1008.5" y="147" width="95" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1056" y="160" font-size="11" fill="#334155" text-anchor="middle">retry（INV-5）</text>
+<rect class="pillbg" x="338.5" y="271" width="43" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="360" y="284" font-size="11" fill="#334155" text-anchor="middle">retry</text>
+<rect class="pillbg" x="526.5" y="519" width="43" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="548" y="532" font-size="11" fill="#334155" text-anchor="middle">retry</text></g>
+  </svg>
+</section>
+
+<section class="pane" id="pane-txd">
+  <p class="note">問題：feat/transcribe-audio（70 commits）在 main 之上加了什麼、多少過了人工驗收。橘虛框＝branch-only＝未驗收（六份 UAT 文件未跑）。本視圖的 overlay 旗標即 delta 來源：stripOverlay(本圖)＝main 狀態，差分表由 delta.mjs 生成（B-9 自動化）。　宣告：main 上已存在但 branch 大改的元素（transcript/stack/routes_transcript/cli）不帶 ov——差分表的「changed」列由手工補充（差分器只裁 add/remove，見 delta 節說明）；stack 的另兩個消費者（routes_stack/stack_jobs）見 V2/V3——本圖聚焦文字弧；交叉數 ≤1/宣告 1</p>
+  <svg class="dia" data-view="txd" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-txd d-txd">
+    <title id="t-txd">文字子系統＋branch 疊層</title>
+    <desc id="d-txd">問題：feat/transcribe-audio（70 commits）在 main 之上加了什麼、多少過了人工驗收。橘虛框＝branch-only＝未驗收（六份 UAT 文件未跑）。本視圖的 overlay 旗標即 delta 來源：stripOverlay(本圖)＝main 狀態，差分表由 delta.mjs 生成（B-9 自動化）。</desc>
+    <g class="scene"><path d="M240 104 L280 104 L280 96 L320 96" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d1" data-from="CLI5" data-to="TR5" data-pts="240,104,280,104,280,96,320,96"  />
+<path d="M224 64 L224 56 L624 56 L624 64" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d2" data-from="CLI5" data-to="TRL5" data-pts="224,64,224,56,624,56,624,64"  />
+<path d="M224 136 L224 168 L624 168 L624 192" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d3" data-from="CLI5" data-to="COR5" data-pts="224,136,224,168,624,168,624,192"  />
+<path d="M224 192 L224 168 L336 168 L336 136" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d4" data-from="RTT5" data-to="TR5" data-pts="224,192,224,168,336,168,336,136"  />
+<path d="M224 264 L224 272 L531 272 A5 5 0 0 1 541 272 L624 272 L624 256" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d5" data-from="RTT5" data-to="COR5" data-pts="224,264,224,272,624,272,624,256"  />
+<path d="M224 376 L224 472 L320 472" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d6" data-from="RTA5" data-to="ASRM5" data-pts="224,376,224,472,320,472"  />
+<path d="M240 344 L280 344 L280 352 L320 352" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d7" data-from="RTA5" data-to="ASR5" data-pts="240,344,280,344,280,352,320,352"  />
+<path d="M384 136 L384 168 L424 168 L424 192" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d8" data-from="TR5" data-to="ST5" data-pts="384,136,384,168,424,168,424,192"  />
+<path d="M424 136 L424 168 L536 168 L536 336 L528 336" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d9" data-from="TR5" data-to="ASR5" data-pts="424,136,424,168,536,168,536,336,528,336"  />
+<path d="M472 136 L472 144 L808 144 L808 472 L800 472" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d10" data-from="TR5" data-to="RUNS5" data-pts="472,136,472,144,808,144,808,472,800,472"  />
+<path d="M800 112 L808 112 L808 168 L512 168 L512 192" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d11" data-from="TRL5" data-to="ST5" data-pts="800,112,808,112,808,168,512,168,512,192"  />
+<path d="M800 112 L808 112 L808 408 L512 408 L512 392" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d12" data-from="TRL5" data-to="ASR5" data-pts="800,112,808,112,808,408,512,408,512,392"  />
+<path d="M704 64 L704 56 L808 56 L808 472 L800 472" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d13" data-from="TRL5" data-to="RUNS5" data-pts="704,64,704,56,808,56,808,472,800,472"  />
+<path d="M624 256 L624 304 L576 304 L576 344 L528 344" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d14" data-from="COR5" data-to="ASR5" data-pts="624,256,624,304,576,304,576,344,528,344"  />
+<path d="M800 240 L808 240 L808 432 L744 432 L744 456" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d15" data-from="COR5" data-to="RUNS5" data-pts="800,240,808,240,808,432,744,432,744,456"  />
+<path d="M800 224 L808 224 L808 184 L896 184 L896 192" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="d16" data-from="COR5" data-to="GLS5" data-pts="800,224,808,224,808,184,896,184,896,192"  />
+<path d="M528 352 L568 352 L568 360 L608 360" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d17" data-from="ASR5" data-to="QUAL5" data-pts="528,352,568,352,568,360,608,360"  />
+<path d="M320 376 L312 376 L312 416 L624 416 L624 456" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d18" data-from="ASR5" data-to="RUNS5" data-pts="320,376,312,376,312,416,624,416,624,456"  />
+<path d="M320 376 L280 376 L280 432 L424 432 L424 456" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d19" data-from="ASR5" data-to="ASRM5" data-pts="320,376,280,376,280,432,424,432,424,456"  />
+<path d="M512 392 L512 408 L808 408 L808 368 L880 368" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d20" data-from="ASR5" data-to="RUNNER5" data-pts="512,392,512,408,808,408,808,368,880,368"  />
+<path d="M800 488 L880 488" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="d21" data-from="RUNS5" data-to="RF5" data-pts="800,488,880,488"  />
+<path d="M1088 112 L1096 112 L1096 348 L1088 348" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="d22" data-from="CONF5" data-to="RUNNER5" data-pts="1088,112,1096,112,1096,348,1088,348"  />
+<path d="M800 360 L808 360 L808 352 L880 352" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="2 3"  class="edge" data-edge="d23" data-from="QUAL5" data-to="RUNNER5" data-pts="800,360,808,360,808,352,880,352"  />
+<path d="M799 355 L809 365 M799 365 L809 355" stroke="#64748b" stroke-width="1.8" fill="none"/>
+<circle class="junction" cx="624" cy="272" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="144" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="112" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="168" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="408" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="240" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="432" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="312" cy="376" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="808" cy="368" r="3.5" fill="#64748b"/>
+<metadata data-declared-crossings="1"></metadata>
+<g class="node" data-id="CLI5" data-x="48" data-y="64" data-w="192" data-h="72" data-kind="block"><rect x="48" y="64" width="192" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">cli verbs</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="105">transcript/translate/correct</tspan></text></g>
+<g class="node" data-id="RTT5" data-x="48" data-y="192" data-w="192" data-h="72" data-kind="block"><rect x="48" y="192" width="192" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="212" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">routes_transcript</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="233">＋correct/glossary 端點</tspan></text></g>
+<g class="node" data-id="RTA5" data-x="48" data-y="320" data-w="192" data-h="56" data-kind="block"><rect x="48" y="320" width="192" height="56" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="60" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">routes_asr</text><text class="lbl" x="232" y="368" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="TR5" data-x="320" data-y="64" data-w="208" data-h="72" data-kind="block"><rect x="320" y="64" width="208" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="332" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">transcript.py</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="332" y="105">4 種輸入形＋kind</tspan></text></g>
+<g class="node" data-id="ST5" data-x="320" data-y="192" data-w="208" data-h="72" data-kind="block"><rect x="320" y="192" width="208" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="332" y="212" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">stack.py</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="332" y="233">caption 機械，fan-in 4</tspan></text></g>
+<g class="node" data-id="ASR5" data-x="320" data-y="320" data-w="208" data-h="72" data-kind="block"><rect x="320" y="320" width="208" height="72" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="332" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">asr.py</text><text class="lbl" x="520" y="384" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="332" y="361">_LADDER 兩梯＋run_sidecar</tspan></text></g>
+<g class="node" data-id="ASRM5" data-x="320" data-y="456" data-w="208" data-h="64" data-kind="block"><rect x="320" y="456" width="208" height="64" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="332" y="476" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">asr_models.py</text><text class="lbl" x="520" y="512" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="332" y="497">readiness 裁判＋CATALOGUE</tspan></text></g>
+<g class="node" data-id="TRL5" data-x="608" data-y="64" data-w="192" data-h="64" data-kind="block"><rect x="608" y="64" width="192" height="64" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="620" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">translate.py（NLLB）</text><text class="lbl" x="792" y="120" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="COR5" data-x="608" data-y="192" data-w="192" data-h="64" data-kind="block"><rect x="608" y="192" width="192" height="64" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="620" y="212" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">correct.py</text><text class="lbl" x="792" y="248" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="620" y="233">兩道閘＋白名單</tspan></text></g>
+<g class="node" data-id="QUAL5" data-x="608" data-y="320" data-w="192" data-h="64" data-kind="block"><rect x="608" y="320" width="192" height="64" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="620" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">quality.py</text><text class="lbl" x="792" y="376" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="620" y="361">檢查 8＋，純・僅回報</tspan></text></g>
+<g class="node" data-id="RUNS5" data-x="608" data-y="456" data-w="192" data-h="56" data-kind="block"><rect x="608" y="456" width="192" height="56" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="620" y="476" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">runs.py（分析資料夾）</text><text class="lbl" x="792" y="504" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="CONF5" data-x="880" data-y="64" data-w="208" data-h="72" data-kind="ext"><rect x="880" y="64" width="208" height="72" rx="36" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="984" y="84" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">tests/conformance</text><text class="lbl" x="1080" y="128" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="984" y="105">知道說了什麼（9 案）</tspan></text></g>
+<g class="node" data-id="GLS5" data-x="880" data-y="192" data-w="208" data-h="56" data-kind="store"><rect x="880" y="192" width="208" height="56" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="892" y="212" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">_glossary.json（白名單）</text><text class="lbl" x="1080" y="240" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text></g>
+<g class="node" data-id="RUNNER5" data-x="880" data-y="320" data-w="208" data-h="80" data-kind="ext"><rect x="880" y="320" width="208" height="80" rx="40" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="984" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">asr/ 腳本 ×3</text><text class="lbl" x="1080" y="392" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="984" y="361">runner/translate_runner/fetch_model</tspan></text></g>
+<g class="node" data-id="RF5" data-x="880" data-y="456" data-w="208" data-h="64" data-kind="store"><rect x="880" y="456" width="208" height="64" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 4"/><text class="lbl" x="892" y="476" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">run folder</text><text class="lbl" x="1080" y="512" font-size="11" font-weight="700" fill="#c2410c" text-anchor="end">未驗收</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="892" y="497">字幕檔/文字檔/_source.json</tspan></text></g>
+<rect class="pillbg" x="231.5" y="91" width="97" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="280" y="104" font-size="11" fill="#334155" text-anchor="middle">mfp transcript</text>
+<rect class="pillbg" x="178.5" y="51" width="91" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="224" y="64" font-size="11" fill="#334155" text-anchor="middle">mfp translate</text>
+<rect class="pillbg" x="384.5" y="159" width="79" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="424" y="172" font-size="11" fill="#334155" text-anchor="middle">mfp correct</text>
+<rect class="pillbg" x="572.5" y="255" width="103" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="624" y="268" font-size="11" fill="#334155" text-anchor="middle">:propose/:apply</text>
+<rect class="pillbg" x="190.5" y="415" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="224" y="428" font-size="11" fill="#334155" text-anchor="middle">readiness</text>
+<rect class="pillbg" x="308" y="138" width="152" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="384" y="151" font-size="11" fill="#334155" text-anchor="middle">caption_cues/is_rolling</text>
+<rect class="pillbg" x="483.5" y="293" width="105" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="536" y="306" font-size="11" fill="#334155" text-anchor="middle">無 caption→辨識</text>
+<rect class="pillbg" x="623.5" y="159" width="73" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="660" y="172" font-size="11" fill="#334155" text-anchor="middle">parse_cues</text>
+<rect class="pillbg" x="769" y="295" width="78" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="808" y="308" font-size="11" fill="#334155" text-anchor="middle">共用引擎環境</text>
+<rect class="pillbg" x="507.5" y="335" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="552" y="348" font-size="11" fill="#334155" text-anchor="middle">evidence 讀取</text>
+<rect class="pillbg" x="784" y="175" width="136" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="852" y="188" font-size="11" fill="#334155" text-anchor="middle">詞庫讀寫（409 防合併）</text>
+<rect class="pillbg" x="543.5" y="367" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="588" y="380" font-size="11" fill="#334155" text-anchor="middle">檢查（僅回報）</text>
+<rect class="pillbg" x="605.5" y="399" width="109" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="660" y="412" font-size="11" fill="#334155" text-anchor="middle">spawn stdio JSON</text>
+<rect class="pillbg" x="806.5" y="479" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="840" y="492" font-size="11" fill="#334155" text-anchor="middle">只建不覆寫</text>
+<rect class="pillbg" x="1068" y="256" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1096" y="269" font-size="11" fill="#334155" text-anchor="middle">真引擎跑</text>
+<rect class="pillbg" x="745" y="345" width="126" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="808" y="358" font-size="11" fill="#334155" text-anchor="middle">不碰引擎（D-109 純）</text></g>
+  </svg>
+</section>
+<main>
+  <h2>聚合表（code 元件 → 圖上方塊）</h2><table><thead><tr><th>圖上元素</th><th>展開（code）</th><th>憑據</th></tr></thead><tbody><tr><td>V1 BIN／V2 YD2+FF2</td><td>yt-dlp、gallery-dl（選配）、ffmpeg——doctor 的四項之三</td><td>SK:doctor</td></tr><tr><td>V1/V2 引擎環境</td><td>.asr-venv python＋asr/runner.py、translate_runner.py、fetch_model.py</td><td>LS:asr/; GL:engine environment</td></tr><tr><td>V2 renderer FSD 六層</td><td>gui/src/{app,pages,widgets,features,entities,shared}</td><td>LS:gui/src</td></tr><tr><td>V3 routes ×5</td><td>server/routes_{queue,stack,transcript,asr,config}.py＋platform_gate.py</td><td>LS:server/</td></tr><tr><td>V3 instagram ×5</td><td>adapters/instagram/{adapter,chrome,extract,sessions,cdp}</td><td>LS:adapters/instagram; IP</td></tr><tr><td>V3 EVS3</td><td>server/{events,security,stack_jobs}.py</td><td>LS:server/</td></tr><tr><td>V3 BUD3／INP3／DOC3</td><td>budget＋policy／inputs＋naming／doctor＋capabilities</td><td>IP</td></tr><tr><td>V3 MISC3</td><td>logs、redact、capture、agent、winpath、brief、serve 雜項</td><td>LS:src/mfp</td></tr><tr><td>V5 asr/ 腳本 ×3</td><td>runner（辨識＋Health）、translate_runner（NLLB）、fetch_model（HF 下載）</td><td>LS:asr/; PL:Y</td></tr></tbody></table>
+  <h2>Task 轉移完整性（矩陣＋ACTIONS＋崩潰恢復——完整性主張的載體）</h2><p>完整性主張由本矩陣承載（圖為投影，略畫 7 條 →CANCELLED）。白名單語意：矩陣上「·」＝拒絕（IllegalTransition），不是未定義。</p><table><thead><tr><th>from ＼ to</th><th>PROBING</th><th>READY</th><th>DOWNLOADING</th><th>PAUSED</th><th>EXPIRED</th><th>COMPLETED</th><th>FAILED</th><th>CANCELLED</th></tr></thead><tbody><tr><td>PARSED</td><td>✓</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>✓</td><td>✓</td></tr><tr><td>PROBING</td><td>·</td><td>✓</td><td>·</td><td>✓</td><td>·</td><td>·</td><td>✓</td><td>✓</td></tr><tr><td>READY</td><td>✓</td><td>·</td><td>✓</td><td>·</td><td>✓</td><td>·</td><td>✓</td><td>✓</td></tr><tr><td>DOWNLOADING</td><td>·</td><td>·</td><td>·</td><td>✓</td><td>·</td><td>✓</td><td>✓</td><td>✓</td></tr><tr><td>PAUSED</td><td>·</td><td>·</td><td>✓</td><td>·</td><td>✓</td><td>·</td><td>✓</td><td>✓</td></tr><tr><td>EXPIRED</td><td>✓</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>✓</td></tr><tr><td>COMPLETED</td><td>✓</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr><td>FAILED</td><td>✓</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>✓</td></tr><tr><td>CANCELLED</td><td>✓</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr></tbody></table><h3>ACTIONS（intent→轉移）</h3><table><thead><tr><th>action（語意端點）</th><th>適用狀態 → 目標</th><th>憑據</th></tr></thead><tbody><tr><td>probe</td><td>PARSED/READY/EXPIRED/FAILED/CANCELLED/COMPLETED → PROBING</td><td>QP:L89-96</td></tr><tr><td>start</td><td>PARSED/EXPIRED → PROBING；READY/PAUSED → DOWNLOADING</td><td>QP:L99-104</td></tr><tr><td>pause</td><td>DOWNLOADING → PAUSED</td><td>QP:L105</td></tr><tr><td>cancel</td><td>7 個非終態 → CANCELLED（不適用者答 409，不發明轉移）</td><td>QP:L106-114</td></tr><tr><td>retry</td><td>FAILED/CANCELLED/COMPLETED/EXPIRED → PROBING（INV-5：必重 probe）</td><td>QP:L117-122</td></tr></tbody></table><h3>RESTART_RECOVERY</h3><table><thead><tr><th>崩潰時在</th><th>落地</th><th>性質</th><th>憑據</th></tr></thead><tbody><tr><td>PROBING</td><td>PAUSED</td><td>ε（無動作可產生此邊）；措辭問題開放中——見缺口 G5</td><td>QP:L145-148,139-144</td></tr><tr><td>DOWNLOADING</td><td>PAUSED</td><td>ε；與 pause 動作同落點，.part sidecar 讓跨進程續傳可辨識</td><td>QP:L145-148; GL:.part sidecar</td></tr></tbody></table>
+  <h2>main↔branch 結構 delta（delta.mjs 生成，B-9 自動化）</h2><p>由 <code>delta.mjs</code> 生成（S3，B-9 自動化）：base＝stripOverlay(txd)＝main 狀態（與 GIT ls-tree 交叉核對：main 恰缺 asr／asr_models／correct／quality／runs／translate／routes_asr）。差分器只裁 add／remove／changed-in-model；main 上已存在但 branch 大改的四個元素（transcript、stack、routes_transcript、cli——見 PL:Y/Z3 的 Changes 節）由本說明列承載，不入表。</p><table><thead><tr><th>view</th><th>delta</th><th>elements</th></tr></thead><tbody><tr><td>txd</td><td>nodes +11</td><td>RTA5、ASR5、ASRM5、TRL5、COR5、QUAL5、RUNS5、CONF5、GLS5、RUNNER5、RF5</td></tr><tr><td>txd</td><td>edges +19</td><td>d2、d3、d5、d6、d7、d9、d10、d11、d12、d13、d14、d15、d16、d17、d18、d19、d20、d21、d22</td></tr><tr><td>txd</td><td>absent (non-dependency) +1</td><td>d23</td></tr><tr><td>Σ</td><td>nodes +11/-0/~0; edges +19/-0/~0; absent +1</td><td>geometry-only changes are marked with *</td></tr></tbody></table>
+  <h2>漂移表（claim vs 量測——audit 交付核心）</h2><table><thead><tr><th>宣稱（claim）</th><th>本輪量測</th><th>判讀</th></tr></thead><tbody><tr><td>HR §零：src/mfp 45 modules（2026-08-27 @ 8f97acb）</td><td>IP：52 modules（同法：AST、全檔）</td><td>一致非漂移——差＝branch 弧新模組（GIT）</td></tr><tr><td>HR §3.4/§五：stack.py fan-in 3；拆分觸發＝fan-in 到 4／第三個消費者</td><td>IP：fan-in 4（transcript/translate/routes_stack/stack_jobs）</td><td>**觸發已達標**——translate 進場。轉發健檢，裁決屬 user（缺口 G1）</td></tr><tr><td>CM Verify：pytest 2100 passed, 2 skipped @ 2026-08-29</td><td>PL:Z3 同數＋fb686c5「record the count the release gate actually ran」</td><td>一致</td></tr><tr><td>GL:budget governor 只管 page 端點（D-34）</td><td>V1 e7 費 budget／e8-e9 不費——邊標注即宣稱</td><td>一致（本圖沿用）</td></tr><tr><td>CM：stdout＝機器、stderr＝人類</td><td>SK 開頭同一句（兩檔同源不漂移）</td><td>一致</td></tr></tbody></table>
+  <h2>缺口表 gap report</h2><table><thead><tr><th>#</th><th>缺口／發現</th><th>嚴重度</th><th>憑據</th></tr></thead><tbody><tr><td>G1</td><td>stack.py 拆分觸發已達標：fan-in 4（HR 記錄的觸發條件），HR 當時 3。屬轉發項non-blocking——下輪健檢重排 §3.4，裁決屬 user</td><td>warn</td><td>IP; HR:§3.4/§五</td></tr><tr><td>G2</td><td>P-49 活缺陷：yt-dlp 可選中 AI 配音軌（YC 影片 21 條 dubbed-auto，140-20 才是原文）。成因已確認、未修——V1 e8/e9 傳輸路徑上</td><td>defect(已知)</td><td>PL:Y/Z open</td></tr><tr><td>G3</td><td>六份 UAT 文件未跑（long-audio §C、post-correction、asr-setup 等）——V5 全部 ov 元素＝機器綠、人未驗；本圖的未驗收徽章即此事實</td><td>warn</td><td>PL:X-Z3 open</td></tr><tr><td>G4</td><td>舊 _captions/ 不遷移不讀（P-60 裁決）：Phase Z3 前轉錄的音檔下次重付辨識成本，無警示</td><td>note</td><td>PL:Z3</td></tr><tr><td>G5</td><td>RESTART_RECOVERY 的 PROBING→PAUSED 措辭問題開放中（崩潰於 probe 無 manifest，PAUSED 讀作「位元組傳到一半」）——queue.py 註解自認</td><td>open</td><td>QP:L139-144</td></tr><tr><td>G6</td><td>transcript 該不該教成帶 --json 的裁決未落（crd_6d0f13，白名單反轉方案在 HR §3.2）——SKILL.md 與測試 docstring 兩邊都沒說誰贏</td><td>open</td><td>HR:§3.2/§七</td></tr><tr><td>G7</td><td>quality.py 純函式性質（無引擎接觸）為結構保證——V5 以 absent 邊 d23 宣告；破壞它的 import 會被 IP 類探針看見</td><td>note</td><td>PL:X D-109; IP</td></tr><tr><td>G8</td><td>宣告範圍外：gui/electron 內層逐檔、agent-register 寫入面、danmaku sidecar、capture/redact 雙向檢查細節——V1/V2 聚合承載</td><td>scope</td><td>本輪宣告</td></tr></tbody></table>
+  <h2>本輪量測（F3——S1+S2 聯合驗收）</h2><table><thead><tr><th>量測欄</th><th>F1（DIT）</th><th>F2（Prism）</th><th>F3（本輪）</th></tr></thead><tbody><tr><td>結構模型規模</td><td>5 視圖 42 節點/54 邊</td><td>5 視圖 48 節點＋11 容器/56 邊</td><td>5 視圖 79 節點＋8 容器/89 邊（轉移矩陣等三表另承載完整性）</td></tr><tr><td>佈局手排（渲染前）</td><td>4 次走廊/埠重排</td><td>1 次列大重排＋4 次走廊改線</td><td>&lt;b&gt;0&lt;/b&gt;——89/89 邊全由 channel router 生成，診斷→宣告 0 次</td></tr><tr><td>§4 fail 輪數</td><td>build 1＋渲染 2</td><td>build 0＋渲染 1</td><td>build 1（模型筆誤：16 個空 pill 欄）＋渲染 &lt;b&gt;0&lt;/b&gt;（首輪 PASS、0 診斷、4,748 對標籤）</td></tr><tr><td>pill 修復</td><td>疊字＋外溢＋交錯</td><td>撞標題 ×1</td><td>0（router 佈點一次過）</td></tr><tr><td>B-9 delta</td><td>—</td><td>手工 ≈12 分/輪、3 步驟</td><td>delta.mjs 自動：+11 節點/+19 邊/+1 absent、0 誤報，秒級</td></tr><tr><td>route 統計</td><td>—（全手排）</td><td>—（全手排）</td><td>l1 0/0·62ms｜l2p 0/0·15ms｜l3i 0/0·19ms｜tsm 1/2·35ms｜txd 1/1·57ms（交叉/宣告·耗時）</td></tr></tbody></table>
+  <h2>幾何自檢輸出（notation-precision §4，B-1 診斷物件格式）</h2>
+  <div id="geoDetail">執行中…</div>
+  <p class="note">再生源：outputs/diagram-authoring/mfp-audit-f3.build.mjs（模型即資料；node 一跑即重生）。生成 2026-08-29。branch 前提：main @ 96e6673，feat/transcribe-audio 領先 70 commits 未合併——合併後清 overlay 旗標重生，差分表隨模型自動更新（delta.mjs）。F3＝archdiag S1+S2 聯合驗收儀器：節點座標人排（D-042 位置承載語意），邊/pill 全部 route() 生成。v1.1（2026-09-02）：副標基線 +3px＋自檢 render receipt——外部驗證回報 CJK 高 metric 字型下標題↔副標 bbox 間距不足 PAD（tools/archdiag/MAINTENANCE.md M6）；其餘幾何零變動。</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('on', p.id === 'pane-' + b.dataset.tab));
+  }));
+
+  // ---- §4 self-checks, B-1 diagnostic-object output ----
+  const diags = [];
+  const stats = [];
+  const D = (code, subject, evidence, fixes) => diags.push({ code, severity: 'error', subject, evidence, supportedFixes: fixes });
+  // instrument precondition #2: getBBox() on a display:none pane returns zero
+  // rects — measure with every pane rendered, then restore the tab state.
+  document.body.classList.add('measuring');
+  // render receipt (2026-09-02): a label-clearance PASS is a fact about the
+  // font that measured, not about the bytes — bbox height includes leading
+  // and varies ~7% by family (Segoe UI 1.364× vs Noto Sans TC 1.455×; an
+  // external macOS Chromium reported 44 label-overlap on bytes this machine
+  // passed). Record engine, DPR, the computed family and a measured
+  // height/size ratio so reports are comparable across environments.
+  let receipt = null;
+  try {
+    const PAD = 2, EPS = 2, GRIDU = 8;
+    const probe = document.querySelector('svg.dia text.lbl');
+    receipt = {
+      engine: navigator.userAgent, dpr: window.devicePixelRatio, viewport: [window.innerWidth, window.innerHeight],
+      fontFamily: probe ? getComputedStyle(probe).fontFamily : null,
+      fontMetricRatio: probe ? +(probe.getBBox().height / parseFloat(probe.getAttribute('font-size'))).toFixed(3) : null,
+      pad: PAD,
+    };
+    for (const svg of document.querySelectorAll('svg.dia')) {
+      const view = svg.dataset.view;
+      // precondition #1: no transform inside the scene
+      for (const el of svg.querySelectorAll('[transform]'))
+        D('instrument-precondition', { view, element: el.tagName }, { reason: 'transform inside asserted scene' }, ['emit absolute coordinates']);
+      // precondition #2 assert: the scene must actually render
+      if (svg.querySelector('.scene').getBBox().width === 0)
+        D('instrument-precondition', { view }, { reason: 'scene not rendered (hidden pane?) — bboxes would be zero' }, ['measure with the pane rendered']);
+      const nodes = [...svg.querySelectorAll('.node')].map((g) => ({ id: g.dataset.id, kind: g.dataset.kind, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const comps = [...svg.querySelectorAll('.comp')].map((g) => ({ id: g.dataset.id, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const edges = [...svg.querySelectorAll('.edge')].map((p) => {
+        const v = p.dataset.pts.split(',').map(Number); const pts = [];
+        for (let i = 0; i < v.length; i += 2) pts.push([v[i], v[i + 1]]);
+        return { id: p.dataset.edge, from: p.dataset.from, to: p.dataset.to, pts, fromComp: !!p.dataset.fromcomp, selfLoop: !!p.dataset.selfloop };
+      });
+      // 1. label bboxes pairwise disjoint
+      const labels = [...svg.querySelectorAll('.lbl')].map((t) => ({ el: t, b: t.getBBox() }));
+      let pairs = 0;
+      for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+        const a = labels[i].b, b = labels[j].b; pairs++;
+        if (a.x < b.x + b.width + PAD && b.x < a.x + a.width + PAD && a.y < b.y + b.height + PAD && b.y < a.y + a.height + PAD)
+          D('label-overlap', { view, a: labels[i].el.textContent.slice(0, 14), b: labels[j].el.textContent.slice(0, 14) },
+            { aRect: [a.x, a.y, a.width, a.height].map(Math.round), bRect: [b.x, b.y, b.width, b.height].map(Math.round) },
+            ['move one label by ' + Math.ceil(Math.min(a.y + a.height - b.y, b.y + b.height - a.y) + PAD) + 'px vertically']);
+      }
+      // 2. anchors
+      const rects = Object.fromEntries([...nodes, ...comps].map((n) => [n.id, n]));
+      const onB = (p, n) =>
+        ((Math.abs(p[0] - n.x) <= EPS || Math.abs(p[0] - (n.x + n.w)) <= EPS) && p[1] >= n.y - EPS && p[1] <= n.y + n.h + EPS) ||
+        ((Math.abs(p[1] - n.y) <= EPS || Math.abs(p[1] - (n.y + n.h)) <= EPS) && p[0] >= n.x - EPS && p[0] <= n.x + n.w + EPS);
+      for (const e of edges) {
+        if (!onB(e.pts[0], rects[e.from])) D('anchor-off-node', { view, edge: e.id, end: 'start', node: e.from }, { point: e.pts[0] }, ['move start onto ' + e.from + ' border']);
+        if (!onB(e.pts[e.pts.length - 1], rects[e.to])) D('anchor-off-node', { view, edge: e.id, end: 'end', node: e.to }, { point: e.pts[e.pts.length - 1] }, ['move end onto ' + e.to + ' border']);
+      }
+      // 3. containment
+      const vb = svg.viewBox.baseVal, sb = svg.querySelector('.scene').getBBox();
+      if (sb.x < 0 || sb.y < 0 || sb.x + sb.width > vb.width || sb.y + sb.height > vb.height)
+        D('viewbox-clip', { view }, { scene: [sb.x, sb.y, sb.width, sb.height].map(Math.round), viewBox: [vb.width, vb.height] }, ['grow the viewBox or move content inward']);
+      // 4. grid
+      for (const n of nodes) for (const k of ['x', 'y', 'w', 'h'])
+        if (n[k] % GRIDU !== 0) D('grid-off', { view, node: n.id, prop: k }, { value: n[k] }, ['snap to ' + GRIDU + 'px']);
+      // 5. pass-through (self-loops and composite-source edges: own endpoints exempt as usual)
+      const hit = (a, b, r) => Math.min(a[0], b[0]) < r.x + r.w - 1 && Math.max(a[0], b[0]) > r.x + 1 && Math.min(a[1], b[1]) < r.y + r.h - 1 && Math.max(a[1], b[1]) > r.y + 1;
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++)
+        for (const n of nodes) {
+          if (n.id === e.from || n.id === e.to) continue;
+          if (hit(e.pts[i - 1], e.pts[i], n))
+            D('edge-through-node', { view, edge: e.id, segment: i, node: n.id }, { seg: [e.pts[i - 1], e.pts[i]] }, ['reroute segment ' + i + ' around ' + n.id]);
+        }
+      // 6. crossings vs the view's DECLARED count — report WHICH pair at WHERE
+      const declared = +(svg.querySelector('metadata')?.getAttribute('data-declared-crossings') || 0);
+      let crossings = 0;
+      const found = [];
+      const segs = [];
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++) segs.push({ e: e.id, a: e.pts[i - 1], b: e.pts[i] });
+      for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length; j++) {
+        const s = segs[i], t = segs[j];
+        if (s.e === t.e) continue;
+        const sv = s.a[0] === s.b[0], tv = t.a[0] === t.b[0];
+        if (sv === tv) continue;
+        const [vv, hh] = sv ? [s, t] : [t, s];
+        const x = vv.a[0], y = hh.a[1];
+        if (x > Math.min(hh.a[0], hh.b[0]) + 1 && x < Math.max(hh.a[0], hh.b[0]) - 1 && y > Math.min(vv.a[1], vv.b[1]) + 1 && y < Math.max(vv.a[1], vv.b[1]) - 1) {
+          crossings++;
+          found.push({ pair: [s.e, t.e], at: [x, y] });
+        }
+      }
+      if (crossings > declared)
+        for (const f of found)
+          D('crossing-over-declared', { view, pair: f.pair }, { at: f.at, crossings, declared }, ['reroute ' + f.pair[0] + ' or ' + f.pair[1] + ' around (' + f.at + ')', 'or declare the crossing (≤3) with its coordinates']);
+      stats.push(view + ': ' + nodes.length + ' nodes, ' + edges.length + ' edges, ' + pairs + ' label pairs, crossings ' + crossings + '/' + declared);
+      // 7. fonts
+      for (const t of svg.querySelectorAll('text.lbl'))
+        if (parseFloat(t.getAttribute('font-size')) < 11)
+          D('font-below-floor', { view, text: t.textContent.slice(0, 12) }, { size: t.getAttribute('font-size') }, ['raise to 11px']);
+      // 8. reference resolution: a dangling url(#id) reference renders as
+      // silently absent — assert every url(#id) resolves (positive-control calibrated).
+      for (const el of svg.querySelectorAll('*')) {
+        for (const attr of ['marker-end', 'marker-start', 'fill', 'stroke']) {
+          const val = el.getAttribute && el.getAttribute(attr);
+          const m = val && val.match(/^url\(#([^)]+)\)$/);
+          if (m && !document.getElementById(m[1]))
+            D('dangling-reference', { view, attr, id: m[1] }, { element: el.tagName }, ['define #' + m[1] + ' in a <defs> block']);
+        }
+      }
+      // 9. edge-label pill over a node (B-1, 2026-09-05): check #1 is label×label
+      // only. Rule: the pill's CENTRE (its pillAt) must not lie inside a node —
+      // the reader then attributes the label to the node, not to its edge.
+      // A pill straddling a border passes: calibration 2026-09-05 measured 70
+      // straddles across the 7 accepted artifacts (depth 3–18px, every centre
+      // outside) and 0 centres inside — each had passed the user's visual gate,
+      // and #1 already guarantees a pill never covers node text. Pill = .pillbg
+      // ∪ its label (next sibling), measured; nodes only — a pill inside a
+      // CONTAINER is the normal case.
+      for (const bg of svg.querySelectorAll('.pillbg')) {
+        const r = bg.getBBox(), t = bg.nextElementSibling;
+        const tb = t && t.classList.contains('lbl') ? t.getBBox() : r;
+        const x0 = Math.min(r.x, tb.x), y0 = Math.min(r.y, tb.y);
+        const x1 = Math.max(r.x + r.width, tb.x + tb.width), y1 = Math.max(r.y + r.height, tb.y + tb.height);
+        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+        for (const n of nodes)
+          if (cx > n.x + EPS && cx < n.x + n.w - EPS && cy > n.y + EPS && cy < n.y + n.h - EPS)
+            D('label-over-node', { view, pill: (t ? t.textContent : '').slice(0, 14), node: n.id },
+              { pillRect: [x0, y0, x1 - x0, y1 - y0].map(Math.round), centre: [cx, cy].map(Math.round), nodeRect: [n.x, n.y, n.w, n.h] },
+              ['move the pill off ' + n.id + ' (pillAt) or reroute the edge']);
+      }
+      // 10. shared anchor (B-2, 2026-09-05): two DIFFERENT edges anchored on one
+      // border side closer than the grid unit read as one smudged line (the R10
+      // near-coincidence band). Exact coincidence (gap 0) is a deliberate bundle
+      // and passes; a corner point belongs to both of its sides.
+      const sidesOf = (p, n) => {
+        const s = [];
+        if (Math.abs(p[0] - n.x) <= EPS) s.push('left');
+        if (Math.abs(p[0] - (n.x + n.w)) <= EPS) s.push('right');
+        if (Math.abs(p[1] - n.y) <= EPS) s.push('top');
+        if (Math.abs(p[1] - (n.y + n.h)) <= EPS) s.push('bottom');
+        return s;
+      };
+      const slots = {};
+      for (const e of edges) for (const [p, id] of [[e.pts[0], e.from], [e.pts[e.pts.length - 1], e.to]]) {
+        const n = rects[id]; if (!n) continue;
+        for (const side of sidesOf(p, n)) {
+          const key = id + '|' + side;
+          (slots[key] = slots[key] || []).push({ e: e.id, p, c: side === 'left' || side === 'right' ? p[1] : p[0] });
+        }
+      }
+      for (const key in slots) {
+        const list = slots[key];
+        for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+          if (list[i].e === list[j].e) continue;
+          const gap = Math.abs(list[i].c - list[j].c);
+          if (gap > 0 && gap < GRIDU)
+            D('shared-anchor', { view, node: key.split('|')[0], side: key.split('|')[1], edges: [list[i].e, list[j].e] },
+              { points: [list[i].p, list[j].p], gap },
+              ['separate the anchors by >= ' + GRIDU + 'px, or bundle both on one point']);
+        }
+      }
+    }
+  } catch (err) {
+    diags.push({ code: 'selfcheck-crashed', severity: 'error', subject: {}, evidence: { message: err.message }, supportedFixes: [] });
+  } finally {
+    document.body.classList.remove('measuring');
+  }
+  const status = document.getElementById('geoStatus');
+  const detail = document.getElementById('geoDetail');
+  window.__geometryReport = { pass: diags.length === 0, diagnostics: diags, stats, receipt };
+  const receiptLine = receipt
+    ? 'measured under: ' + receipt.fontFamily + ' (bbox/size ' + receipt.fontMetricRatio + '), dpr ' + receipt.dpr + ', ' + receipt.engine
+    : 'measured under: (receipt unavailable)';
+  if (diags.length === 0) {
+    status.textContent = '幾何自檢：PASS（5 視圖）'; status.className = 'pass';
+    detail.textContent = 'PASS\n' + stats.join('\n') + '\n' + receiptLine;
+  } else {
+    status.textContent = '幾何自檢：FAIL（' + diags.length + '）'; status.className = 'fail';
+    detail.textContent = JSON.stringify(diags, null, 1) + '\n---\n' + stats.join('\n') + '\n' + receiptLine;
+    console.error('geometry diagnostics', diags);
+  }
+})();
+</script>
+</body>
+</html>

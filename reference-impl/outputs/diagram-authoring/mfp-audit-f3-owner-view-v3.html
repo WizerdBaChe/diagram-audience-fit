@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-Hant" data-page-class="diagram">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mfp 系統全貌 · 擁有者視圖 v3</title>
+<style>
+:root{
+  --bg:#F6F5F2; --ink:#1C1B18; --muted:#6B675E; --rule:#DED9CF;
+  --serif:"Source Serif 4","Songti TC",Georgia,serif;
+  --sans:ui-sans-serif,system-ui,"Segoe UI","Microsoft JhengHei",sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+  /* diagram vocabulary inherited from the canonical audit page (R9) */
+  --mod-f:#EAF1F9; --mod-s:#2E5FA3;          /* 藍＝程式元件 */
+  --cap-f:#EDECE8; --cap-s:#6E6A61;          /* 灰膠囊＝外部程式 */
+  --amb-f:#F7EDD8; --amb-s:#8A5A12;          /* 琥珀＝磁碟資料 */
+  --st-f:#E9F3EC;  --st-s:#1E6B4F;           /* 綠＝任務狀態 */
+  --ov:#C2620E;    --ov-f:#C2620E0D;         /* 橘虛框＝未驗收 */
+  --edge:#4A4640; --bad:#9C3A22; --open:#3D5691;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#14130F; --ink:#E8E5DE; --muted:#9A958A; --rule:#33302A;
+    --mod-f:#1C2735; --mod-s:#7FA8E0;
+    --cap-f:#242320; --cap-s:#8F8A80;
+    --amb-f:#2C2415; --amb-s:#D9A24C;
+    --st-f:#182A20;  --st-s:#5BBD93;
+    --ov:#E0873B;    --ov-f:#E0873B12;
+    --edge:#A49E93; --bad:#E07B5F; --open:#8FA3D9;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+  font-size:16.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
+/* diagram page class: the SVG scales to a centred container that is a share of the viewport
+   (72vw, floored at the viewBox width, clamped at 1280) — never a fixed left-anchored cap */
+main.wrap{width:min(100% - 44px, clamp(960px, 72vw, 1280px));margin:0 auto;padding:52px 0 90px}
+h1{font-family:var(--sans);font-size:1.7rem;line-height:1.3;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:6px 0 0}
+.health{font-family:var(--sans);font-size:.9rem;margin:14px 0 0;padding:9px 0;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.health i{font-style:normal;font-weight:700}
+.health .ok{color:var(--st-s)} .health .bad{color:var(--bad)}
+.health .open{color:var(--open)} .health .ov{color:var(--ov)}
+figure{margin:30px 0 0}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-family:var(--sans);font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.6}
+.notes{margin:14px 0 0;padding-left:0;list-style:none;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(30ch,1fr));gap:.4em 2.4em}
+.notes li{margin:0}
+.notes b{font-family:var(--sans)}
+.notes .m1{color:var(--bad)} .notes .m2{color:var(--open)}
+.notes .m3{color:var(--ov)}
+h2{font-family:var(--sans);font-size:1.15rem;margin:2.4em 0 .2em}
+.prov{margin:34px 0 0;font-family:var(--sans);font-size:.8rem;color:var(--muted);
+  line-height:1.65;border-top:1px solid var(--rule);padding-top:14px}
+.prov a{color:inherit}
+details{margin-top:8px}
+summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:.82rem}
+table{border-collapse:collapse;width:100%;font-size:.8rem;margin-top:8px}
+th,td{text-align:left;padding:5px 10px 5px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:.72rem;color:var(--muted);letter-spacing:.05em}
+code{font-family:var(--mono);font-size:.92em}
+/* svg type ramp — the owner-view size preset (carrier-playbook §Size presets); no inline sizes anywhere */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .t{font-size:15px;font-weight:700}
+svg .s{font-size:11.5px;fill:var(--muted);font-weight:400}
+svg .lab{font-size:11px;fill:var(--muted)}
+svg .mk{font-size:14px;font-weight:700}
+svg .lg{font-size:11.5px;fill:var(--muted)}
+svg .ct{font-size:12px;font-weight:700;fill:var(--muted)}
+</style>
+</head>
+<body>
+<main class="wrap" data-page-root>
+
+<h1>media-fetch-pipeline（mfp）系統全貌</h1>
+<p class="sub">一台電腦上的媒體收藏工具：貼上公開貼文連結 → 自動抓取影音 → 整理進你的資料夾</p>
+<p class="health">本輪核對：<i class="ok">圖與程式一致（5 項全中）</i>　·　<i class="bad">已知缺陷 1（見 ①）</i>　·　<i class="open">等你裁決 2（見 ②）</i>　·　<i class="ov">語音新分支未驗收（見 ③）</i></p>
+
+<figure>
+<svg class="dia" data-view="sys" viewBox="0 0 960 784" role="img" aria-labelledby="t-sys d-sys">
+<title id="t-sys">mfp 系統架構節點圖（擁有者視圖，第 3 版）</title>
+<desc id="d-sys">兩個入口（桌面介面、指令列）共用一套核心能力：貼文下載、影格截圖堆疊、語音轉錄；下載經任務佇列排程，外部程式 Chrome、yt-dlp、ffmpeg、本機語音引擎；所有成品落在本機資料夾。</desc>
+<g class="scene">
+<defs><marker id="ar" markerWidth="9" markerHeight="8" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--edge)"/></marker></defs>
+<!-- layout anchors (R11): {"W":240,"C1":200,"C2":480,"C3":760,"R0":28,"H0":62,"R1":140,"H1":54,"R2":244,"H2":62,"CT":350,"CB":466,"R3":384,"H3":62,"R4":520,"H4":54,"BUS":616,"BUSX0":100,"BUSX1":860,"R5":644,"H5":56,"LEG":744,"VBH":784,"MID34":492,"P_DL_BIN":270,"P_BIN_IN":420,"P_TR_IN":690} — every node centre and edge endpoint derives from these; edit a column, never a box -->
+<rect data-container="CORE" x="56" y="350" width="848" height="116" rx="8" fill="none" stroke="var(--cap-s)" stroke-width="1.2" stroke-dasharray="6 4"/>
+<text data-free="1" x="336" y="370" text-anchor="middle" class="ct">核心能力——兩個入口共用同一套本事</text>
+<rect data-node="GUI" x="360" y="28" width="240" height="62" rx="4" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="1.5"/>
+<text data-in="GUI" x="480" y="54" text-anchor="middle" class="t">桌面介面（GUI）</text>
+<text data-in="GUI" x="480" y="74" text-anchor="middle" class="s">貼連結・看進度・改設定</text>
+<rect data-node="CLI" x="640" y="28" width="240" height="62" rx="4" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="1.5"/>
+<text data-in="CLI" x="760" y="54" text-anchor="middle" class="t">指令列（CLI）</text>
+<text data-in="CLI" x="760" y="74" text-anchor="middle" class="s">AI 助手也走這裡・適合批次腳本</text>
+<rect data-node="API" x="360" y="140" width="240" height="54" rx="4" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="1.5"/>
+<text data-in="API" x="480" y="162" text-anchor="middle" class="t">服務端窗口（API）</text>
+<text data-in="API" x="480" y="180" text-anchor="middle" class="s">桌面介面的動作由此派工；只有下載排隊</text>
+<rect data-node="QUE" x="80" y="244" width="240" height="62" rx="4" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="2"/>
+<text data-in="QUE" x="200" y="270" text-anchor="middle" class="t">任務佇列——系統總管</text>
+<text data-in="QUE" x="200" y="290" text-anchor="middle" class="s">唯一改任務狀態者；限速探測、逐件下載</text>
+<rect data-node="DL" x="80" y="384" width="240" height="62" rx="4" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="1.5"/>
+<text data-in="DL" x="200" y="410" text-anchor="middle" class="t">貼文下載</text>
+<text data-in="DL" x="200" y="430" text-anchor="middle" class="s">IG・Threads・YouTube・X・Bili</text>
+<rect data-node="STK" x="360" y="384" width="240" height="62" rx="4" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="1.5"/>
+<text data-in="STK" x="480" y="410" text-anchor="middle" class="t">影格截圖堆疊</text>
+<text data-in="STK" x="480" y="430" text-anchor="middle" class="s">抽影格・疊對照圖</text>
+<text data-in="STK" data-mark="1" x="578" y="402" text-anchor="middle" class="mk" fill="var(--open)">②</text>
+<rect data-node="TRX" x="640" y="384" width="240" height="62" rx="4" fill="var(--mod-f)" stroke="var(--ov)" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text data-in="TRX" x="760" y="410" text-anchor="middle" class="t">語音轉錄・翻譯・校正</text>
+<text data-in="TRX" x="760" y="430" text-anchor="middle" class="s">音檔→逐字稿→譯文；改一次就記住</text>
+<text data-in="TRX" data-mark="1" x="858" y="402" text-anchor="middle" class="mk" fill="var(--ov)">③</text>
+<rect data-node="CHR" x="100" y="520" width="200" height="54" rx="27" fill="var(--cap-f)" stroke="var(--cap-s)" stroke-width="1.5"/>
+<text data-in="CHR" x="200" y="542" text-anchor="middle" class="t">Chrome</text>
+<text data-in="CHR" x="200" y="560" text-anchor="middle" class="s">只讀公開頁・絕不登入</text>
+<rect data-node="BIN" x="360" y="520" width="240" height="54" rx="27" fill="var(--cap-f)" stroke="var(--cap-s)" stroke-width="1.5"/>
+<text data-in="BIN" x="480" y="542" text-anchor="middle" class="t">yt-dlp・ffmpeg</text>
+<text data-in="BIN" x="480" y="560" text-anchor="middle" class="s">抓取與格式處理；選配 gallery-dl</text>
+<text data-in="BIN" data-mark="1" x="574" y="537" text-anchor="middle" class="mk" fill="var(--bad)">①</text>
+<rect data-node="ENG" x="640" y="520" width="240" height="54" rx="27" fill="var(--cap-f)" stroke="var(--ov)" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text data-in="ENG" x="760" y="542" text-anchor="middle" class="t">本機語音引擎</text>
+<text data-in="ENG" x="760" y="560" text-anchor="middle" class="s">模型在你電腦上跑；模型檔可搬移</text>
+<text data-in="ENG" data-mark="1" x="854" y="537" text-anchor="middle" class="mk" fill="var(--ov)">③</text>
+<rect data-node="DISK" x="330" y="644" width="300" height="56" rx="4" fill="var(--amb-f)" stroke="var(--amb-s)" stroke-width="1.5"/>
+<text data-in="DISK" x="480" y="666" text-anchor="middle" class="t">本機資料夾</text>
+<text data-in="DISK" x="480" y="685" text-anchor="middle" class="s">成品自動命名歸檔；失敗紀錄整包保留、可重現</text>
+<path data-edge="e1" d="M480,90 L480,137" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e2" d="M360,167 L200,167 L200,241" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<text data-free="1" x="280" y="160" text-anchor="middle" class="lab">下載任務</text>
+<path data-edge="e3" d="M200,306 L200,381" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e4" d="M480,194 L480,381" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e5" d="M600,167 L690,167 L690,381" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e6" d="M760,90 L760,347" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<text data-free="1" x="768" y="224" text-anchor="start" class="lab">同一套本事・直接呼叫・不經佇列</text>
+<path data-edge="e7" d="M200,446 L200,517" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e8" d="M270,446 L270,492 L420,492 L420,517" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e9" d="M480,446 L480,517" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e10" d="M760,446 L760,517" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path data-edge="e11" d="M480,616 L480,641" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<line data-bus="1" x1="100" y1="616" x2="860" y2="616" stroke="var(--rule)" stroke-width="1.2"/>
+<text data-free="1" x="480" y="608" text-anchor="middle" class="lab">所有成品與紀錄都落在本機磁碟</text>
+<rect data-legend="1" x="70" y="744" width="26" height="16" rx="3" fill="var(--mod-f)" stroke="var(--mod-s)" stroke-width="1.3"/><text data-legend="1" x="104" y="757" class="lg">程式元件</text>
+<rect data-legend="1" x="190" y="744" width="26" height="16" rx="8" fill="var(--cap-f)" stroke="var(--cap-s)" stroke-width="1.3"/><text data-legend="1" x="224" y="757" class="lg">外部程式</text>
+<rect data-legend="1" x="310" y="744" width="26" height="16" rx="3" fill="var(--amb-f)" stroke="var(--amb-s)" stroke-width="1.3"/><text data-legend="1" x="344" y="757" class="lg">磁碟資料</text>
+<rect data-legend="1" x="430" y="744" width="26" height="16" rx="3" fill="var(--ov-f)" stroke="var(--ov)" stroke-width="1.3" stroke-dasharray="4 3"/><text data-legend="1" x="464" y="757" class="lg">未驗收新分支（③）</text>
+<path d="M610,752 L640,752" stroke="var(--edge)" stroke-width="1.5" fill="none" marker-end="url(#ar)"/><text data-legend="1" x="648" y="757" class="lg">實際的呼叫／資料流向</text>
+</g>
+</svg>
+<figcaption>圖 1──mfp 架構（擁有者視圖，第 3 版）：節點為聚合後的能力群，每條箭頭都對應正本裡實際存在的呼叫或資料流；顏色語意沿用工程正本。虛線框＝共用的核心能力——指令列的箭頭指向框，表示它直接呼叫框內任何一項、不經佇列；桌面介面則經服務端窗口派工，其中只有下載排隊。</figcaption>
+</figure>
+
+<ul class="notes">
+<li><b class="m1">①　已知缺陷（未修）</b>：下載多語言 YouTube 影片時，可能選中 AI 配音軌而非原聲。成因已確認、修正未排上；修好前請抽聽開頭確認。</li>
+<li><b class="m2">②　等你裁決（2 件）</b>：影格截圖堆疊已達到你當年設的拆分門檻（被 4 個模組使用）；另有 CLI 教學要不要納入 <code>--json</code> 用法。</li>
+<li><b class="m3">③　橘色虛框＝未合併的新分支</b>：機器測試全綠，但 6 份人工驗收清單一份未跑——跑完才算可用。</li>
+<li><b>④　自我健檢</b>：系統內建 doctor，會確認外部程式那一排是否裝齊可用（圖中未畫節點）。</li>
+</ul>
+
+<h2>一個任務的一生</h2>
+<figure>
+<svg class="dia" data-view="life" viewBox="0 0 960 252" role="img" aria-labelledby="t-life d-life">
+<title id="t-life">任務狀態簡化流程圖</title>
+<desc id="d-life">主線 收單→探測→就緒→下載中→完成；側態 暫停（可續傳）與 失敗・取消・過期；當機重啟落在暫停；重試一律回到探測。</desc>
+<g class="scene">
+<defs><marker id="ar2" markerWidth="9" markerHeight="8" refX="7.5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--edge)"/></marker></defs>
+<!-- layout anchors (R11): {"S1":110,"S2":300,"S3":490,"S4":680,"S5":860,"RA":50,"HA":52,"WA":140,"RB":162,"HB":54,"P_CRASH":334,"P_RETRY":270,"P_PAUSE_DN":662,"P_PAUSE_UP":700,"Y_CRASH":189,"Y_RETRY":232,"VBH":252} -->
+<rect data-node="PARSED" x="40" y="50" width="140" height="52" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="1.5"/>
+<text data-in="PARSED" x="110" y="72" text-anchor="middle" class="t">收單</text>
+<text data-in="PARSED" x="110" y="90" text-anchor="middle" class="s">解析你貼的連結</text>
+<rect data-node="PROBING" x="230" y="50" width="140" height="52" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="1.5"/>
+<text data-in="PROBING" x="300" y="72" text-anchor="middle" class="t">探測</text>
+<text data-in="PROBING" x="300" y="90" text-anchor="middle" class="s">查這則能拿到什麼</text>
+<rect data-node="READY" x="420" y="50" width="140" height="52" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="1.5"/>
+<text data-in="READY" x="490" y="72" text-anchor="middle" class="t">就緒</text>
+<text data-in="READY" x="490" y="90" text-anchor="middle" class="s">清單擺好等你</text>
+<rect data-node="DOWNLOADING" x="610" y="50" width="140" height="52" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="1.5"/>
+<text data-in="DOWNLOADING" x="680" y="72" text-anchor="middle" class="t">下載中</text>
+<text data-in="DOWNLOADING" x="680" y="90" text-anchor="middle" class="s">一次一件</text>
+<rect data-node="COMPLETED" x="790" y="50" width="140" height="52" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="2.6"/>
+<text data-in="COMPLETED" x="860" y="72" text-anchor="middle" class="t">完成</text>
+<text data-in="COMPLETED" x="860" y="90" text-anchor="middle" class="s">檔案進資料夾</text>
+<rect data-node="PAUSED" x="610" y="162" width="140" height="54" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="1.5"/>
+<text data-in="PAUSED" x="680" y="184" text-anchor="middle" class="t">暫停</text>
+<text data-in="PAUSED" x="680" y="202" text-anchor="middle" class="s">可續傳</text>
+<rect data-node="ENDS" x="786" y="162" width="160" height="54" rx="14" fill="var(--st-f)" stroke="var(--st-s)" stroke-width="1.5"/>
+<text data-in="ENDS" x="866" y="184" text-anchor="middle" class="t">失敗・取消・過期</text>
+<text data-in="ENDS" x="866" y="202" text-anchor="middle" class="s">任一步出錯落到這</text>
+<path data-edge="t1" d="M180,76 L227,76" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<path data-edge="t3" d="M370,76 L417,76" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<path data-edge="t6" d="M560,76 L607,76" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<path data-edge="t10" d="M750,76 L787,76" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<path data-edge="t11" d="M662,102 L662,159" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<path data-edge="t13" d="M700,162 L700,105" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<path data-edge="t5" d="M334,102 L334,189 L607,189" stroke="var(--edge)" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#ar2)"/>
+<text data-free="1" x="352" y="182" text-anchor="start" class="lab">當機重啟的安全落點——進行中的任務不會遺失</text>
+<path data-edge="retry" d="M866,216 L866,232 L270,232 L270,105" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#ar2)"/>
+<text data-free="1" x="500" y="226" text-anchor="middle" class="lab">重試——一律重新探測，保證拿到新鮮清單</text>
+</g>
+</svg>
+<figcaption>圖 2──任務狀態的簡化投影：只畫主線與安全側態。完整的合法轉移白名單（含此處略去的邊）由工程正本的轉移矩陣承載，以正本為準。</figcaption>
+</figure>
+
+<div class="prov">
+受眾：擁有者／一般使用者（同規格受眾版 owner-view，<b>第 3 版</b>）。第 3 版＝用 2026-09-05 的新條文重畫：節點／連線預算（目標 ≤ 18 節點／≤ 24 連線，本頁 18／19）、固定裁切順序（每一刀列在下表「裁切」欄）、字級階梯不縮字（960 寬預設；名稱 15、角色 11.5、標籤 11，最小 11）。第 2 版（2026-08-30，24 節點）保留於 <a href="mfp-audit-f3-owner-view.html"><code>mfp-audit-f3-owner-view.html</code></a> 供並排對照。<br>
+工程正本：<a href="mfp-audit-f3.html"><code>mfp-audit-f3.html</code></a>——完整性主張（轉移矩陣、漂移表、缺口表、幾何自檢）由正本承載，本頁不承載、也不取代。<br>
+基準：main <code>96e6673</code>＋feat/transcribe-audio（領先 70 commits 未合併）；正本產出 2026-08-29，本頁 2026-09-06。本頁投影的是正本當日的模型，<b>不是 mfp 今日的狀態</b>；正本重生後本頁需同步改版。<br>
+更正：第 2 版畫了三條正本沒有的邊——指令列→服務端窗口、任務佇列→影格截圖、任務佇列→語音轉錄。正本裡指令列直接用同一套核心、不經佇列（V1 e2/e6/e9/e11/e13/e17；V2 CLI2），截圖與轉錄由服務端窗口直接派工（V2 p13/p15）。本版依此重畫。
+<details><summary>聚合對照（本頁節點 → 正本元素 → 裁切）</summary>
+<table><thead><tr><th>本頁節點</th><th>正本元素（憑據見正本聚合表）</th><th>裁切（R12 梯級）／未畫</th></tr></thead><tbody><tr><td>桌面介面（GUI）</td><td>V1 APP（Electron＋React 六層）；V2 EM／RND／GUARD（loopback guard）</td><td>—（回推的 SSE 事件 e4/p5 未畫：與操作邊同一對節點的反向流）</td></tr>
+<tr><td>指令列（CLI）</td><td>V1 CLI＋AGT（AI agent 讀 SKILL.md，e2）；V2 CLI2（同核心、無 queue）；MISC3（agent、brief 等）</td><td>梯級 3：「AI 助手接口」（第 2 版獨立節點）併入本節點角色列。更正：第 2 版把它們畫成接 API——正本裡 AI 助手接 CLI（e2），CLI 直接呼叫核心（本頁指向虛線框＝V3 i1/i2 兩條邊的聚合）</td></tr>
+<tr><td>服務端窗口（API）</td><td>V2 API（routes ×5＋platform_gate）＋EVB（SSE）；V3 APP3／RTS3</td><td>—（下載走 p6→queue；截圖 p13、轉錄 p15 直接派工——第 2 版誤畫成經佇列，本版更正）</td></tr>
+<tr><td>任務佇列——系統總管</td><td>V2 QUE（owner loop 單一寫者，D-42）＋WKP／WKT 兩條 worker lane；V3 QUE3</td><td>梯級 3：「節奏控制」（第 2 版獨立節點；BUD3 budget governor＋probe/transfer 雙 lane，D-34/D-36）併入本節點角色列</td></tr>
+<tr><td>貼文下載</td><td>V3 PIP3＋adapters（BAS3／INS3 instagram ×5／YTD3）＋DL3＋INP3（inputs/naming）</td><td>—（平台頁面 V1 PLT 以角色列的平台清單承載；媒體 CDN V1 CDN 未畫節點——第 2 版同）</td></tr>
+<tr><td>影格截圖堆疊 ②</td><td>V3 ST3（fan-in 4）＋routes_stack＋V2 SJ stack_jobs</td><td>—（②＝缺口 G1 拆分觸發＋G6 --json 裁決）</td></tr>
+<tr><td>語音轉錄・翻譯・校正 ③</td><td>V5 TR5／TRL5／COR5／QUAL5／RUNS5／RTT5／RTA5／ASRM5／GLS5／RF5（branch，未驗收）</td><td>梯級 3：「校正・詞彙表」（第 2 版獨立節點）併入；未驗收標記依 R4 合併保留（③）</td></tr>
+<tr><td>Chrome</td><td>V1 CHR／V2 CHR2（共享 session probe，不登入 D-2）</td><td>—</td></tr>
+<tr><td>yt-dlp・ffmpeg ①</td><td>V1 BIN／V2 YD2＋FF2（gallery-dl 選配，doctor 四項之三）</td><td>梯級 3：「ffmpeg」（第 2 版獨立節點）併入 yt-dlp 膠囊；①（G2 AI 配音軌缺陷）隨併。ffmpeg 亦供截圖使用，故截圖→本節點的邊保留（p14）</td></tr>
+<tr><td>本機語音引擎 ③</td><td>V1 VENV／V2 PY2（.asr-venv）＋V5 RUNNER5 asr/ 三腳本</td><td>梯級 3：「模型資料夾」（V1 MH，第 2 版獨立節點）併入角色列；Hugging Face Hub（V1 HUB，模型下載來源）未畫節點——第 2 版同</td></tr>
+<tr><td>本機資料夾</td><td>V1 OUT／V2 OUT2（輸出根）＋V5 RF5（run folder）＋D-79 日誌（每日精簡＋錯誤整包）</td><td>梯級 3：「下載資料夾」「執行紀錄」（第 2 版兩節點）併為一節點。匯流線＝e16/e17/p12/p16/d21 五條落地邊的聚合</td></tr>
+<tr><td>核心能力（虛線框）</td><td>V3 LD（領域服務）＋LT（文字子系統）兩層；V2 declared「CLI 對外 spawn 面與 serve 相同」</td><td>—（框非節點；本版新增，用來承載指令列「直接呼叫、不經佇列」這一條邊）</td></tr>
+<tr><td>④ 自我健檢</td><td>V3 DOC3：doctor＋capabilities</td><td>未畫節點（第 2 版同；以注記承載）</td></tr>
+<tr><td>圖 2 全部狀態與箭頭</td><td>LEGAL_TRANSITIONS 白名單的投影：主線 PARSED→PROBING→READY→DOWNLOADING→COMPLETED；側態 PAUSED／EXPIRED／FAILED／CANCELLED；崩潰恢復落 PAUSED（RESTART_RECOVERY）；重試一律回 PROBING（INV-5）</td><td>「失敗・取消・過期」三態合一（第 2 版同）；未畫：7 條 →取消、就緒→過期、暫停→過期、就緒→重探、下載中→暫停以外的崩潰徑——完整集合由正本轉移矩陣承載</td></tr></tbody></table>
+</details>
+</div>
+
+</main>
+</body>
+</html>

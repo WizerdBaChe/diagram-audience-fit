@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-Hant" data-page-class="diagram">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>流程圖符號示範</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #ffffff; color: #0f172a; font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif; }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+  header .sp { flex: 1; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; }
+  .tab.on { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+  #geoStatus { font-size: 13px; padding: 4px 10px; border-radius: 8px; }
+  #geoStatus.pass { background: #dcfce7; color: #166534; }
+  #geoStatus.fail { background: #fee2e2; color: #991b1b; }
+  .pane { display: none; border-bottom: 1px solid #e2e8f0; }
+  .pane.on, body.measuring .pane { display: block; }
+  svg.dia { display: block; width: 100%; height: auto; max-height: 78vh; }
+  main { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 18px; margin: 12px 16px 4px; }
+  h2 { font-size: 15px; margin: 20px 0 8px; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { border: 1px solid #e2e8f0; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #f8fafc; }
+  .note { font-size: 12.5px; color: #475569; margin: 8px 16px; }
+  #geoDetail { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; }
+  .legendbar { font-size: 12px; color: #334155; padding: 6px 16px; border-bottom: 1px solid #e2e8f0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<marker id="mOpen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#64748b" stroke-width="1.6"/></marker>
+<marker id="mFill" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0f172a"/></marker>
+<marker id="mProto" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#0369a1" stroke-width="1.6"/></marker>
+<marker id="mEgr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker>
+<marker id="mEps" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7c3aed" stroke-width="1.6"/></marker>
+</defs></svg>
+<h1>流程圖符號示範：判斷菱形、退回線、旁註、跳線</h1>
+<div class="legendbar">圖例見下表。規則出處：skills/diagram-authoring/references/notation-precision.md §2（跳線）、§3 Flowchart。</div>
+<header><button class="tab on" data-tab="flow">繪圖交付流程（示範：流程圖符號＋跳線）</button><span class="sp"></span><span id="geoStatus">幾何自檢：執行中…</span></header>
+
+<section class="pane on" id="pane-flow">
+  <p class="note">交一張圖之前要走哪幾步、哪一步沒過要退回哪裡？　宣告：主流程由上往下；紅色虛線＝未通過退回；細虛線＝旁註，不是步驟；1 處交叉以跳線畫出</p>
+  <svg class="dia" data-view="flow" viewBox="0 0 840 776" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-flow d-flow">
+    <title id="t-flow">繪圖交付流程（示範：流程圖符號＋跳線）</title>
+    <desc id="d-flow">交一張圖之前要走哪幾步、哪一步沒過要退回哪裡？</desc>
+    <g class="scene"><path d="M360 72 L360 112" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f1" data-from="S" data-to="P1" data-pts="360,72,360,112"  />
+<path d="M360 168 L360 208" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f2" data-from="P1" data-to="P2" data-pts="360,168,360,208"  />
+<path d="M360 264 L360 304" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f3" data-from="P2" data-to="D1" data-pts="360,264,360,304"  />
+<path d="M360 416 L360 464" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f4" data-from="D1" data-to="P3" data-pts="360,416,360,464"  />
+<path d="M472 360 L595 360 A5 5 0 0 1 605 360 L656 360" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f5" data-from="D1" data-to="SD" data-pts="472,360,656,360"  />
+<path d="M360 520 L360 560" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f6" data-from="P3" data-to="D2" data-pts="360,520,360,560"  />
+<path d="M360 656 L360 704" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="f7" data-from="D2" data-to="E" data-pts="360,656,360,704"  />
+<path d="M456 608 L600 608 L600 236 L480 236" fill="none" stroke="#b91c1c" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#mEgr)" class="edge" data-edge="b1" data-from="D2" data-to="P2" data-pts="456,608,600,608,600,236,480,236"  />
+<path d="M736 336 L736 140 L480 140" fill="none" stroke="#b91c1c" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#mEgr)" class="edge" data-edge="b2" data-from="SD" data-to="P1" data-pts="736,336,736,140,480,140"  />
+<path d="M128 360 L248 360" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="2 4"  class="edge" data-edge="a1" data-from="N1" data-to="D1" data-pts="128,360,248,360"  />
+<metadata data-declared-crossings="1"></metadata>
+<g class="node" data-id="S" data-x="240" data-y="24" data-w="240" data-h="48" data-kind="term"><rect x="240" y="24" width="240" height="48" rx="24" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/><text class="lbl" x="360" y="53" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">收到繪圖需求</text></g>
+<g class="node" data-id="P1" data-x="240" data-y="112" data-w="240" data-h="56" data-kind="proc"><rect x="240" y="112" width="240" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="252" y="132" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">1  列出來源資料</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="252" y="153">每個節點都要能追到來源</tspan></text></g>
+<g class="node" data-id="P2" data-x="240" data-y="208" data-w="240" data-h="56" data-kind="proc"><rect x="240" y="208" width="240" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="252" y="228" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">2  先寫文字模型</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="252" y="249">節點表、邊表、狀態表</tspan></text></g>
+<g class="node" data-id="D1" data-x="248" data-y="304" data-w="224" data-h="112" data-kind="decision"><polygon points="360,304 472,360 360,416 248,360" fill="#fce7f3" stroke="#be185d" stroke-width="1.5"/><text class="lbl" x="360" y="365" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">來源撐得住嗎？</text></g>
+<g class="node" data-id="P3" data-x="240" data-y="464" data-w="240" data-h="56" data-kind="proc"><rect x="240" y="464" width="240" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="252" y="484" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">3  渲染並跑幾何自檢</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="252" y="505">notation-precision §4</tspan></text></g>
+<g class="node" data-id="D2" data-x="264" data-y="560" data-w="192" data-h="96" data-kind="decision"><polygon points="360,560 456,608 360,656 264,608" fill="#fce7f3" stroke="#be185d" stroke-width="1.5"/><text class="lbl" x="360" y="613" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">自檢 PASS？</text></g>
+<g class="node" data-id="E" data-x="240" data-y="704" data-w="240" data-h="48" data-kind="term"><rect x="240" y="704" width="240" height="48" rx="24" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/><text class="lbl" x="360" y="733" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">交付圖＋缺口報告</text></g>
+<g class="node" data-id="SD" data-x="656" data-y="336" data-w="160" data-h="48" data-kind="proc"><rect x="656" y="336" width="160" height="48" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="668" y="356" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">補資料或縮小範圍</text></g>
+<g class="node" data-id="N1" data-x="16" data-y="344" data-w="112" data-h="32" data-kind="note"><rect x="16" y="344" width="112" height="32" fill="#ffffff" stroke="none"/><text class="lbl" x="20" y="360" font-size="12" fill="#334155" text-anchor="start">撐不住的寫進缺口</text></g>
+<rect class="pillbg" x="372.5" y="431" width="23" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="384" y="444" font-size="11" fill="#334155" text-anchor="middle">是</text>
+<rect class="pillbg" x="516.5" y="335" width="23" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="528" y="348" font-size="11" fill="#334155" text-anchor="middle">否</text>
+<rect class="pillbg" x="372.5" y="671" width="23" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="384" y="684" font-size="11" fill="#334155" text-anchor="middle">是</text>
+<rect class="pillbg" x="557" y="511" width="86" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="600" y="524" font-size="11" fill="#334155" text-anchor="middle">否：回第 2 步</text>
+<rect class="pillbg" x="693" y="231" width="86" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="736" y="244" font-size="11" fill="#334155" text-anchor="middle">補完回第 1 步</text></g>
+  </svg>
+</section>
+<main>
+  <h2>圖例</h2><table><thead><tr><th>畫法</th><th>意思</th><th>archdiag 寫法</th></tr></thead><tbody><tr><td>膠囊形</td><td>起點／終點 (terminator)</td><td>term</td></tr><tr><td>方框</td><td>步驟 (process)</td><td>proc</td></tr><tr><td>菱形</td><td>判斷 (decision)：線只從四個頂點進出，每個出口標條件</td><td>decision</td></tr><tr><td>無框文字＋細虛線</td><td>旁註 (annotation)：說明，不是步驟</td><td>note + annot</td></tr><tr><td>紅色虛線箭頭</td><td>未通過退回 (loop-back)：顏色＋虛線雙重標示</td><td>warn</td></tr><tr><td>線上的小半圓</td><td>跳線 (line hop)：兩條線只是經過、沒有相接；水平的那條跳</td><td>crossingStyle: 'hop'</td></tr><tr><td>實心圓點</td><td>接點 (junction)：線真的接在一起（本圖沒有）</td><td>自動產生</td></tr></tbody></table>
+  <h2>幾何自檢輸出（notation-precision §4，B-1 診斷物件格式）</h2>
+  <div id="geoDetail">執行中…</div>
+  <p class="note">本頁由 flowchart-notation-demo.build.mjs 產生，是 archdiag 流程圖符號的參考樣本；M1 回歸會重建它。</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('on', p.id === 'pane-' + b.dataset.tab));
+  }));
+
+  // ---- §4 self-checks, B-1 diagnostic-object output ----
+  const diags = [];
+  const stats = [];
+  const D = (code, subject, evidence, fixes) => diags.push({ code, severity: 'error', subject, evidence, supportedFixes: fixes });
+  // instrument precondition #2: getBBox() on a display:none pane returns zero
+  // rects — measure with every pane rendered, then restore the tab state.
+  document.body.classList.add('measuring');
+  // render receipt (2026-09-02): a label-clearance PASS is a fact about the
+  // font that measured, not about the bytes — bbox height includes leading
+  // and varies ~7% by family (Segoe UI 1.364× vs Noto Sans TC 1.455×; an
+  // external macOS Chromium reported 44 label-overlap on bytes this machine
+  // passed). Record engine, DPR, the computed family and a measured
+  // height/size ratio so reports are comparable across environments.
+  let receipt = null;
+  try {
+    const PAD = 2, EPS = 2, GRIDU = 8;
+    const probe = document.querySelector('svg.dia text.lbl');
+    receipt = {
+      engine: navigator.userAgent, dpr: window.devicePixelRatio, viewport: [window.innerWidth, window.innerHeight],
+      fontFamily: probe ? getComputedStyle(probe).fontFamily : null,
+      fontMetricRatio: probe ? +(probe.getBBox().height / parseFloat(probe.getAttribute('font-size'))).toFixed(3) : null,
+      pad: PAD,
+    };
+    for (const svg of document.querySelectorAll('svg.dia')) {
+      const view = svg.dataset.view;
+      // precondition #1: no transform inside the scene
+      for (const el of svg.querySelectorAll('[transform]'))
+        D('instrument-precondition', { view, element: el.tagName }, { reason: 'transform inside asserted scene' }, ['emit absolute coordinates']);
+      // precondition #2 assert: the scene must actually render
+      if (svg.querySelector('.scene').getBBox().width === 0)
+        D('instrument-precondition', { view }, { reason: 'scene not rendered (hidden pane?) — bboxes would be zero' }, ['measure with the pane rendered']);
+      const nodes = [...svg.querySelectorAll('.node')].map((g) => ({ id: g.dataset.id, kind: g.dataset.kind, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const comps = [...svg.querySelectorAll('.comp')].map((g) => ({ id: g.dataset.id, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const edges = [...svg.querySelectorAll('.edge')].map((p) => {
+        const v = p.dataset.pts.split(',').map(Number); const pts = [];
+        for (let i = 0; i < v.length; i += 2) pts.push([v[i], v[i + 1]]);
+        return { id: p.dataset.edge, from: p.dataset.from, to: p.dataset.to, pts, fromComp: !!p.dataset.fromcomp, selfLoop: !!p.dataset.selfloop };
+      });
+      // 1. label bboxes pairwise disjoint
+      const labels = [...svg.querySelectorAll('.lbl')].map((t) => ({ el: t, b: t.getBBox() }));
+      let pairs = 0;
+      for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+        const a = labels[i].b, b = labels[j].b; pairs++;
+        if (a.x < b.x + b.width + PAD && b.x < a.x + a.width + PAD && a.y < b.y + b.height + PAD && b.y < a.y + a.height + PAD)
+          D('label-overlap', { view, a: labels[i].el.textContent.slice(0, 14), b: labels[j].el.textContent.slice(0, 14) },
+            { aRect: [a.x, a.y, a.width, a.height].map(Math.round), bRect: [b.x, b.y, b.width, b.height].map(Math.round) },
+            ['move one label by ' + Math.ceil(Math.min(a.y + a.height - b.y, b.y + b.height - a.y) + PAD) + 'px vertically']);
+      }
+      // 2. anchors
+      const rects = Object.fromEntries([...nodes, ...comps].map((n) => [n.id, n]));
+      const onB = (p, n) =>
+        ((Math.abs(p[0] - n.x) <= EPS || Math.abs(p[0] - (n.x + n.w)) <= EPS) && p[1] >= n.y - EPS && p[1] <= n.y + n.h + EPS) ||
+        ((Math.abs(p[1] - n.y) <= EPS || Math.abs(p[1] - (n.y + n.h)) <= EPS) && p[0] >= n.x - EPS && p[0] <= n.x + n.w + EPS);
+      for (const e of edges) {
+        if (!onB(e.pts[0], rects[e.from])) D('anchor-off-node', { view, edge: e.id, end: 'start', node: e.from }, { point: e.pts[0] }, ['move start onto ' + e.from + ' border']);
+        if (!onB(e.pts[e.pts.length - 1], rects[e.to])) D('anchor-off-node', { view, edge: e.id, end: 'end', node: e.to }, { point: e.pts[e.pts.length - 1] }, ['move end onto ' + e.to + ' border']);
+      }
+      // 11. decision vertex: edges meet a diamond only at its 4 vertices
+      for (const e of edges) for (const [p, id] of [[e.pts[0], e.from], [e.pts[e.pts.length - 1], e.to]]) {
+        const n = rects[id];
+        if (!n || n.kind !== 'decision') continue;
+        const vx = [[n.x + n.w / 2, n.y], [n.x + n.w, n.y + n.h / 2], [n.x + n.w / 2, n.y + n.h], [n.x, n.y + n.h / 2]];
+        if (!vx.some((q) => Math.abs(q[0] - p[0]) <= EPS && Math.abs(q[1] - p[1]) <= EPS))
+          D('decision-off-vertex', { view, edge: e.id, node: id }, { point: p, vertices: vx }, ['anchor ' + e.id + ' on a vertex of ' + id]);
+      }
+      // 3. containment
+      const vb = svg.viewBox.baseVal, sb = svg.querySelector('.scene').getBBox();
+      if (sb.x < 0 || sb.y < 0 || sb.x + sb.width > vb.width || sb.y + sb.height > vb.height)
+        D('viewbox-clip', { view }, { scene: [sb.x, sb.y, sb.width, sb.height].map(Math.round), viewBox: [vb.width, vb.height] }, ['grow the viewBox or move content inward']);
+      // 4. grid
+      for (const n of nodes) for (const k of ['x', 'y', 'w', 'h'])
+        if (n[k] % GRIDU !== 0) D('grid-off', { view, node: n.id, prop: k }, { value: n[k] }, ['snap to ' + GRIDU + 'px']);
+      // 5. pass-through (self-loops and composite-source edges: own endpoints exempt as usual)
+      const hit = (a, b, r) => Math.min(a[0], b[0]) < r.x + r.w - 1 && Math.max(a[0], b[0]) > r.x + 1 && Math.min(a[1], b[1]) < r.y + r.h - 1 && Math.max(a[1], b[1]) > r.y + 1;
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++)
+        for (const n of nodes) {
+          if (n.id === e.from || n.id === e.to) continue;
+          if (hit(e.pts[i - 1], e.pts[i], n))
+            D('edge-through-node', { view, edge: e.id, segment: i, node: n.id }, { seg: [e.pts[i - 1], e.pts[i]] }, ['reroute segment ' + i + ' around ' + n.id]);
+        }
+      // 6. crossings vs the view's DECLARED count — report WHICH pair at WHERE
+      const declared = +(svg.querySelector('metadata')?.getAttribute('data-declared-crossings') || 0);
+      let crossings = 0;
+      const found = [];
+      const segs = [];
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++) segs.push({ e: e.id, a: e.pts[i - 1], b: e.pts[i] });
+      for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length; j++) {
+        const s = segs[i], t = segs[j];
+        if (s.e === t.e) continue;
+        const sv = s.a[0] === s.b[0], tv = t.a[0] === t.b[0];
+        if (sv === tv) continue;
+        const [vv, hh] = sv ? [s, t] : [t, s];
+        const x = vv.a[0], y = hh.a[1];
+        if (x > Math.min(hh.a[0], hh.b[0]) + 1 && x < Math.max(hh.a[0], hh.b[0]) - 1 && y > Math.min(vv.a[1], vv.b[1]) + 1 && y < Math.max(vv.a[1], vv.b[1]) - 1) {
+          crossings++;
+          found.push({ pair: [s.e, t.e], at: [x, y] });
+        }
+      }
+      if (crossings > declared)
+        for (const f of found)
+          D('crossing-over-declared', { view, pair: f.pair }, { at: f.at, crossings, declared }, ['reroute ' + f.pair[0] + ' or ' + f.pair[1] + ' around (' + f.at + ')', 'or declare the crossing (≤3) with its coordinates']);
+      stats.push(view + ': ' + nodes.length + ' nodes, ' + edges.length + ' edges, ' + pairs + ' label pairs, crossings ' + crossings + '/' + declared);
+      // 7. fonts
+      for (const t of svg.querySelectorAll('text.lbl'))
+        if (parseFloat(t.getAttribute('font-size')) < 11)
+          D('font-below-floor', { view, text: t.textContent.slice(0, 12) }, { size: t.getAttribute('font-size') }, ['raise to 11px']);
+      // 8. reference resolution: a dangling url(#id) reference renders as
+      // silently absent — assert every url(#id) resolves (positive-control calibrated).
+      for (const el of svg.querySelectorAll('*')) {
+        for (const attr of ['marker-end', 'marker-start', 'fill', 'stroke']) {
+          const val = el.getAttribute && el.getAttribute(attr);
+          const m = val && val.match(/^url\(#([^)]+)\)$/);
+          if (m && !document.getElementById(m[1]))
+            D('dangling-reference', { view, attr, id: m[1] }, { element: el.tagName }, ['define #' + m[1] + ' in a <defs> block']);
+        }
+      }
+      // 9. edge-label pill over a node (B-1, 2026-09-05): check #1 is label×label
+      // only. Rule: the pill's CENTRE (its pillAt) must not lie inside a node —
+      // the reader then attributes the label to the node, not to its edge.
+      // A pill straddling a border passes: calibration 2026-09-05 measured 70
+      // straddles across the 7 accepted artifacts (depth 3–18px, every centre
+      // outside) and 0 centres inside — each had passed the user's visual gate,
+      // and #1 already guarantees a pill never covers node text. Pill = .pillbg
+      // ∪ its label (next sibling), measured; nodes only — a pill inside a
+      // CONTAINER is the normal case.
+      for (const bg of svg.querySelectorAll('.pillbg')) {
+        const r = bg.getBBox(), t = bg.nextElementSibling;
+        const tb = t && t.classList.contains('lbl') ? t.getBBox() : r;
+        const x0 = Math.min(r.x, tb.x), y0 = Math.min(r.y, tb.y);
+        const x1 = Math.max(r.x + r.width, tb.x + tb.width), y1 = Math.max(r.y + r.height, tb.y + tb.height);
+        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+        for (const n of nodes)
+          if (cx > n.x + EPS && cx < n.x + n.w - EPS && cy > n.y + EPS && cy < n.y + n.h - EPS)
+            D('label-over-node', { view, pill: (t ? t.textContent : '').slice(0, 14), node: n.id },
+              { pillRect: [x0, y0, x1 - x0, y1 - y0].map(Math.round), centre: [cx, cy].map(Math.round), nodeRect: [n.x, n.y, n.w, n.h] },
+              ['move the pill off ' + n.id + ' (pillAt) or reroute the edge']);
+      }
+      // 10. shared anchor (B-2, 2026-09-05): two DIFFERENT edges anchored on one
+      // border side closer than the grid unit read as one smudged line (the R10
+      // near-coincidence band). Exact coincidence (gap 0) is a deliberate bundle
+      // and passes; a corner point belongs to both of its sides.
+      const sidesOf = (p, n) => {
+        const s = [];
+        if (Math.abs(p[0] - n.x) <= EPS) s.push('left');
+        if (Math.abs(p[0] - (n.x + n.w)) <= EPS) s.push('right');
+        if (Math.abs(p[1] - n.y) <= EPS) s.push('top');
+        if (Math.abs(p[1] - (n.y + n.h)) <= EPS) s.push('bottom');
+        return s;
+      };
+      const slots = {};
+      for (const e of edges) for (const [p, id] of [[e.pts[0], e.from], [e.pts[e.pts.length - 1], e.to]]) {
+        const n = rects[id]; if (!n) continue;
+        for (const side of sidesOf(p, n)) {
+          const key = id + '|' + side;
+          (slots[key] = slots[key] || []).push({ e: e.id, p, c: side === 'left' || side === 'right' ? p[1] : p[0] });
+        }
+      }
+      for (const key in slots) {
+        const list = slots[key];
+        for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+          if (list[i].e === list[j].e) continue;
+          const gap = Math.abs(list[i].c - list[j].c);
+          if (gap > 0 && gap < GRIDU)
+            D('shared-anchor', { view, node: key.split('|')[0], side: key.split('|')[1], edges: [list[i].e, list[j].e] },
+              { points: [list[i].p, list[j].p], gap },
+              ['separate the anchors by >= ' + GRIDU + 'px, or bundle both on one point']);
+        }
+      }
+    }
+  } catch (err) {
+    diags.push({ code: 'selfcheck-crashed', severity: 'error', subject: {}, evidence: { message: err.message }, supportedFixes: [] });
+  } finally {
+    document.body.classList.remove('measuring');
+  }
+  const status = document.getElementById('geoStatus');
+  const detail = document.getElementById('geoDetail');
+  window.__geometryReport = { pass: diags.length === 0, diagnostics: diags, stats, receipt };
+  const receiptLine = receipt
+    ? 'measured under: ' + receipt.fontFamily + ' (bbox/size ' + receipt.fontMetricRatio + '), dpr ' + receipt.dpr + ', ' + receipt.engine
+    : 'measured under: (receipt unavailable)';
+  if (diags.length === 0) {
+    status.textContent = '幾何自檢：PASS（1 視圖）'; status.className = 'pass';
+    detail.textContent = 'PASS\n' + stats.join('\n') + '\n' + receiptLine;
+  } else {
+    status.textContent = '幾何自檢：FAIL（' + diags.length + '）'; status.className = 'fail';
+    detail.textContent = JSON.stringify(diags, null, 1) + '\n---\n' + stats.join('\n') + '\n' + receiptLine;
+    console.error('geometry diagnostics', diags);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+hooks/instructions_loaded_logger.py	<- tools/archdiag/MAINTENANCE.md
+hooks/notice_budget.py	<- skills/diagram-authoring/SKILL.md
+ops/30-judgment.md	<- rules/layout-convergence.md
+ops/lessons.md	<- skills/ux-walkthrough/references/decision-point-contract.md
+ops/references/integrity-sweep.md	<- tools/archdiag/MAINTENANCE.md, tools/archdiag/README.md
+ops/references/rule-narratives-2026-10-12.md	<- rules/verification-ladder.md
+ops/references/uat.md	<- skills/audience-fit/SKILL.md
+ops/rules-usage-dict.md	<- skills/product-design-thinking/references/view-integrity-checks.md
+outputs/archdiag-m1-reach-20261024	<- tools/archdiag/MAINTENANCE.md
+outputs/archview-coverage-20261021	<- tools/archdiag/MAINTENANCE.md
+outputs/archview-coverage-20261021/backfill-envelopes.mjs	<- tools/archdiag/MAINTENANCE.md
+outputs/diagram-authoring/archdiag-capability-set-v1	<- outputs/skill-reviews/archify-integration-analysis-2026-08-28.md
+outputs/diagram-authoring/memory-compaction-audit-f1.html	<- tools/archdiag/MAINTENANCE.md
+outputs/diagram-authoring/selfbuild-scope-eval-2026-08-28.md	<- tools/archdiag/README.md, tools/archdiag/index.mjs
+outputs/diagram-layout-degeneracy-20261019	<- tools/archdiag/MAINTENANCE.md
+outputs/feedback-criteria-grouping-20261026	<- rules/verification-ladder.md
+outputs/lean4-	<- rules/verification-ladder.md
+outputs/numberref-extraction-deferred-2026-09-10.md	<- tools/audience-fit-gate/README.md
+outputs/proposal-record-type-20261014/10-inventory.md	<- tools/audience-fit-gate/README.md
+outputs/shell-command-error-audit-2026-08-18.md	<- tools/audience-fit-gate/README.md
+outputs/skill-reviews/archify-graphify-reborrow-2026-10-23.md	<- tools/archdiag/MAINTENANCE.md, tools/archdiag/anchors.mjs, tools/audience-fit-gate/README.md
+outputs/skill-reviews/diagram-authoring-gaps-2026-08-27.md	<- skills/diagram-authoring/references/carrier-playbook.md
+references/audience-fit-ux-gap-review-2026-09-07.md	<- skills/audience-fit/references/ui-copy-stance.md
+references/claude-config-decisions.md	<- rules/layout-convergence.md
+references/formal-path-governance-design.md	<- skills/product-design-thinking/references/representation-models.md, skills/product-design-thinking/references/view-integrity-checks.md
+references/media-fetch-pipeline-context.md	<- outputs/diagram-authoring/mfp-audit-f3.build.mjs
+references/media-fetch-pipeline-phase-log.md	<- outputs/diagram-authoring/mfp-audit-f3.build.mjs
+references/single-review.md	<- skills/product-design-thinking/references/view-integrity-checks.md
+references/verify.md	<- rules/figure-self-read.md
+rules/html-page-style.md	<- rules/deliverable-doc-refs.md
+rules/office-deck-deliverables.md	<- references/design-axes/part-principles.md, rules/deliverable-doc-refs.md, rules/layout-convergence.md, skills/diagram-authoring/SKILL.md, skills/diagram-authoring/references/carrier-playbook.md
+rules/verification-record.md	<- rules/verification-ladder.md
+skills/media-fetch-pipeline/SKILL.md	<- outputs/diagram-authoring/mfp-audit-f3.build.mjs
+skills/motion-video/references/whole-film-rules.md	<- references/design-axes/part-principles.md
+skills/paper-story/references/lab-template.md	<- references/design-axes/part-principles.md
+skills/synced	<- tools/archdiag/MAINTENANCE.md
+tools/cross-index/tests/test_glob_properties.py	<- rules/verification-ladder.md
+tools/design-axes-mount/parity_census.py	<- skills/diagram-authoring/SKILL.md, skills/product-design-thinking/references/view-integrity-checks.md, tools/archdiag/schema.mjs
+tools/lean-verify	<- rules/verification-ladder.md
+tools/lean-verify/verify.py	<- rules/verification-ladder.md
+tools/page-fill-gate	<- rules/deliverable-doc-refs.md
+tools/page-fill-gate/fill_gate.py	<- rules/deliverable-doc-refs.md, skills/diagram-authoring/references/carrier-playbook.md
+tools/pptx-presentation-gate	<- skills/diagram-authoring/SKILL.md
+tools/system-hmi/SNAPSHOT-ENVELOPE.md	<- tools/archdiag/README.md, tools/archdiag/envelope.mjs
+tools/system-hmi/controls.py	<- tools/archdiag/envelope.mjs
+tools/system-hmi/hmi/envelopes.py	<- tools/archdiag/m1.mjs
+tools/token-key-gate/token_key_gate.py	<- rules/deliverable-doc-refs.md
+tools/ui-shot	<- tools/archdiag/MAINTENANCE.md
+tools/x.py	<- tools/archdiag/anchors.mjs
+tools/xi_scan.py	<- tools/audience-fit-gate/afgate.py
+total: 50
