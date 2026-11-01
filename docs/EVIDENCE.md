@@ -1,7 +1,7 @@
 ---
 layer: share-repo evidence
 audience: agent (builder) and human
-version: 1.0.0
+version: 1.0.2
 ---
 
 # Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
@@ -21,23 +21,25 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   exits 1 (`ERR_MODULE_NOT_FOUND`).
 - **M2 Determinism.** Two runs give the same hash; changing one node label changes it.
 - **M3 Build failures on determinable defects.** Unknown `actor` → `SCHEMA FAILED`; a marker renamed
-  out of `DEFS` → `DEFS FAILED`; a dangling edge target → exit 1, but via a router `TypeError`, not a
-  schema message (spec A3 notes the weakness).
+  out of `DEFS` → `DEFS FAILED`; a dangling edge target → exit 1 with a router message naming the view,
+  the edge and the missing id (since v1.0.2; before, a `TypeError`).
 - **M4 Contrast table.** `tokens.mjs --check`: 0 text FAIL, 1 graphics WARN (absent-edge stroke under
   the 3:1 graphics target); setting a title colour equal to a fill → exit 2.
 - **M5 Router on the audit page** (`route stats` line): 5 views, every edge routed (17/17, 16/16, 14/14,
   19/19, 23/23), crossings within declared (1 of 2, 1 of 1).
-- **M6 afgate.** `--selftest` calibration PASS (22 `[ok]` lines, both sides, including a check that
-  `terms`, `sums`, `style` never FAIL). On the shipped owner view `voice` exits 1 (WARN only, no FAIL);
+- **M6 afgate.** `--selftest` calibration PASS (52 `[ok]` lines, both sides, including a check that
+  `terms`, `sums`, `style` never FAIL; 30 were added in v1.0.2, one or more per fixed defect). On the shipped owner view `voice` exits 1 (WARN only, no FAIL);
   with a file path injected into a reader paragraph it exits 2.
 - **M7 Screening.** Shipped text holds no personal names from the maintainer's known-names list, no
   e-mail, no home-directory or local drive paths, no session ids, no exchange-folder names. The screen
   runs with a planted positive control in the same invocation (a drive path, a home path, one listed
   name and an e-mail must all fire: 5 hits) and then reports 0 hits on the repo. The screen and its
   name list are the maintainer's and not shipped. The five declared edits are in spec §9.
-- **M8 Unshipped references.** 50 origin paths are mentioned but not shipped
+- **M8 Unshipped references.** 52 origin paths are mentioned but not shipped
   (`verify/unshipped_paths.txt`, produced by `verify/list_unshipped.py`). The count is higher than the
-  2026-10-24 edition's 43 because four reference files were added and they cite further records.
+  2026-10-24 edition's 43 because four reference files were added and they cite further records; v1.0.2
+  adds two writing-norm notes the audience-fit skill now cites (de-ai-flavor check 12 states its
+  three tests inline).
 - **M9 Topology warnings (spec A13).** `topology.mjs --selftest` calibration PASS. Shipped audit page:
   exit 0, 0 WARN, and its build logs 0 `topology WARN`. Every node moved into one column: exit 1, 5
   `single-line` WARN. One pill renamed `包含`: 1 `contain-edge` WARN. Origin-side calibration, not
@@ -50,8 +52,10 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   the three example builds (they declare no archview), so the envelope's end-to-end path is
   origin-side only. The self-portrait build (`docs/self-portrait/self-audit.build.mjs:118`) calls
   `resolveAnchors` directly and fails on any unresolved anchor.
-- **M12 Flowchart kinds and hops (spec A16, new).** `flow-selftest.mjs`: 39 `ok` cases, PASS (kinds,
-  decision-vertex anchoring at router, build assert and in-page check #11, hop plan, junction dots).
+- **M12 Flowchart kinds and hops (spec A16).** `flow-selftest.mjs`: 58 `ok` cases, PASS (kinds,
+  decision-vertex anchoring at router, build assert and in-page check #11, hop plan, junction dots;
+  since v1.0.2 also id escaping, malformed-input refusals, overlay stripping, envelope dates and the
+  topology CLI's exit 3).
   Audit page as shipped: 0 `L7 bare-crossing`. Pinned plain: 2 `L7` (`tsm` t5×t7, `txd` d5×d9) and the
   old page bytes.
 
@@ -87,22 +91,22 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 
 | rule | enforced by | what the code checks — and what it does not |
 |---|---|---|
-| every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:68`, `:92` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
-| a source anchor points at a real file and line range | code, opt-in: `tools/archdiag/anchors.mjs:164`, enabled by `archview.anchors` (`index.mjs:70`) | the path exists at the pinned commit and the range is inside the file; not that the line supports the edge; the three example pages do not enable it, the self-portrait build calls `resolveAnchors` directly (`docs/self-portrait/self-audit.build.mjs:118`) |
+| every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:75`, `:105` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
+| a source anchor points at a real file and line range | code, opt-in: `tools/archdiag/anchors.mjs:167`, enabled by `archview.anchors` (`index.mjs:70`) | the path exists at the pinned commit and the range is inside the file; not that the line supports the edge; the three example pages do not enable it, the self-portrait build calls `resolveAnchors` directly (`docs/self-portrait/self-audit.build.mjs:118`) |
 | an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:38` (Step 0) | — |
 | a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:70` | — |
 | the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:130` | — |
-| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:97`) |
-| sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:99-106`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:130`); verifying means rebuilding and comparing |
-| at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:48` (build fails) | the declared count; over 3 means split the view |
+| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:106`) |
+| sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:99-106`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:139`); verifying means rebuilding and comparing |
+| at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:51` (build fails) | the declared count; over 3 means split the view |
 | no overlap outranks fewer crossings | code, router `rev: 2` only: `tools/archdiag/route.mjs:61` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
 | a junction dot only where two edges share an endpoint | code: `tools/archdiag/hops.mjs:123` | edges declared without `from`/`to` skip the shared-endpoint test (`hops.mjs:123-124`) |
-| readability findings warn, never fail a build | code: `tools/archdiag/index.mjs:45-51` (logged, page bytes unchanged) | the standalone `topology.mjs` CLI exits 1 on any warning (`topology.mjs:221`); wiring it into CI is your call |
-| a coverage declaration is present and well formed | code, shape only: `tools/archdiag/envelope.mjs:46-62` (when a page declares `archview`) | the keys and the `verifiedAt` format; not that the coverage is complete or true |
-| a reader edition invents no number | code, screen: afgate `values` (`tools/audience-fit-gate/afgate.py:212`) | only numbers with 3+ significant digits; a number explained by any original number passes, wherever it stands (`:221`) |
-| a reader edition does not widen scope | code, warn: afgate `scope` (`afgate.py:300-319`) | flags a universal quantifier the original never used; a narrowed or softened claim is not detected |
-| a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:243`) | lists the original's limitation lines; a human rules |
-| a reader edition carries no builder apparatus (paths, hashes, run ids) | code: afgate `voice` FAIL outside the provenance block | pattern match; known false positives are listed under "Not claimed" |
+| readability findings warn, never fail a build | code: `tools/archdiag/index.mjs:45-51` (logged, page bytes unchanged) | the standalone `topology.mjs` CLI exits 1 on any warning and 3 when a file, page or view could not be measured (`topology.mjs:233`); wiring it into CI is your call |
+| a coverage declaration is present and well formed | code, shape only: `tools/archdiag/envelope.mjs:54-78` (when a page declares `archview`) | the keys, the `verifiedAt` format and that it is a calendar date; not that the coverage is complete or true |
+| a reader edition invents no number | code, screen: afgate `values` (`tools/audience-fit-gate/afgate.py:279`) | only numbers with 3+ significant digits, in the main text above the provenance marker; a number explained by any original number passes, wherever it stands (`accounted()`, `:252`); a date the original lacks WARNs, never FAILs |
+| a reader edition does not widen scope | code, warn: afgate `scope` (`afgate.py:401-442`) | flags a universal quantifier the original never used; a quantifier the original uses and the reader edition drops is listed as INFO, document-level; whether that is a narrowed claim is a human reading |
+| a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:343`) | lists the original's limitation lines; a human rules |
+| a reader edition carries no builder apparatus (paths, hashes, run ids) | code: afgate `voice` FAIL outside the provenance block (`afgate.py:172`, verdict at `:188`) | pattern match; known false positives are listed under "Not claimed" |
 | a reader edition ships as a pair with its original | process only: spec A12 (review) | — |
 
 ## Not claimed
@@ -113,10 +117,19 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 - `m1.mjs` was not run from this repo: it needs the origin's envelope discovery (not shipped).
 - The in-page geometry check (spec A6) was not executed in a browser for this release.
 - The example audit is of one product of the origin environment; its findings say nothing about yours.
-- afgate known gaps at this release (found by an outside read-only review, not yet fixed): `values`
-  does not see a number glued to a preceding CJK character (`高33.6%` is skipped; `約1,234` is read as
-  `234`); `voice` treats any standalone 8+ digit number as a hash and FAILs it (tax ids, phone
-  numbers). Python 3.10 is the minimum the gate's syntax needs; only 3.12 was run.
+- afgate, known and not fixed in v1.0.2 (design-level; the correctness defects an outside read-only
+  review and a follow-up audit found are fixed, see `CHANGELOG.md`): fenced code in Markdown is not
+  read at all; the provenance split is the first line naming a marker, so a body sentence using one
+  of those words starts the exempt zone (an early marker now WARNs `apparatus-early`); `limits` has no
+  marker of its own; `scope` compares quantifiers across whole files, not per claim, and takes the
+  companion first; `sums` ignores colspan, nested subtotals and tolerance choice; line numbers on HTML
+  input count lines of the stripped text, not of the source. Python 3.10 is the minimum the gate's
+  syntax needs (older exits 3); only 3.12 was run.
+- archdiag, known and not fixed in v1.0.2: two views may share a view id; `anchors.mjs` assumes
+  POSIX-style paths in `ev`; README's token table and some literal hex colours are not cross-checked
+  against `tokens.mjs`; `deltaMarkdown` does not escape `|` in ids; nodes may overlap (the schema checks
+  sizes, not placement); the anchors self-test does not exercise the `ls-tree -z` listing or the
+  enlarged output buffer.
 
 ## Decisions behind the design (keep unless the new owner decides otherwise)
 

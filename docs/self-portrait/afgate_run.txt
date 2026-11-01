@@ -1,8 +1,10 @@
-# afgate run 2026-11-01, repo root:
+# afgate run 2026-11-01 (v1.0.2 gate), repo root:
 # python -X utf8 reference-impl/tools/audience-fit-gate/afgate.py all docs/self-portrait/self-audit.html docs/self-portrait/self-owner-view.html
 target: self-owner-view.html
-  ruler: 7 numbers in the reader's text: 1 certified (3+ significant digits, 0 via a named transform), 6 NOT certified (1-2 digits: counting words, thresholds, round figures) — stated, not hidden. This is a SCREEN, not a proof.
-  0 FAIL, 0 WARN, 0 INFO, 0 UNDET
+  [WARN ] unmatched-date 2026-11-1
+           no date in the canonical original matches this one (formats are normalised: 2026-08-01 = 2026/8/1 = 2026年8月1日); fine for an as-of anchor, otherwise a changed date
+  ruler: 7 numbers in the reader's text: 1 certified (3+ significant digits, 0 via a named transform), 6 NOT certified (1-2 digits: counting words, thresholds, round figures) — stated, not hidden. This is a SCREEN, not a proof. Read 2107 of 2107 characters (below that: provenance apparatus).
+  0 FAIL, 1 WARN, 0 INFO, 0 UNDET
 
 target: self-owner-view.html
   [INFO ] limitation    缺口報告     #  缺口／發現  種類  憑據      G1  擁有者視圖不經 build()：它是手畫 SVG，只借 asserts.mjs 的 a11y 斷言；頁內幾何自
@@ -11,8 +13,14 @@ target: self-owner-view.html
   0 FAIL, 0 WARN, 1 INFO, 0 UNDET
 
 target: self-owner-view.html
-  ruler: 0 lines carry a universal quantifier (每篇/一定/固定/所有/always…). This is a SCREEN: it never rules on whether the claim holds, only on whether it was added.
-  0 FAIL, 0 WARN, 0 INFO, 0 UNDET
+  [INFO ] dropped-universal 全部
+           the original says '全部' and the reader edition never does — check the claim was not narrowed or softened
+  [INFO ] dropped-universal 固定
+           the original says '固定' and the reader edition never does — check the claim was not narrowed or softened
+  [INFO ] dropped-universal 每個
+           the original says '每個' and the reader edition never does — check the claim was not narrowed or softened
+  ruler: 3 findings on universal quantifiers (每篇/一定/固定/所有/always…). This is a SCREEN: it never rules on whether the claim holds, only on whether a quantifier was added or dropped.
+  0 FAIL, 0 WARN, 3 INFO, 0 UNDET
 
 target: self-owner-view.html
   [WARN ] builder-word  commit

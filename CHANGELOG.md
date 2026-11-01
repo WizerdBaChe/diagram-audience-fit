@@ -2,6 +2,39 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
+## v1.0.2 — 2026-11-01
+
+Fixes from an outside read-only review of v1.0.1, a follow-up code audit and two clean-context review
+rounds. Fixed at the origin and copied by the refresh script; example page bytes unchanged (A1/A2).
+
+- **Docs:** `docs/EVIDENCE.md` "Enforcement map" lists every method rule with the file:line that
+  enforces it or "process only"; `AGENTS.md` opens with facts about the repo; `llms.txt` has a
+  read-only route; README and `docs/DEVELOPER.md` route their limits to the map.
+- **afgate `values`:** numbers glued to Chinese text and full-width digits are read; thousands
+  separators only in groups of three; half-up rounding to 6 places; exponent digits not significant;
+  dates checked on their own (a date the original lacks WARNs `unmatched-date`); a date's year explains
+  a number by identity; a sign moved into words WARNs `sign-moved`; only the main text above the
+  provenance marker is read, `--no-apparatus` is honoured and an early marker WARNs; overflowing
+  transforms no longer crash or explain everything.
+- **afgate `voice`:** a plain 8+ digit number is not a hash; upper-case hashes need 32+ characters;
+  matches are ASCII-bounded so text glued to Chinese is still caught; multi-dot and Chinese file names
+  are paths; URLs and library names (`Node.js`, `three.js`) are not; builder words match whole words
+  and plurals.
+- **afgate `scope`:** a quantifier the original uses and the reader edition drops is listed (INFO);
+  hedges (不一定, 不固定, 不總是) and 所有權 are not universals.
+- **afgate CLI:** exit 3 = could not run (Python older than 3.10, missing or UTF-16 file, bad
+  `--allow`, usage error); 2 stays FAIL. Self-test 22 → 52 checks.
+- **archdiag:** ids are HTML-escaped in attributes; the schema refuses a whitespace view id, missing
+  or non-array `edges`/`containers`, null entries, non-positive container sizes and unknown sides; a
+  dangling edge names itself instead of a `TypeError`; `pageHtml` checks its document fields;
+  `stripOverlay` drops overlay edges; envelope `verifiedAt` must be a calendar date; `anchors` lists
+  files NUL-separated with a larger buffer; `topology` CLI exits 3 when a file, page or view could not
+  be measured. Flow self-test 39 → 58 cases.
+- **audience-fit skill (origin update):** de-ai-flavor gains check 12 (paragraph job and lead outline);
+  the claim-strength ladder is spelled as in `honest-data-readability.md`. The two writing-norm notes it
+  cites are not shipped (`verify/unshipped_paths.txt`, 50 → 52).
+- Known gaps that remain are listed under "Not claimed" in `docs/EVIDENCE.md`.
+
 ## v1.0.1 — 2026-11-01
 
 Documentation only; nothing under `reference-impl/` or `verify/` changed.

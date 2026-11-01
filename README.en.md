@@ -121,6 +121,8 @@ Four principles run through everything: **a diagram without a model is a screens
 
 ## This release
 
+**v1.0.2 (2026-11-01)**: correctness fixes in both checkers (numbers glued to Chinese text were missed, plain long numbers were taken for hashes, malformed models crashed the build), each with a two-sided self-test; `docs/EVIDENCE.md` gains an enforcement map (which rules code enforces, which are process only), `AGENTS.md` opens with facts, `llms.txt` gains a read-only route. Example page bytes unchanged.
+
 **v1.0.1 (2026-11-01)**: a self-portrait (this repo drawn by its own method, engineering + reader view) as the hero; rewritten overview, English page, developer guide, llms.txt. The capability itself (skills, library, gate, original examples) is unchanged.
 
 **v1.0.0 (2026-11-01)**: flowchart notation, line hops by default, a flowchart added to the audit's standard view set, presentational-view rule R13 (a crossing never reads as a join); all 12 machine controls pass. Full notes: [`CHANGELOG.md`](CHANGELOG.md).
