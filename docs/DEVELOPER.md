@@ -123,7 +123,7 @@ flowchart TB
 python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新資料夾>
 ```
 
-腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。v1.0.0 的紀錄：A1–A5、A7、A10、A11、A13–A16 共 12 項全過。
+腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.0.2，乾淨 clone）：A1–A5、A7、A10、A11、A13–A16 共 12 項全過。
 
 ## 設計上刻意的幾件事（改之前請先看）
 
@@ -172,6 +172,8 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 1. **來源**：`probe_refs.py` 實讀 `reference-impl/` 的 44 個文字檔，記下每一條檔案間的引用（匯入、路徑引用、skill 互相點名），寫成 `refs.json`。圖不是照資料夾結構猜的。
 2. **工程版**：`self-audit.build.mjs` 的每條線都從 `refs.json` 查出處（查不到就建置失敗），再用 `anchors.mjs` 在固定 commit 上逐一核對檔案與行號；程式庫的 schema 不接受宣告超過 3 個交叉，所以版面重排到實際交叉 3 個（建置時印出 route stats）。頁內附缺口報告與覆蓋宣告。
 3. **讀者版**：`self-owner-view.build.mjs` 由工程版的模型重畫成 8 個節點，開頭是來源區塊（原版連結、讀者、基準 commit、原版重生要跟著改版），附方塊與線的對照表、改寫自工程版的五條發現（種類照原樣）；用 `afgate.py` 對照原版檢查，結果 0 FAIL、只有 WARN（exit 1），全文在 `docs/self-portrait/afgate_run.txt`。
+
+兩頁固定在 tag v1.0.0（commit `49001fb`）：`refs.json` 與出處行號都是那一版的檔案結構，之後版本的改動不會出現在圖上。要逐位元組重現附上的兩頁，請在 `git checkout v1.0.0` 的工作樹跑下面的步驟，或略過第一步、直接用附上的 `refs.json`；在新版本上重新探測等於重畫一張新圖，要同時改兩支建置腳本裡的 `PIN`。
 
 重生（repo 根目錄）：
 

@@ -11,8 +11,9 @@
 - **What was run:** Windows 11, Node 24.22.1, Python 3.12.7, git. The recorded results are
   `verify/controls_run.txt`; what was not run or not claimed is in `docs/EVIDENCE.md`.
 - **Network and side effects:** no network calls; `archdiag/anchors.mjs` spawns `git`, `archdiag/m1.mjs`
-  spawns `python` (against an unshipped origin tool), `git` and `node`, nothing else in the library or gate starts a
-  process; the acceptance script copies `reference-impl/` into a scratch folder, mutates and deletes it.
+  spawns `python` (against an unshipped origin tool), `git` and `node`; the self-tests start a copy of
+  their own runtime (`afgate.py --selftest` runs itself to check exit codes, `flow-selftest.mjs` runs
+  `node topology.mjs`); nothing else in the library or gate starts a process; the acceptance script copies `reference-impl/` into a scratch folder, mutates and deletes it.
 - **If you only read and do not execute:** read `docs/EVIDENCE.md`, then `verify/controls_run.txt` as
   the result record, then the two `SKILL.md` files. Everything below this section is installation
   steps addressed to an agent its user asked to install the pack; reading it does not require following it.

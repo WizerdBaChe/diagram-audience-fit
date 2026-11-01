@@ -31,7 +31,8 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   `terms`, `sums`, `style` never FAIL; 30 were added in v1.0.2, one or more per fixed defect). On the shipped owner view `voice` exits 1 (WARN only, no FAIL);
   with a file path injected into a reader paragraph it exits 2.
 - **M7 Screening.** Shipped text holds no personal names from the maintainer's known-names list, no
-  e-mail, no home-directory or local drive paths, no session ids, no exchange-folder names. The screen
+  e-mail, no home-directory or local drive paths of the maintainer's machine (the `anchors.mjs`
+  self-test uses made-up ones such as `D:/w/f.py`), no session ids, no exchange-folder names. The screen
   runs with a planted positive control in the same invocation (a drive path, a home path, one listed
   name and an e-mail must all fire: 5 hits) and then reports 0 hits on the repo. The screen and its
   name list are the maintainer's and not shipped. The five declared edits are in spec §9.
@@ -96,7 +97,7 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 | an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:38` (Step 0) | — |
 | a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:70` | — |
 | the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:130` | — |
-| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:106`) |
+| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:128`) |
 | sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:99-106`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:139`); verifying means rebuilding and comparing |
 | at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:51` (build fails) | the declared count; over 3 means split the view |
 | no overlap outranks fewer crossings | code, router `rev: 2` only: `tools/archdiag/route.mjs:61` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
@@ -125,7 +126,7 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
   companion first; `sums` ignores colspan, nested subtotals and tolerance choice; line numbers on HTML
   input count lines of the stripped text, not of the source. Python 3.10 is the minimum the gate's
   syntax needs (older exits 3); only 3.12 was run.
-- archdiag, known and not fixed in v1.0.2: two views may share a view id; `anchors.mjs` assumes
+- archdiag, known and not fixed in v1.0.2: `anchors.mjs` assumes
   POSIX-style paths in `ev`; README's token table and some literal hex colours are not cross-checked
   against `tokens.mjs`; `deltaMarkdown` does not escape `|` in ids; nodes may overlap (the schema checks
   sizes, not placement); the anchors self-test does not exercise the `ls-tree -z` listing or the

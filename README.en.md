@@ -20,7 +20,7 @@ Two Claude Code skills + a zero-install Node diagram library + a Python gate + r
 
 <img src="docs/assets/hero.en.png" alt="This repo drawn by its own method. Left, the engineering view: methods, code and examples in three columns, 20 edges each traced to a file and line. Right, the reader view: the same model redrawn as 8 nodes, your system, the drawing method, the drawing library, the audit diagram, audience fit, the reader-edition gate, the acceptance script and the owner's diagram. The arrow between them reads: redraw, don't annotate." width="960">
 
-<sub>The image above is produced by this repository itself: a probe reads the references between files → engineering view (every citation resolved at a pinned commit) → reader view (reader-edition gate 0 FAIL, run recorded in <code>afgate_run.txt</code>). Labels inside the diagrams are Traditional Chinese. Both pages and their build scripts: <a href="docs/self-portrait/"><code>docs/self-portrait/</code></a>.</sub>
+<sub>The image above is produced by this repository itself: a probe reads the references between files → engineering view (every citation resolved at the pinned commit, tag v1.0.0; the drawing shows the v1.0.0 file structure) → reader view (reader-edition gate 0 FAIL, run recorded in <code>afgate_run.txt</code>). Labels inside the diagrams are Traditional Chinese. Both pages and their build scripts: <a href="docs/self-portrait/"><code>docs/self-portrait/</code></a>.</sub>
 
 </div>
 
@@ -121,7 +121,7 @@ Four principles run through everything: **a diagram without a model is a screens
 
 ## This release
 
-**v1.0.2 (2026-11-01)**: correctness fixes in both checkers (numbers glued to Chinese text were missed, plain long numbers were taken for hashes, malformed models crashed the build), each with a two-sided self-test; `docs/EVIDENCE.md` gains an enforcement map (which rules code enforces, which are process only), `AGENTS.md` opens with facts, `llms.txt` gains a read-only route. Example page bytes unchanged.
+**v1.0.2 (2026-11-01)**: correctness fixes in both checkers (numbers glued to Chinese text were missed, plain long numbers were taken for hashes, malformed models crashed the build), each with self-test cases; `docs/EVIDENCE.md` gains an enforcement map (which rules code enforces, which are process only), `AGENTS.md` opens with facts, `llms.txt` gains a read-only route. Example page bytes unchanged.
 
 **v1.0.1 (2026-11-01)**: a self-portrait (this repo drawn by its own method, engineering + reader view) as the hero; rewritten overview, English page, developer guide, llms.txt. The capability itself (skills, library, gate, original examples) is unchanged.
 
