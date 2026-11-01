@@ -108,7 +108,8 @@ export function stripOverlay(views) {
     return {
       ...v,
       nodes: v.nodes.filter((n) => !n.ov).map(({ ov, ...n }) => n),
-      edges: v.edges.filter((e) => keptIds.has(e.from) && keptIds.has(e.to)),
+      // an ov edge between two base nodes is overlay too (overlaySuggestions tells users to flag edges ov)
+      edges: v.edges.filter((e) => !e.ov && keptIds.has(e.from) && keptIds.has(e.to)),
     };
   });
 }

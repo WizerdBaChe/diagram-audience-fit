@@ -253,6 +253,10 @@ function channelRouter(view, opts = {}) {
   const D = (code, subject, evidence, fixes) =>
     diagnostics.push({ code, severity: 'error', subject, evidence, supportedFixes: fixes });
 
+  // a dangling endpoint used to crash in dominantSides with a TypeError; name it instead
+  for (const e of view.edges)
+    for (const end of ['from', 'to'])
+      if (!byId[e[end]]) throw new Error(`route(): ${view.id}/${e.id}.${end} "${e[end]}" resolves to no node/container in this view`);
   // -- phase A: side choice (hints win; else dominant axis)
   const plan = view.edges.map((e) => {
     const from = byId[e.from], to = byId[e.to];
@@ -275,7 +279,8 @@ function channelRouter(view, opts = {}) {
   }
   const anchors = new Map(); // `${edgeId}|from` -> [x,y]
   for (const [key, list] of groups) {
-    const [nodeId, side] = key.split('|');
+    const cut = key.lastIndexOf('|'); // a node id may itself contain '|'; the side never does
+    const nodeId = key.slice(0, cut), side = key.slice(cut + 1);
     const rect = byId[nodeId];
     list.sort((a, b) => a.sortCoord - b.sortCoord || (a.p.e.id < b.p.e.id ? -1 : 1));
     const [lo, hi] = sideRange(rect, side);

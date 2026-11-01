@@ -20,7 +20,7 @@
 | B-7 | Run checks one at a time, sequentially; one isolated hit means little, clusters demand rewrite | Verdict scale kept: clean / isolated hits / cluster |
 | B-8 | Four operations — write / review / refactor / recreate | Mapped to audience-fit modes: A≈refactor-or-recreate (into a NEW file), B≈refactor, C≈review |
 
-## The ten professional-text checks (run in order, one at a time)
+## The professional-text checks (run in order, one at a time)
 
 1. **Support-desk formality** — greetings, apologies, offers to help
    further. Colleagues skip this.
@@ -51,7 +51,15 @@
     re-borrow ledger B-16). Length and 「的」 counts are countable, so a gate
     may WARN on them; whether the sentence reads well stays a judgment.
 
-Weight by shape: long-form (reports, postmortems) → checks 2/3/4/9 first;
+12. **Paragraph job and lead outline** — a paragraph with two jobs or none;
+    lead sentences that, read in order, do not tell the argument; a
+    connective that names no real relation (decorative 因此／此外 between
+    paragraphs that are only adjacent). Definitions:
+    `~/.claude/references/writing-norms/paragraph-plan.md` §1–§2. Judgment
+    only, never a count. A hit is one of the pass's 3–5 interventions (B-2),
+    not a licence to re-plan every paragraph.
+
+Weight by shape: long-form (reports, postmortems) → checks 2/3/4/9/12 first;
 short replies and UI strings → checks 5/1 first.
 
 ## Report format (Mode C, or the self-check before delivering A/B)

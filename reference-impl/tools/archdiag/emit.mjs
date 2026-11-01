@@ -99,7 +99,7 @@ function flowNodeSvg(n) {
   const fill = n.ov ? OVL.fill : FILL[n.kind];
   const stroke = n.ov ? OVL.stroke : STROKE[n.kind];
   const dash = n.ov ? ' stroke-dasharray="6 4"' : '';
-  let s = `<g class="node" data-id="${n.id}" data-x="${n.x}" data-y="${n.y}" data-w="${n.w}" data-h="${n.h}" data-kind="${n.kind}">`;
+  let s = `<g class="node" data-id="${esc(n.id)}" data-x="${n.x}" data-y="${n.y}" data-w="${n.w}" data-h="${n.h}" data-kind="${n.kind}">`;
   if (n.kind === 'decision') {
     const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
     s += `<polygon points="${cx},${n.y} ${n.x + n.w},${cy} ${cx},${n.y + n.h} ${n.x},${cy}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"${dash}/>`;
@@ -128,7 +128,7 @@ function nodeSvg(n) {
   const rx = (n.kind === 'state' || n.kind === 'stateT') ? 16 : n.kind === 'ext' ? (n.h <= n.w ? n.h / 2 : 16) : 6;
   const fill = n.ov ? OVL.fill : FILL[kind];
   const stroke = n.ov ? OVL.stroke : STROKE[kind];
-  let s = `<g class="node" data-id="${n.id}" data-x="${n.x}" data-y="${n.y}" data-w="${n.w}" data-h="${n.h}" data-kind="${n.kind}">`;
+  let s = `<g class="node" data-id="${esc(n.id)}" data-x="${n.x}" data-y="${n.y}" data-w="${n.w}" data-h="${n.h}" data-kind="${n.kind}">`;
   s += `<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"${n.ov ? ' stroke-dasharray="6 4"' : ''}/>`;
   if (n.kind === 'stateT') s += `<rect x="${n.x + 4}" y="${n.y + 4}" width="${n.w - 8}" height="${n.h - 8}" rx="12" fill="none" stroke="${STROKE.state}" stroke-width="1.2"/>`;
   const cx = n.kind === 'ext' ? n.x + n.w / 2 : n.x + 12;
@@ -145,14 +145,14 @@ function nodeSvg(n) {
 function viewSvg(v) {
   let s = [];
   for (const c of v.containers || []) {
-    s.push(`<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="12" fill="${SURFACE.container}" stroke="${SURFACE.containerStroke}" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="${c.id}" data-x="${c.x}" data-y="${c.y}" data-w="${c.w}" data-h="${c.h}"/>`);
+    s.push(`<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="12" fill="${SURFACE.container}" stroke="${SURFACE.containerStroke}" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="${esc(c.id)}" data-x="${c.x}" data-y="${c.y}" data-w="${c.w}" data-h="${c.h}"/>`);
     if (c.title) s.push(`<text class="lbl" x="${c.x + 14}" y="${c.y + 22}" font-size="12" font-weight="600" fill="${TEXT.container}">${esc(c.title)}</text>`);
   }
   const plan = hopPlan(v); // empty only for crossingStyle 'plain' (hop is the default)
   for (const e of v.edges) {
     const st = EDGE[e.type];
     const d = hopPath(e, plan.hops.get(e.id));
-    s.push(`<path d="${d}" fill="none" stroke="${st.stroke}" stroke-width="1.6" ${st.dash ? `stroke-dasharray="${st.dash}"` : ''} ${st.marker ? `marker-end="url(#${st.marker})"` : ''} class="edge" data-edge="${e.id}" data-from="${e.from}" data-to="${e.to}" data-pts="${e.pts.flat().join(',')}" ${e.fromComp ? 'data-fromcomp="1"' : ''} ${e.selfLoop ? 'data-selfloop="1"' : ''}/>`);
+    s.push(`<path d="${d}" fill="none" stroke="${st.stroke}" stroke-width="1.6" ${st.dash ? `stroke-dasharray="${st.dash}"` : ''} ${st.marker ? `marker-end="url(#${st.marker})"` : ''} class="edge" data-edge="${esc(e.id)}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" data-pts="${e.pts.flat().join(',')}" ${e.fromComp ? 'data-fromcomp="1"' : ''} ${e.selfLoop ? 'data-selfloop="1"' : ''}/>`);
     if (e.type === 'absent') { // contractual non-dependency: ✕ at first-segment midpoint
       const mx = (e.pts[0][0] + e.pts[1][0]) / 2, my = (e.pts[0][1] + e.pts[1][1]) / 2;
       s.push(`<path d="M${mx - 5} ${my - 5} L${mx + 5} ${my + 5} M${mx - 5} ${my + 5} L${mx + 5} ${my - 5}" stroke="#64748b" stroke-width="1.8" fill="none"/>`);
@@ -192,13 +192,19 @@ export const DEFS = `<svg width="0" height="0" style="position:absolute" aria-hi
 
 // ---------- page assembly ----------
 export function pageHtml({ grid = 8, doc, views, sections, selfcheckNotes }) {
-  const tabs = views.map((v, i) => `<button class="tab${i === 0 ? ' on' : ''}" data-tab="${v.id}">${esc(v.title)}</button>`).join('');
+  // a missing doc string used to print the literal "undefined" into the page; a missing
+  // sections array crashed with a TypeError
+  const missing = ['title', 'h1', 'legendbar', 'footerNote'].filter((k) => typeof doc?.[k] !== 'string');
+  if (missing.length || !Array.isArray(sections))
+    throw new Error(`pageHtml(): doc.${missing.join(', doc.') || '…'} must be strings ('' allowed) and sections an array`
+      + (Array.isArray(sections) ? '' : ' (sections is missing)'));
+  const tabs = views.map((v, i) => `<button class="tab${i === 0 ? ' on' : ''}" data-tab="${esc(v.id)}">${esc(v.title)}</button>`).join('');
   const panes = views.map((v, i) => `
-<section class="pane${i === 0 ? ' on' : ''}" id="pane-${v.id}">
+<section class="pane${i === 0 ? ' on' : ''}" id="pane-${esc(v.id)}">
   <p class="note">${esc(v.subtitle)}　宣告：${v.declared.map(esc).join('；')}</p>
-  <svg class="dia" data-view="${v.id}" viewBox="0 0 ${v.vb[0]} ${v.vb[1]}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-${v.id} d-${v.id}">
-    <title id="t-${v.id}">${esc(v.title)}</title>
-    <desc id="d-${v.id}">${esc(v.subtitle)}</desc>
+  <svg class="dia" data-view="${esc(v.id)}" viewBox="0 0 ${v.vb[0]} ${v.vb[1]}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-${esc(v.id)} d-${esc(v.id)}">
+    <title id="t-${esc(v.id)}">${esc(v.title)}</title>
+    <desc id="d-${esc(v.id)}">${esc(v.subtitle)}</desc>
     <g class="scene">${viewSvg(v)}</g>
   </svg>
 </section>`).join('\n');
@@ -208,7 +214,7 @@ export function pageHtml({ grid = 8, doc, views, sections, selfcheckNotes }) {
   const flow = views.some((v) => (v.nodes || []).some((n) => n.kind === 'decision'));
   const script = inPageScript({ grid, viewCount: views.length, notes: selfcheckNotes, flow });
   return `<!doctype html>
-<html lang="${doc.lang || 'zh-Hant'}" data-page-class="${esc(doc.pageClass || 'diagram')}">
+<html lang="${esc(doc.lang || 'zh-Hant')}" data-page-class="${esc(doc.pageClass || 'diagram')}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

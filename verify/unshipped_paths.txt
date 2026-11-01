@@ -27,6 +27,8 @@ references/media-fetch-pipeline-context.md	<- outputs/diagram-authoring/mfp-audi
 references/media-fetch-pipeline-phase-log.md	<- outputs/diagram-authoring/mfp-audit-f3.build.mjs
 references/single-review.md	<- skills/product-design-thinking/references/view-integrity-checks.md
 references/verify.md	<- rules/figure-self-read.md
+references/writing-norms/claim-reach.md	<- skills/audience-fit/SKILL.md
+references/writing-norms/paragraph-plan.md	<- skills/audience-fit/SKILL.md, skills/audience-fit/references/de-ai-flavor.md
 rules/html-page-style.md	<- rules/deliverable-doc-refs.md
 rules/office-deck-deliverables.md	<- references/design-axes/part-principles.md, rules/deliverable-doc-refs.md, rules/layout-convergence.md, skills/diagram-authoring/SKILL.md, skills/diagram-authoring/references/carrier-playbook.md
 rules/verification-record.md	<- rules/verification-ladder.md
@@ -48,4 +50,4 @@ tools/token-key-gate/token_key_gate.py	<- rules/deliverable-doc-refs.md
 tools/ui-shot	<- tools/archdiag/MAINTENANCE.md
 tools/x.py	<- tools/archdiag/anchors.mjs
 tools/xi_scan.py	<- tools/audience-fit-gate/afgate.py
-total: 50
+total: 52

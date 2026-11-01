@@ -16,6 +16,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { validateAnchorDecl } from './anchors.mjs';
 
 export const ENVELOPE = 'snapshot-envelope/1';
@@ -42,6 +43,13 @@ function awareStamp(s) {
   return s;
 }
 
+// 2026-13-45 matches DAY; a round trip through Date.UTC tells a real date from a shaped one
+function realDate(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
+}
+
 /** Determinable shape checks on a declaration; returns a list of problems. */
 export function validateDeclaration(d) {
   const p = [];
@@ -60,6 +68,7 @@ export function validateDeclaration(d) {
   }
   if (typeof d.verifiedAt !== 'string' || !(DAY.test(d.verifiedAt) || AWARE.test(d.verifiedAt)))
     p.push('archview.verifiedAt must be YYYY-MM-DD or an aware ISO-8601 stamp');
+  else if (!realDate(d.verifiedAt.slice(0, 10))) p.push(`archview.verifiedAt ${d.verifiedAt} is not a calendar date`);
   if (d.rung !== undefined && !RUNGS.includes(d.rung)) p.push(`archview.rung must be one of ${RUNGS.join('/')}`);
   if (d.maxVerifyAgeDays !== undefined && !(Number.isFinite(d.maxVerifyAgeDays) && d.maxVerifyAgeDays > 0))
     p.push('archview.maxVerifyAgeDays must be a positive number');
@@ -186,5 +195,6 @@ async function selftest() {
   console.log('SELFTEST PASS (envelope.mjs)');
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'))
+// fileURLToPath decodes %20 and non-ASCII; the raw URL pathname never matched such a path (false green)
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
     && process.argv.includes('--selftest')) await selftest();

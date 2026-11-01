@@ -12,20 +12,21 @@ python afgate.py terms  <companion>              # prose near-names of the drawi
 python afgate.py sums   <companion>              # table total rows recomputed (WARN)
 python afgate.py style  <companion>              # zh-TW sentence mechanics (WARN)
 python afgate.py all    <original> <companion>
-python afgate.py --selftest                      # two-sided calibration, 20 checks
+python afgate.py --selftest                      # two-sided calibration, 52 checks
 ```
 
-Exit `2` = FAIL · `1` = WARN only · `0` = clean.
+Exit `2` = FAIL · `1` = WARN only · `0` = clean · `3` = could not run (Python older than 3.10;
+3.12 is the tested version).
 
 ## What each check rules on
 
 | check | rules | severity |
 |---|---|---|
-| `voice` | closed classes a non-builder reader cannot act on: a bare `<n> PASS`, a file path, a sha, a run id, a gate/invariant id | **FAIL** in the reader's main text |
+| `voice` | closed classes a non-builder reader cannot act on: a bare `<n> PASS`, a file path, a sha, a run id, a gate/invariant id | **FAIL** in the reader's main text. A sha needs at least one a-f letter, so a plain 8+ digit number (tax id, phone) is not one; an upper-case hash (Get-FileHash) needs 32+ characters, so an 8-character id like `AB12CD34` is not one (a shorter upper-case hash is then missed); a sha glued to Chinese text is still read (2026-11-01) |
 | `voice` | builder vocabulary (`stdout`, `schema`, `commit`, `閘`, …) | WARN — a `power_user` audience legitimately reads some of these |
-| `values` | a number in the companion that no number in the canonical original explains, under identity or a **named** transform | **FAIL** — "invent nothing", made checkable |
+| `values` | a number in the companion that no number in the canonical original explains, under identity or a **named** transform | **FAIL** — "invent nothing", made checkable. A number glued to Chinese text (`高33.6%`, `約1,234`) is read whole (before 2026-11-01 it was skipped or cut) |
 | `limits` | the original's limitation lines and which have no lexical counterpart | **reports, rules on nothing** |
-| `scope` | a line with a universal quantifier (每篇 / 每次 / 一定 / 固定 / 所有 / 一律 / 永遠 / always / every / never) — "some" written as "all" | WARN when the original lacks that quantifier (the rewrite widened the claim); INFO when the original has it; UNDET with no original. **Never FAIL** |
+| `scope` | a line with a universal quantifier (每篇 / 每次 / 一定 / 固定 / 所有 / 一律 / 永遠 / always / every / never) — "some" written as "all" | WARN when the original lacks that quantifier (the rewrite widened the claim); INFO when the original has it; UNDET with no original. The other direction (2026-11-01): a quantifier the original uses and the reader edition never does is listed as INFO `dropped-universal` (所有 → 部分 may be a narrowed claim); INFO because a redraw aggregates and drops sentences, so a WARN fired on every real pair. Document-level, so it cannot point at the line; narrowing stays a human reading. **Never FAIL** |
 | `terms` | a prose string one edit away from a node label of the page's own drawing (`任務隊列` vs the drawn `任務佇列`): one thing, two names | WARN; UNDET when the page has no drawing. **Never FAIL** — a near-name can be a different thing |
 | `sums` | a table row labelled 合計 / 總計 / 小計 / total whose cell differs from the sum of the rows above it (integers exact; decimals and % within half a unit per row) | WARN; a % total inside the rows' range is a weighted rate → INFO, not checked. **Never FAIL** — a total row may be a subset |
 | `style` | zh-TW sentence mechanics: a sentence over 50 characters, more than two 的, a nominalising verb (進行 / 做出 / 予以 / 加以 + noun), a stock phrase (賦能, 全方位, 至關重要 …) | WARN. **Never FAIL** — style is a reading aid, not a defect class |
@@ -64,16 +65,36 @@ tokens with 3+ significant digits are certified; 1–2 digit tokens are counting
 words, thresholds and round figures, and the output states how many fell in
 each class rather than hiding the weaker half. audience-fit *transforms*
 numbers on purpose (`1.336×` becomes `比基準高 33.6%`), so a companion number is
-accounted for by identity or by one of ten named transforms — the transform is
+accounted for by identity or by one of nine named transforms — the transform is
 printed beside the match. `--allow VALUE=REASON` carries a legitimate exception
 inline.
 
+Since 2026-11-01 (an outside read-only review and a follow-up audit): numbers
+glued to Chinese text and full-width forms (`９１．４％`) are read; thousands
+separators only in groups of three (`12,15,18` is three numbers); rounding is
+half-up to 6 places (`812.5` → `813`); a sign moved into words (`-12.5%` →
+`降低 12.5%`) is WARN `sign-moved`, because only a human can check the direction word; dates are checked on their own
+(`2026-08-01` = `2026/8/1` = `2026年8月1日`; a date the original lacks WARNs
+`unmatched-date`, not FAIL, because the mandated as-of anchor may sit in the
+main text; the years of the original's dates count as numbers, so `2026年度` is
+explained by `2026-08-01`); and `values`, like `voice`, reads only the companion's main
+text above the provenance marker, prints how many characters it read, and honours
+`--no-apparatus`. Both WARN `apparatus-early` when that marker sits in the first half
+of the text, because everything below it is exempt (counted once under `all`). Only
+full-width digits and `－＋／` are folded, not the whole NFKC set: `．` between two
+digits of any width becomes a decimal point, `，` only between full-width digits, so
+`100，200，300` stays three numbers and `10⁶` is not read as 106. A date's year
+explains a number by identity only (`202600` is not `2026 × 100`), and a transform
+that overflows explains nothing. Exit 3 means the gate could not run (missing file, UTF-16 input, bad
+`--allow`, usage error).
+
 ## Calibration
 
-`--selftest` builds four fixtures — a canonical original plus a clean, an
-invented-number and a leaky companion — and requires nine separations,
-including "`limits` never returns FAIL" and "33.6% is recognised as a named
-transform of 1.336". Artifact-level baseline: the three accepted owner views in
+`--selftest` builds its fixtures (a canonical original plus clean, invented-number,
+leaky, widened, narrowed, glued, dated and table companions) and requires 52
+separations, each with a known-true and a known-false side, including "`limits`
+never returns FAIL", "33.6% is recognised as a named transform of 1.336" and the
+exit codes of the CLI. Artifact-level baseline: the three accepted owner views in
 `outputs/diagram-authoring/` return 0 FAIL.
 
 Calibration of the three screens (2026-10-23/24), on real files, with the declined pile read by hand:

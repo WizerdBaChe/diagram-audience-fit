@@ -11,7 +11,11 @@
 // here is downgrade-and-forward — a WARN naming the measured value and the
 // threshold, never a build FAIL (gate-design: rule only on what you can
 // determine). build() logs and returns them; the CLI exits 1 on any WARN
-// (afgate convention: 1 = WARN only, 2 = broken/calibration failure).
+// (afgate convention: 1 = WARN only, 2 = broken/calibration failure,
+// 3 = not measured: an unreadable file, a page with no recognised markup, or
+// a view with no recognised nodes, which must never read as a pass). 3 wins
+// over 1: a page with one WARN view and one unmeasured view exits 3, and the
+// WARN is still printed.
 //
 // One core over a neutral shape, two adapters: fromViews() for the archdiag
 // model (build time) and fromHtml() for an emitted page — archdiag's own
@@ -205,12 +209,20 @@ function selftest() {
 function cli(argv) {
   if (argv[0] === '--selftest') return selftest();
   if (!argv.length) { console.error('usage: node topology.mjs <page.html ...> | --selftest'); return 2; }
-  let any = false;
+  let any = false, notMeasured = false;
   for (const f of argv) {
-    const shape = fromHtml(fs.readFileSync(f, 'utf8'));
+    let text;
+    try { text = fs.readFileSync(f, 'utf8'); } catch (err) {
+      console.log(`== ${f}\n   NOT MEASURED: cannot read (${err.code || err.message})`);
+      notMeasured = true;
+      continue;
+    }
+    const shape = fromHtml(text);
     const { warnings, metrics, skipped, unmeasured } = topologyWarnings(shape);
     console.log(`== ${f}`);
+    if (!shape.views.length) notMeasured = true;
     if (!shape.views.length) console.log('   NOT MEASURED: no <svg data-view|data-scene> in this page (hand-drawn markup is declined, not passed)');
+    if (unmeasured.length) notMeasured = true;
     if (unmeasured.length) console.log(`   NOT MEASURED: ${unmeasured.join(', ')} (no recognised node markup)`);
     for (const m of metrics)
       console.log(`   ${m.view}: nodes=${m.nodes} edges=${m.edges} line=${m.line} skipEdges=${m.skipEdges} largestRun=${m.largestRun}`);
@@ -218,7 +230,7 @@ function cli(argv) {
     console.log(`   ${metrics.length} view(s), ${warnings.length} warning(s); skipped by declaration: ${skipped.join(', ') || 'none'}`);
     any ||= warnings.length > 0;
   }
-  return any ? 1 : 0;
+  return notMeasured ? 3 : any ? 1 : 0;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === fs.realpathSync(process.argv[1])) process.exitCode = cli(process.argv.slice(2));

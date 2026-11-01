@@ -21,6 +21,7 @@ export const CROSSING_STYLES = ['plain', 'hop'];
 // tools/design-axes-mount/parity_census.py classes, plus 'human'. Absent = not an executor node.
 export const ACTORS = ['runner', 'main-loop-lab', 'main-loop-elsewhere', 'subagent', 'human'];
 
+export const SIDES = ['top', 'bottom', 'left', 'right']; // the router's side names (route.mjs sidePoint)
 const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
 const isPt = (p) => Array.isArray(p) && p.length === 2 && isNum(p[0]) && isNum(p[1]);
 const isStr = (x) => typeof x === 'string';
@@ -39,6 +40,8 @@ export function validateViews(views) {
     const vid = v && v.id;
     if (!isNonEmptyStr(vid)) { P('view without a string id'); continue; }
     if (vids.has(vid)) P(`duplicate view id ${vid}`);
+    // a view id becomes two space-separated aria-labelledby tokens (t-<id> d-<id>)
+    if (/\s/.test(vid)) P(`view id "${vid}" must not contain whitespace (it is an aria-labelledby token)`);
     vids.add(vid);
     if (!isNonEmptyStr(v.title)) P(`${vid}: missing title`);
     if (!Array.isArray(v.vb) || v.vb.length !== 2 || !v.vb.every((n) => isNum(n) && n > 0)) P(`${vid}: vb must be [w,h] with w,h > 0`);
@@ -53,9 +56,13 @@ export function validateViews(views) {
     const containers = Array.isArray(v.containers) ? v.containers : [];
     const edges = Array.isArray(v.edges) ? v.edges : [];
     if (!Array.isArray(v.nodes) || nodes.length === 0) P(`${vid}: nodes missing or empty`);
-    if (v.edges !== undefined && !Array.isArray(v.edges)) P(`${vid}: edges must be an array`);
+    // the router, asserts and emitter iterate v.edges and v.containers raw: a missing or
+    // non-array value crashed there with a TypeError instead of failing here
+    if (!Array.isArray(v.edges)) P(`${vid}: edges must be an array (use [] for a view with no edges)`);
+    if (v.containers !== undefined && !Array.isArray(v.containers)) P(`${vid}: containers must be an array`);
     const ids = new Set();
     for (const n of nodes) {
+      if (!n || typeof n !== 'object') { P(`${vid}: a node entry is not an object`); continue; }
       if (!isNonEmptyStr(n.id)) { P(`${vid}: node without a string id`); continue; }
       if (ids.has(n.id)) P(`${vid}/${n.id}: duplicate id`);
       ids.add(n.id);
@@ -70,15 +77,21 @@ export function validateViews(views) {
         P(`${vid}/${n.id}.actor: unknown "${n.actor}" (known: ${ACTORS.join(', ')}; omit for a non-executor node)`);
     }
     for (const c of containers) {
+      if (!c || typeof c !== 'object') { P(`${vid}: a container entry is not an object`); continue; }
       if (!isNonEmptyStr(c.id)) { P(`${vid}: container without a string id`); continue; }
       if (ids.has(c.id)) P(`${vid}/${c.id}: duplicate id (container vs node)`);
       ids.add(c.id);
       for (const k of ['x', 'y', 'w', 'h']) if (!isNum(c[k])) P(`${vid}/${c.id}.${k}: not a finite number`);
+      if (isNum(c.w) && c.w <= 0) P(`${vid}/${c.id}.w: must be > 0`);
+      if (isNum(c.h) && c.h <= 0) P(`${vid}/${c.id}.h: must be > 0`);
       if (c.title !== undefined && !isStr(c.title)) P(`${vid}/${c.id}.title: must be a string ('' allowed for lifelines)`);
     }
     const eids = new Set();
     for (const e of edges) {
+      if (!e || typeof e !== 'object') { P(`${vid}: an edge entry is not an object`); continue; }
       if (!isNonEmptyStr(e.id)) { P(`${vid}: edge without a string id`); continue; }
+      for (const k of ['fromSide', 'toSide'])
+        if (e[k] !== undefined && !SIDES.includes(e[k])) P(`${vid}/${e.id}.${k}: must be one of ${SIDES.join(', ')} (got "${e[k]}")`);
       if (eids.has(e.id)) P(`${vid}/${e.id}: duplicate edge id`);
       eids.add(e.id);
       if (!EDGE_TYPES.includes(e.type)) P(`${vid}/${e.id}: unknown edge type "${e.type}" (known: ${EDGE_TYPES.join(', ')})`);

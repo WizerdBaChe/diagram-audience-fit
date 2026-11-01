@@ -42,8 +42,13 @@ import math
 import re
 import sys
 import tempfile
+from decimal import ROUND_HALF_UP, Decimal
 from html.parser import HTMLParser
 from pathlib import Path
+
+if sys.version_info < (3, 10):  # `Path | None` annotations are evaluated at import; 3.12 is the tested version
+    print(f"afgate needs Python 3.10 or newer (this is {sys.version.split()[0]})", file=sys.stderr)
+    sys.exit(3)  # 3 = could not run; 2 is FAIL (README)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor"))
 # AssetVault term-match, vendored (sync). Its own `--selftest` needs term_cases.json,
@@ -51,14 +56,53 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor"))
 # this tool's selftest exercises longest-first, the edge bound and blocks.
 from term_match import tokens  # noqa: E402
 
-sys.stdout.reconfigure(encoding="utf-8")
+if __name__ == "__main__" and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")  # only as a program: an importer keeps its own encoding
+
+
+class InputError(Exception):
+    """The gate could not read its input; exit 3, never a verdict."""
+
+
+def _read(path: Path) -> str:
+    data = path.read_bytes()
+    if b"\x00" in data:  # UTF-16 (PowerShell `>` / Out-File): decoded as UTF-8 it reads as noise and passes
+        raise InputError(f"{path}: contains NUL bytes (UTF-16?); save it as UTF-8")
+    return data.decode("utf-8-sig", errors="replace")
+
+
+# ASCII word bounds: Python's \b treats CJK as a word character, so `\bPASS` misses 共7 PASS.
+_B, _E = r"(?<![0-9A-Za-z_])", r"(?![0-9A-Za-z_])"
 
 # ---------------------------------------------------------------- reader text
 _SCRIPT = re.compile(r"<(script|style)\b.*?</\1>", re.S | re.I)
 _COMMENT = re.compile(r"<!--.*?-->", re.S)
 _TAG = re.compile(r"<[^>]+>")
 _FENCE = re.compile(r"```.*?```", re.S)
-_DATE = re.compile(r"\b\d{4}[-/]\d{2}[-/]\d{2}\b")
+_DATE = re.compile(_B + r"(\d{4})[-/](\d{1,2})[-/](\d{1,2})" + _E + r"|(\d{4})年(\d{1,2})月(?:(\d{1,2})日)?")
+
+
+# ． folds between any two digits (91．4 mixes widths); ， only between full-width ones,
+# because between ASCII digits it is a list comma (100，200)
+_FW_SEP = re.compile(r"(?<=[０-９])(，)(?=[０-９])|(?<=[0-9０-９])(．)(?=[0-9０-９])")
+_FW_DIGITS = str.maketrans("０１２３４５６７８９－＋／", "0123456789-+/")
+
+
+def fold_digits(text):
+    """Full-width digits to ASCII (９１．４ -> 91.4, １，２３４ -> 1,234). Narrower than NFKC on
+    purpose: NFKC also turns the list comma ， into ',' (100，200 read as 100200) and 10⁶ into 106."""
+    text = _FW_SEP.sub(lambda m: "," if m.group(1) == "，" else ".", text)
+    return text.translate(_FW_DIGITS)
+
+
+def dates(text):
+    """Calendar dates in `text`, normalised to (y, m, d|0), any of the two formats."""
+    out = set()
+    for m in _DATE.finditer(fold_digits(text)):
+        g = m.groups()
+        y, mo, d = (g[0], g[1], g[2]) if g[0] else (g[3], g[4], g[5] or "0")
+        out.add((int(y), int(mo), int(d)))
+    return out
 
 
 def reader_text(path: Path) -> str:
@@ -67,7 +111,7 @@ def reader_text(path: Path) -> str:
     An HTML page's class names, ids and data-* attributes are the builder's,
     not the reader's -- scanning them would flag every page ever built.
     """
-    raw = path.read_text(encoding="utf-8", errors="replace")
+    raw = _read(path)
     if path.suffix.lower() in (".html", ".htm", ".svg"):
         raw = _COMMENT.sub(" ", _SCRIPT.sub(" ", raw))
         raw = _TAG.sub(" ", raw)
@@ -79,25 +123,39 @@ def reader_text(path: Path) -> str:
 
 # ---------------------------------------------------------------- voice check
 # Closed classes: nothing a non-builder reader can act on. FAIL.
+# Every class uses ASCII bounds (_B/_E), never \b: next to CJK \b does not fire, so
+# 共7 PASS, 依INV-17 and 輪run_9f3a11c2 were missed (outside review 2026-11-01).
 CLOSED = [
-    ("pass-count", re.compile(r"\b\d+\s*(?:PASS|FAIL|WARN)\b|\b(?:PASS|FAIL)\s*[:：]?\s*\d+\b"),
+    ("pass-count", re.compile(_B + r"\d+\s*(?:PASS|FAIL)(?:ED)?" + _E + "|" + _B + r"\d+\s*WARN" + _E
+                              + "|" + _B + r"(?:PASS|FAIL)(?:ED)?\s*[:：]?\s*\d+" + _E),
      "a PASS count is not a credibility signal: it says the instrument ran, "
      "not that the claim is true"),
-    ("path", re.compile(r"[A-Za-z]:\\[^\s　]{2,}|(?<![\w.])~?/[\w./-]{3,}\.\w{1,5}\b"
-                        r"|\b[\w-]{2,}\.(?:py|mjs|js|ts|json|ya?ml|toml|html|md|pptx|xlsx|csv)\b"),
+    ("path", re.compile(r"[A-Za-z]:\\[^\s　]{2,}|(?<![0-9A-Za-z_.])~?/[0-9A-Za-z_./-]{3,}\.[0-9A-Za-z]{1,5}" + _E
+                        + r"|(?<![0-9A-Za-z_.-])(?:[A-Za-z0-9_-]{2,}(?:\.[A-Za-z0-9_-]+)*|[㐀-鿿]+)"
+                        + r"\.(?:py|mjs|js|ts|json|ya?ml|toml|html|md|pptx|xlsx|csv)" + _E),
      "a file path is a builder's address; the reader has no shell"),
-    ("sha", re.compile(r"\b[0-9a-f]{8,64}\b"),
+    # at least one hex letter so a plain 8+ digit number (tax id, phone) is not a hash; upper
+    # case (Get-FileHash) needs a digit and a full digest length (32+), so AB12CD34 is not one.
+    ("sha", re.compile(_B + r"(?=[0-9]*[a-f])[0-9a-f]{8,64}" + _E
+                       + "|" + _B + r"(?=[0-9A-F]*[A-F])(?=[A-F]*[0-9])[0-9A-F]{32,64}" + _E),
      "a hash identifies a build, not a fact the reader can check"),
-    ("run-id", re.compile(r"\bRUN\s*=|\brun[-_][0-9a-z]{4,}\b", re.I),
+    ("run-id", re.compile(_B + r"RUN\s*=|" + _B + r"run[-_][0-9a-z]{4,}" + _E, re.I),
      "a run id belongs in the verify record, never on the reader's page"),
-    ("gate-id", re.compile(r"\bINV-?\d+\b|\b[A-Z]{1,3}-\d{2,3}\b|\b[SVGT]\d{1,2}\s+(?:PASS|FAIL|WARN)\b"),
+    # public standards (ISO-100, RFC-793, IEC-61000) share the shape and are not gate ids
+    ("gate-id", re.compile(_B + r"INV-?\d+" + _E + "|" + _B + r"(?!(?:ISO|RFC|IEC|EN|USB|ANSI)-)[A-Z]{1,3}-\d{2,3}" + _E
+                           + "|" + _B + r"[SVGT]\d{1,2}\s+(?:PASS|FAIL|WARN)" + _E),
      "gate and invariant ids are the builder's vocabulary"),
 ]
+_URL = re.compile(r"https?://[!-~]+")  # ASCII only: a URL glued to Chinese text ends there
+_JS_PRODUCT = re.compile(r"(?:[A-Z][a-z0-9]*|three|d3|p5)\.js")  # Node.js, three.js, d3.js: names, not files
 # Open class: register, not fact. WARN -- a power_user audience legitimately
 # reads some of these, so the reader profile decides.
 BUILDER_WORDS = ["stdout", "stderr", "traceback", "regex", "schema", "subprocess",
                  "venv", "worktree", "commit", "branch", "repo", "hook", "gate",
                  "exit code", "sha256", "CLI", "stack trace", "閘", "建置腳本"]
+# ASCII words match whole (repo is not report, gate is not aggregate); CJK ones as substrings
+_BUILDER_RE = {w: re.compile(_B + re.escape(w) + r"(?:e?s)?" + _E, re.I) if w.isascii() else re.compile(re.escape(w))
+               for w in BUILDER_WORDS}
 
 
 # audience-fit MANDATES two builder-addressed regions inside a reader-facing
@@ -117,14 +175,13 @@ def check_voice(companion: Path, quiet=False, apparatus=APPARATUS):
     # Content predicate, so the boundary moves with the document; both zone sizes
     # are printed, because a reader paragraph that drifts below the marker would
     # otherwise be exempted silently.
-    split = len(text)
-    if apparatus:
-        for m in apparatus.finditer(text):
-            split = text.rfind("\n", 0, m.start()) + 1
-            break
-    findings = []
+    split = _zone_split(text, apparatus)
+    findings = _early_marker(text, split)
+    urls = [m.span() for m in _URL.finditer(text)]
     for name, pat, why in CLOSED:
         for m in pat.finditer(text):
+            if name == "path" and (any(a <= m.start() < b for a, b in urls) or _JS_PRODUCT.fullmatch(m.group(0))):
+                continue  # a link the reader can open, or a product name, is not a builder's path
             line = text.count("\n", 0, m.start()) + 1
             in_apparatus = m.start() >= split
             findings.append(dict(
@@ -133,9 +190,9 @@ def check_voice(companion: Path, quiet=False, apparatus=APPARATUS):
                 why=("delivery apparatus zone — audience-fit mandates the provenance "
                      "block and the 對照 table; this is addressed to the auditor")
                 if in_apparatus else why))
-    low = text[:split].lower()          # the apparatus zone speaks to the auditor
+    main_text = text[:split]          # the apparatus zone speaks to the auditor
     for w in BUILDER_WORDS:
-        n = low.count(w.lower())
+        n = len(_BUILDER_RE[w].findall(main_text))
         if n:
             findings.append(dict(verdict="WARN", cls="builder-word", hit=w, line=0,
                                  why=f"appears {n}x in the reader's main text; keep only "
@@ -148,23 +205,34 @@ def check_voice(companion: Path, quiet=False, apparatus=APPARATUS):
 
 
 # --------------------------------------------------------------- value check
-_NUM = re.compile(r"(?<![\w.])[-+]?\d[\d,]*(?:\.\d+)?(?:[eE][-+]?\d+)?")
+# The lookbehind excludes ASCII letters, underscore, '.' and any digit, so v2, x86,
+# H2O and the tail of 1.5 are not numbers. It does NOT exclude CJK: Python's \w
+# counts CJK as word characters, so the earlier (?<![\w.]) skipped every number
+# glued to Chinese text (高33.6% unseen, 約1,234 read as 234; outside review 2026-11-01).
+# Thousands separators only in groups of three, so a list 12,15,18 is three numbers.
+_NUM = re.compile(r"(?<![A-Za-z_.])(?<!\d)[-+]?(?:\d{1,3}(?:,\d{3})+(?!\d)|\d+)(?:\.\d+)?(?:[eE][-+]?\d+)?")
 
 
 def numbers(text):
+    """(value, token, line) for every number; full-width digits (９１．４％, １，２３４) are read
+    as their ASCII equivalents (fold_digits), dates are checked separately by dates()."""
     out = []
-    for m in _NUM.finditer(_DATE.sub(" ", text)):
+    scan = _DATE.sub(" ", fold_digits(text))  # lines counted in the scanned text
+    for m in _NUM.finditer(scan):
         tok = m.group(0).replace(",", "")
         try:
-            out.append((float(tok), m.group(0), text.count("\n", 0, m.start()) + 1))
+            val = float(tok)
         except ValueError:
             continue
+        if math.isfinite(val):  # 12e45678 is an id, not a number
+            out.append((val, m.group(0), scan.count("\n", 0, m.start()) + 1))
     return out
 
 
 def sigdigits(tok: str) -> int:
-    d = re.sub(r"[^\d]", "", tok).lstrip("0")
-    return len(d.rstrip("0")) if "." not in tok else len(d)
+    mant = re.split(r"[eE]", tok)[0]  # exponent digits are not significant: 1.5e-3 has 2
+    d = re.sub(r"[^\d]", "", mant).lstrip("0")
+    return len(d.rstrip("0")) if "." not in mant else len(d)
 
 
 TRANSFORMS = [
@@ -183,29 +251,58 @@ TRANSFORMS = [
 
 def accounted(c_val, c_tok, pool):
     """Is this companion number explained by an original one? Return the reason."""
-    k = max(0, 6 - sigdigits(c_tok))
     for name, f in TRANSFORMS:
         for o_val, o_tok, _ in pool:
             try:
                 got = f(o_val)
             except (ValueError, ZeroDivisionError, OverflowError):
                 got = None
-            if got is None:
+            if got is None or not math.isfinite(got):  # 1e307 x 100 = inf would "explain" anything
                 continue
             if got == c_val or (got and abs(got - c_val) <= max(abs(got), abs(c_val)) * 1e-9):
                 return f"{name} of {o_tok}"
-            # the companion may legitimately round: 33.55 -> "33.6%"
-            for places in range(0, 4):
-                if round(got, places) == round(c_val, places) and round(got, places) == c_val:
+            # the companion may legitimately round: 33.55 -> "33.6%". Half-up, as people round
+            # (Python's round() is half-even: 812.5 -> 812, so 813 used to FAIL), up to 6 places.
+            if abs(got) >= 1e15:  # 10^(250/10) = 1e25 needs >28 digits at 6dp; no reader rounds that
+                continue
+            for places in range(0, 7):
+                q = Decimal(repr(got)).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+                if float(q) == c_val:
                     return f"{name} of {o_tok}, rounded to {places}dp"
+    # identity up to sign: -12.5% written as 降低 12.5% moves the sign into a word
+    for o_val, o_tok, _ in pool:
+        if o_val and abs(o_val) == abs(c_val):
+            return f"magnitude of {o_tok} (sign moved into words: check the direction word)"
     return None
 
 
-def check_values(original: Path, companion: Path, allow=None, quiet=False):
-    pool = numbers(reader_text(original))
-    comp = numbers(reader_text(companion))
+def check_values(original: Path, companion: Path, allow=None, quiet=False, apparatus=APPARATUS):
+    otext = reader_text(original)
+    full = reader_text(companion)
+    split = _zone_split(full, apparatus)
+    ctext = full[:split]  # the provenance block addresses the auditor
+    pool = numbers(otext)
+    # dates leave the number scan, so their years come back, by identity only: 2026年度 is
+    # explained by 2026-08-01, but 202600 (2026 x 100) is not
+    years = {float(d[0]) for d in dates(otext)}
+    comp = numbers(ctext)
+    bad = [p for p in (allow or []) if "=" not in p]
+    if bad:
+        raise InputError(f"--allow takes VALUE=REASON, got {bad[0]!r}")
     allow = dict(p.split("=", 1) for p in (allow or []))
-    findings, certified, uncertified, by_transform = [], 0, 0, 0
+    findings, certified, uncertified, by_transform = _early_marker(full, split), 0, 0, 0
+    # dates are taken out of the number scan, so they get their own identity check
+    odates = dates(otext)
+    for d in sorted(dates(ctext) - odates):
+        # a month-only date (day 0) matches any day of that month in the original
+        if d[2] == 0 and any(o[:2] == d[:2] for o in odates):
+            continue
+        # WARN, not FAIL: audience-fit mandates an as-of anchor (「2026-11-01 產出」) that the
+        # original need not carry, and it may sit in the main text (measured on the self-portrait pair)
+        findings.append(dict(verdict="WARN", cls="unmatched-date", hit="-".join(map(str, d)), line=0,
+                             why="no date in the canonical original matches this one (formats are "
+                                 "normalised: 2026-08-01 = 2026/8/1 = 2026年8月1日); fine for an as-of "
+                                 "anchor, otherwise a changed date"))
 
     for val, tok, line in comp:
         sd = sigdigits(tok)
@@ -218,17 +315,20 @@ def check_values(original: Path, companion: Path, allow=None, quiet=False):
             findings.append(dict(verdict="INFO", cls="allowed", hit=tok, line=line,
                                  why=f"ALLOW: {allow[tok]}"))
             continue
-        why = accounted(val, tok, pool)
+        why = "identity of a date's year" if val in years else accounted(val, tok, pool)
         if why is None:
             findings.append(dict(verdict="FAIL", cls="invented", hit=tok, line=line,
                                  why="no number in the canonical original explains this, "
                                      "under identity or any named transform"))
         elif not why.startswith("identity"):
             by_transform += 1
+            if why.startswith("magnitude"):
+                findings.append(dict(verdict="WARN", cls="sign-moved", hit=tok, line=line, why=why))
     ruler = (f"{len(comp)} numbers in the reader's text: {certified} certified "
              f"(3+ significant digits, {by_transform} via a named transform), "
              f"{uncertified} NOT certified (1-2 digits: counting words, thresholds, "
-             f"round figures) — stated, not hidden. This is a SCREEN, not a proof.")
+             f"round figures) — stated, not hidden. This is a SCREEN, not a proof. "
+             f"Read {split} of {len(full)} characters (below that: provenance apparatus).")
     if not quiet:
         _print(companion, findings, ruler)
     return findings
@@ -288,7 +388,8 @@ UNIVERSAL_KEYS = ("每篇", "每則", "每次", "每一篇", "每一則", "每�
                   "每個", "一定", "固定", "全部", "所有", "總是", "永遠", "從不", "從來沒有",
                   "一律", "必定", "必然", "無一例外", "always", "every", "never", "all of",
                   "without exception")
-UNIVERSAL_BLOCKS = frozenset({"一定程度", "從不同", "從不確定", "從不斷"})
+# 不一定 / 不固定 / 不總是 are hedges and 所有權 is ownership: blocked like 一定程度 (2026-11-01)
+UNIVERSAL_BLOCKS = frozenset({"一定程度", "從不同", "從不確定", "從不斷", "不一定", "不固定", "不總是", "所有權"})
 _UNIVERSAL_ALL = UNIVERSAL_KEYS + tuple(sorted(UNIVERSAL_BLOCKS))
 
 
@@ -317,11 +418,25 @@ def check_scope(companion: Path, original: Path | None = None, quiet=False):
                    f"claim, or it needs its own count") if new else \
                   "the original uses the same quantifier — check it was not widened"
         findings.append(dict(verdict=verdict, cls="universal", hit=line[:90], line=no, why=why))
+    if oset:
+        # The other direction: a quantifier the original uses that the reader edition never
+        # does. A narrowed claim (所有 -> 部分) or a moved limit shows here; a rewrite that
+        # legitimately drops a sentence also does, so it is WARN, never FAIL.
+        # INFO, never WARN: a redraw aggregates and drops sentences, so on a real pair (the
+        # self-portrait: 全部/固定/每個) a WARN fired on every page; listed for the human pass.
+        cset = set(universal_tokens(reader_text(companion)))
+        for w in sorted(oset - cset):
+            latin = w.isascii()
+            findings.append(dict(verdict="INFO", cls="dropped-universal", hit=w, line=0,
+                                 why=f"the original says '{w}' and the reader edition never does — "
+                                     f"check the claim was not narrowed or softened"
+                                     + (" (an English key: a translated rewrite drops it legitimately)"
+                                        if latin else "")))
     if not quiet:
         _print(companion, findings,
-               f"{len(findings)} lines carry a universal quantifier (每篇/一定/固定/所有/"
+               f"{len(findings)} findings on universal quantifiers (每篇/一定/固定/所有/"
                f"always…). This is a SCREEN: it never rules on whether the claim holds, "
-               f"only on whether it was added.")
+               f"only on whether a quantifier was added or dropped.")
     return findings
 
 
@@ -338,16 +453,32 @@ _CJK = re.compile(r"[㐀-鿿]")
 _PUNCT = re.compile(r"[\s「」『』（）()、，。：；！？“”\"'·—…／/|]")
 
 
-def _split_zone(text, apparatus=APPARATUS):
+def _zone_split(text, apparatus=APPARATUS):
+    """Offset where the delivery apparatus begins (len(text) when there is none)."""
     if apparatus:
         for m in apparatus.finditer(text):
-            return text[:text.rfind("\n", 0, m.start()) + 1]
-    return text
+            return text.rfind("\n", 0, m.start()) + 1
+    return len(text)
+
+
+def _early_marker(text, split):
+    """WARN when the apparatus marker sits in the first half: everything below it is exempt."""
+    if split < len(text) // 2:
+        return [dict(verdict="WARN", cls="apparatus-early", hit=text[split:split + 40].strip(),
+                     line=text.count("\n", 0, split) + 1,
+                     why=f"{100 - split * 100 // max(len(text), 1)}% of the text sits below the "
+                         f"first apparatus marker and is exempt; check that line "
+                         f"really starts the provenance block")]
+    return []
+
+
+def _split_zone(text, apparatus=APPARATUS):
+    return text[:_zone_split(text, apparatus)]
 
 
 def prose_text(path: Path, apparatus=APPARATUS) -> str:
     """Reader main text WITHOUT the drawing: svg blocks removed, then as reader_text."""
-    raw = path.read_text(encoding="utf-8", errors="replace")
+    raw = _read(path)
     if path.suffix.lower() in (".html", ".htm"):
         raw = _SVG.sub(" ", _COMMENT.sub(" ", _SCRIPT.sub(" ", raw)))
         raw = html.unescape(_TAG.sub(" ", raw))
@@ -361,7 +492,7 @@ def node_labels(path: Path):
     titles (the owner-view convention), else every short svg text."""
     if path.suffix.lower() not in (".html", ".htm", ".svg"):
         return []
-    raw = path.read_text(encoding="utf-8", errors="replace")
+    raw = _read(path)
     titled, short = [], []
     for svg in _SVG.findall(raw):
         for attrs, body in _SVG_TEXT.findall(svg):
@@ -431,7 +562,7 @@ def check_terms(companion: Path, quiet=False, apparatus=APPARATUS):
 
 
 # ----------------------------------------------------------------- sums check
-_TOTAL = re.compile(r"^\s*(?:合計|總計|小計|總和|共計|Σ|total|sum)\b", re.I)
+_TOTAL = re.compile(r"^\s*(?:合計|總計|小計|總和|共計|Σ|total|sum)" + _E, re.I)  # \b fails before CJK: 合計金額
 
 
 class _TableParser(HTMLParser):
@@ -461,7 +592,7 @@ class _TableParser(HTMLParser):
 
 
 def tables_of(path: Path):
-    raw = path.read_text(encoding="utf-8", errors="replace")
+    raw = _read(path)
     if path.suffix.lower() in (".html", ".htm"):
         p = _TableParser()
         p.feed(_COMMENT.sub(" ", _SCRIPT.sub(" ", raw)))
@@ -656,6 +787,40 @@ LEAKY = """# 檢索健檢（受眾版）
 限制：冷啟動的情況沒有測過。
 """
 
+# Numbers glued to CJK (outside review 2026-11-01): the old lookbehind skipped them,
+# so an invented 91.4 written as 命中率91.4% passed values.
+GLUED_CLEAN = """# 檢索健檢（受眾版）
+
+比基準高33.6%，反應時間812.5毫秒。
+"""
+
+GLUED_INVENTED = """# 檢索健檢（受眾版）
+
+比基準高33.6%，命中率91.4%。
+"""
+
+# Plain 8+ digit numbers are not hashes; a hash glued to CJK still is.
+VOICE_DIGITS = """# 聯絡（受眾版）
+
+統編 12345678，電話 0223456789。
+"""
+
+VOICE_GLUED_SHA = """# 版本（受眾版）
+
+這一版的編號是4c1d9ba77e0f1122。
+"""
+
+# Narrowing: the original's 所有 never appears in the reader edition.
+SCOPE_NARROW_ORIG = """# 原文
+
+所有測試都通過。
+"""
+
+SCOPE_NARROW_COMP = """# 伴讀
+
+部分測試通過。
+"""
+
 
 TERMS_TRUE = """<html><body><svg><text class="t">任務佇列</text><text class="s">等待處理的工作</text>
 <text class="t">出片工具</text></svg>
@@ -694,6 +859,12 @@ STYLE_FALSE = """先檢查設定，再開始轉錄。
 """
 
 
+def _tmpfile(tmp: Path, name: str, body: str) -> Path:
+    p = tmp / name
+    p.write_text(body, encoding="utf-8")
+    return p
+
+
 def selftest():
     tmp = Path(tempfile.mkdtemp(prefix="afgate-cal-"))
     files = {}
@@ -703,7 +874,10 @@ def selftest():
                        ("scope_mask_comp.md", SCOPE_MASK_COMP), ("terms_true.html", TERMS_TRUE),
                        ("terms_false.html", TERMS_FALSE), ("sums_true.md", SUMS_TRUE),
                        ("sums_false.md", SUMS_FALSE), ("style_true.md", STYLE_TRUE),
-                       ("style_false.md", STYLE_FALSE)):
+                       ("style_false.md", STYLE_FALSE), ("glued_clean.md", GLUED_CLEAN),
+                       ("glued_invented.md", GLUED_INVENTED), ("voice_digits.md", VOICE_DIGITS),
+                       ("voice_glued_sha.md", VOICE_GLUED_SHA), ("narrow_orig.md", SCOPE_NARROW_ORIG),
+                       ("narrow_comp.md", SCOPE_NARROW_COMP)):
         p = tmp / name
         p.write_text(body, encoding="utf-8")
         files[name] = p
@@ -734,9 +908,82 @@ def selftest():
     style_true = check_style(files["style_true.md"], quiet=True)
     style_false = check_style(files["style_false.md"], quiet=True)
     new_checks = terms_true + terms_false + terms_none + sums_true + sums_false + style_true + style_false
+    glued_tokens = [t for _, t, _ in numbers("高33.6%，約1,234 筆，第2輪，v2 與 x86 不算")]
+    glued_clean = check_values(files["original.md"], files["glued_clean.md"], quiet=True)
+    glued_inv = check_values(files["original.md"], files["glued_invented.md"], quiet=True)
+    voice_digits = check_voice(files["voice_digits.md"], quiet=True)
+    voice_glued = check_voice(files["voice_glued_sha.md"], quiet=True)
+    narrow = check_scope(files["narrow_comp.md"], files["narrow_orig.md"], quiet=True)
+    # second audit round (2026-11-01): each case has its known-true and known-false side
+    extra = {
+        "date_orig.md": "# 原文\n\n基準日 2026-08-01，樣本 1,234 筆。\n",
+        "date_same.md": "# 伴讀\n\n基準日是2026年8月1日（2026/8/1）。\n",
+        "date_changed.md": "# 伴讀\n\n基準日是 2026-08-10。\n",
+        "app_late.md": CLEAN + "\n## 出處與基準\n工程正本 report 20261101，sha 4c1d9ba77e0f1122。\n",
+        "app_early.md": "# 檢索健檢\n\n出處與基準：見下方。\n" + "比基準高 33.6%，反應時間 812.5 毫秒。\n" * 5,
+        "words_false.md": "# 報告\n\nThe report on aggregate clicks is short.\n",
+        "words_true.md": "# 報告\n\nThe repo gate failed.\n",
+        "sums_cjk.md": "| 項目 | 金額 |\n|---|---|\n| 甲 | 3 |\n| 乙 | 4 |\n| 合計金額 | 8 |\n",
+        "sums_bom.md": "﻿| 項目 | 金額 |\n|---|---|\n| 甲 | 3 |\n| 乙 | 4 |\n| 合計 | 8 |\n",
+    }
+    for name, body in extra.items():
+        (tmp / name).write_text(body, encoding="utf-8")
+        files[name] = tmp / name
+    (tmp / "utf16.md").write_bytes("# x\n比基準高 91.4%\n".encode("utf-16"))
+    pats = {n: p for n, p, _ in CLOSED}
+    voice_hits = {t: bool(pats[c].search(t)) for c, t in [
+        ("pass-count", "共7 PASS"), ("pass-count", "12 PASSED"), ("gate-id", "依INV-17"),
+        ("run-id", "輪run_9f3a11c2"), ("sha", "4C1D9BA77E0F1122AB34CD56EF7890AB"), ("sha", "AB12CD34"),
+        ("gate-id", "ISO-100"), ("sha", "FACADEBEEF"), ("pass-count", "PASSPORT 12")]}
+    path_skip = check_voice(_tmpfile(tmp, "paths.md",
+                                     "# x\n\n見 https://github.com/x/y/README.md 與 Node.js 文件。\n"), quiet=True)
+    path_hit = check_voice(_tmpfile(tmp, "paths2.md", "# x\n\n請執行afgate.py。\n"), quiet=True)
+    date_same = check_values(files["date_orig.md"], files["date_same.md"], quiet=True)
+    date_chg = check_values(files["date_orig.md"], files["date_changed.md"], quiet=True)
+    app_late = check_values(files["original.md"], files["app_late.md"], quiet=True)
+    app_late_v = check_voice(files["app_late.md"], quiet=True)
+    app_early_v = check_voice(files["app_early.md"], quiet=True)
+    words_f = check_voice(files["words_false.md"], quiet=True)
+    words_t = check_voice(files["words_true.md"], quiet=True)
+    sums_cjk = check_sums(files["sums_cjk.md"], quiet=True)
+    sums_bom = check_sums(files["sums_bom.md"], quiet=True)
+    try:
+        _read(tmp / "utf16.md")
+        utf16 = "read"
+    except InputError:
+        utf16 = "refused"
+    import subprocess
+    me = [sys.executable, "-X", "utf8", str(Path(__file__).resolve())]
+    rc = {k: subprocess.run(me + args, capture_output=True).returncode for k, args in {
+        "missing file": ["voice", str(tmp / "nope.md")],
+        "--allow without =": ["values", str(files["original.md"]), str(files["clean.md"]), "--allow", "91.4"],
+        "unknown mode": ["bogus"],
+        "utf-16 file": ["voice", str(tmp / "utf16.md")],
+        "clean voice": ["voice", str(files["clean.md"])]}.items()}
 
     def fails(k):
         return [f for f in results[k] if f["verdict"] == "FAIL"]
+
+    big_o = _tmpfile(tmp, "big_orig.md", "# 原文\n\n延遲 250 ms。\n")
+    big_c = _tmpfile(tmp, "big_comp.md", "# 伴讀\n\n延遲 250 毫秒，命中率 91.4%。\n")
+    try:
+        big = [f["cls"] for f in check_values(big_o, big_c, quiet=True) if f["verdict"] == "FAIL"]
+    except Exception as e:  # the Decimal overflow raised here before the fix
+        big = [type(e).__name__]
+    early_c = _tmpfile(tmp, "early_comp.md", "# 伴讀\n\n資料 provenance 很重要。\n\n比基準高 33.6%。\n"
+                                            "命中率 91.4%。\n第三行。\n第四行。\n第五行。\n")
+    early_on = check_values(files["original.md"], early_c, quiet=True)
+    early_off = check_values(files["original.md"], early_c, quiet=True, apparatus=None)
+    nums = lambda t: [v for v, _, _ in numbers(t)]
+    year_o = _tmpfile(tmp, "year_orig.md", "# 原文\n\n上線日 2026-08-01。\n")
+    year_c = _tmpfile(tmp, "year_comp.md", "# 伴讀\n\n於2026年度上線。\n")
+    year_v = check_values(year_o, year_c, quiet=True)
+    sign_o = _tmpfile(tmp, "sign_orig.md", "# 原文\n\n延遲變化 -12.5%。\n")
+    sign_c = _tmpfile(tmp, "sign_comp.md", "# 伴讀\n\n延遲變慢 12.5%。\n")
+    sign_v = check_values(sign_o, sign_c, quiet=True)
+    url_glued = check_voice(_tmpfile(tmp, "url_glued.md", "# x\n\n見 https://x.com/a請執行run.py。\n"), quiet=True)
+    lib_js = check_voice(_tmpfile(tmp, "lib_js.md", "# x\n\n圖用 three.js 與 d3.js 畫。\n"), quiet=True)
+    plural = check_voice(_tmpfile(tmp, "plural.md", "# x\n\n這些 hooks 會自動跑。\n"), quiet=True)
 
     checks = [
         ("values known-false stays clean (33.6% is a named transform of 1.336)",
@@ -755,8 +1002,10 @@ def selftest():
          any(f["verdict"] == "UNDET" for f in lim)),
         ("scope known-true caught: 每次 + 一定 added over the original (1 line)",
          [f["line"] for f in scope_true if f["verdict"] == "WARN"] == [3]),
-        ("scope known-false stays quiet (clean companion, and 一定程度 is not a universal)",
-         not scope_false and not [f for f in scope_true if f["line"] == 4]),
+        ("scope known-false stays quiet (clean companion, and 一定程度 is not a universal); the "
+         "original's English 'never' translated away is INFO only",
+         [(f["verdict"], f["hit"]) for f in scope_false] == [("INFO", "never")]
+         and not [f for f in scope_true if f["line"] == 4]),
         ("scope reads tokens, not substrings: 一定程度/Everyone in the original do not hide a new "
          "一定/every; 從不同 is no quantifier; a real 從不 is; 固定 flush after API is (WARN lines [3, 5, 6])",
          sorted(mask_warn) == [3, 5, 6] and "'every/一定'" in mask_warn[3]
@@ -781,6 +1030,84 @@ def selftest():
          {f["cls"] for f in style_true} == {"long-sentence", "de-count", "nominal-verb", "stock-phrase"}),
         ("style known-false quiet", not style_false),
         ("the three new checks never FAIL", not [f for f in new_checks if f["verdict"] == "FAIL"]),
+        ("values reads numbers glued to CJK, whole: tokens are 33.6, 1,234, 2 (v2/x86 are not numbers)",
+         glued_tokens == ["33.6", "1,234", "2"]),
+        ("values glued known-false stays clean (高33.6%, 812.5毫秒 explained by the original)",
+         not [f for f in glued_clean if f["verdict"] == "FAIL"]),
+        ("values glued known-true caught (命中率91.4% explained by nothing)",
+         [f["hit"] for f in glued_inv if f["verdict"] == "FAIL"] == ["91.4"]),
+        ("voice: a plain 8+ digit number (統編, 電話) is not a hash",
+         not [f for f in voice_digits if f["cls"] == "sha"]),
+        ("voice: a hash glued to CJK is still caught",
+         [f["hit"] for f in voice_glued if f["cls"] == "sha" and f["verdict"] == "FAIL"] == ["4c1d9ba77e0f1122"]),
+        ("scope narrowing: the original's 所有 missing from the reader edition is listed (INFO), never FAIL",
+         [(f["verdict"], f["hit"]) for f in narrow if f["cls"] == "dropped-universal"] == [("INFO", "所有")]
+         and not [f for f in narrow if f["verdict"] == "FAIL"]),
+        ("values: full-width digits read as ASCII (９１．４％ -> 91.4, １，２３４ -> 1,234)",
+         [t for _, t, _ in numbers("命中率９１．４％，共１，２３４筆")] == ["91.4", "1,234"]),
+        ("values: a list 12,15,18 is three numbers, 1,234 is one",
+         [t for _, t, _ in numbers("12,15,18 與 1,234")] == ["12", "15", "18", "1,234"]),
+        ("values: exponent digits are not significant (1.5e-3 -> 2); 12e45678 is not a number",
+         sigdigits("1.5e-3") == 2 and numbers("編號 12e45678") == []),
+        ("values: half-up rounding (812.5 -> 813 accounted; 814 not)",
+         accounted(813.0, "813", [(812.5, "812.5", 1)]) is not None
+         and accounted(814.0, "814", [(812.5, "812.5", 1)]) is None),
+        ("values: sign moved into words (-12.5% -> 降低 12.5%) is explained by magnitude, not FAIL",
+         (accounted(12.5, "12.5", [(-12.5, "-12.5", 1)]) or "").startswith("magnitude")),
+        ("values: one date in three formats matches; a changed date WARNs unmatched-date (never FAIL)",
+         dates("於2026-08-01，2026年8月1日，2026/8/1") == {(2026, 8, 1)}
+         and not [f for f in date_same if f["verdict"] in ("FAIL", "WARN")]
+         and [f["hit"] for f in date_chg if f["verdict"] == "WARN"] == ["2026-8-10"]
+         and not [f for f in date_chg if f["verdict"] == "FAIL"]),
+        ("values: numbers in the provenance block are not the reader's (no FAIL); voice keeps its sha as INFO",
+         not [f for f in app_late if f["verdict"] == "FAIL"]
+         and [f["verdict"] for f in app_late_v if f["cls"] == "sha"] == ["INFO"]),
+        ("voice: CJK-glued PASS / INV / run id, PASSED, upper-case digest caught; AB12CD34, ISO-100, FACADEBEEF, "
+         "PASSPORT 12 not",
+         voice_hits == {"共7 PASS": True, "12 PASSED": True, "依INV-17": True, "輪run_9f3a11c2": True,
+                        "4C1D9BA77E0F1122AB34CD56EF7890AB": True, "AB12CD34": False,
+                        "ISO-100": False, "FACADEBEEF": False, "PASSPORT 12": False}),
+        ("voice: a URL and Node.js are not paths; afgate.py glued to CJK is",
+         not [f for f in path_skip if f["cls"] == "path"]
+         and [f["hit"] for f in path_hit if f["cls"] == "path"] == ["afgate.py"]),
+        ("voice: an apparatus marker in the first half WARNs apparatus-early; a late one does not",
+         [f["cls"] for f in app_early_v if f["verdict"] == "WARN"].count("apparatus-early") == 1
+         and not [f for f in app_late_v if f["cls"] == "apparatus-early"]),
+        ("voice: builder words match whole (report/aggregate/click quiet; repo + gate WARN)",
+         not [f for f in words_f if f["cls"] == "builder-word"]
+         and sorted(f["hit"] for f in words_t if f["cls"] == "builder-word") == ["gate", "repo"]),
+        ("scope: hedges 不一定/不固定/不總是 and 所有權 are not universals",
+         universal_tokens("不一定 不固定 不總是 所有權") == [] and universal_tokens("一定 所有") == ["一定", "所有"]),
+        ("sums: 合計金額 is a total row; a BOM before the table does not hide it (1 WARN each)",
+         len([f for f in sums_cjk if f["verdict"] == "WARN"]) == 1
+         and len([f for f in sums_bom if f["verdict"] == "WARN"]) == 1),
+        ("input: a UTF-16 file is refused, not read as noise", utf16 == "refused"),
+        ("exit codes: missing file, bad --allow, unknown mode, UTF-16 -> 3; clean voice -> 0",
+         rc == {"missing file": 3, "--allow without =": 3, "unknown mode": 3, "utf-16 file": 3, "clean voice": 0}),
+        ("values: an original value >= 220 (dB transform -> 1e25) does not crash; the invented 91.4 FAILs",
+         big == ["invented"]),
+        ("values: an early marker WARNs apparatus-early; --no-apparatus reads below it and FAILs 91.4",
+         [f["cls"] for f in early_on if f["verdict"] == "WARN"] == ["apparatus-early"]
+         and [f["hit"] for f in early_off if f["verdict"] == "FAIL"] == ["91.4"]),
+        ("numbers: 100，200，300 is three numbers, １，２３４ is 1234, 10⁶ is not 106, 1,2345 keeps its 5",
+         nums("100，200，300") == [100, 200, 300] and nums("１，２３４") == [1234]
+         and nums("10⁶") == [10] and 1234 not in nums("1,2345")),
+        ("values: 2026年度 is explained by the original's 2026-08-01 (year pooled)",
+         not [f for f in year_v if f["verdict"] == "FAIL"]),
+        ("values: a sign moved into words WARNs sign-moved (a direction word is a human call)",
+         [f["cls"] for f in sign_v if f["verdict"] == "WARN"] == ["sign-moved"]),
+        ("voice: vite.config.ts and 報告.md are paths; run.py after a glued URL is not hidden",
+         bool(pats["path"].search("見vite.config.ts")) and bool(pats["path"].search("見 報告.md"))
+         and any(f["cls"] == "path" and f["verdict"] == "FAIL" for f in url_glued)),
+        ("voice: three.js / d3.js are library names, not paths; plural hooks is builder vocabulary",
+         not [f for f in lib_js if f["cls"] == "path"]
+         and any(f["verdict"] == "WARN" and "hook" in f["hit"].lower() for f in plural)),
+        ("values: an overflowed transform (1e307 x 100 = inf) explains nothing; a year matches by identity only",
+         accounted(91.4, "91.4", [(1e307, "1e307", 1)]) is None
+         and not [f for f in year_v if f["verdict"] == "FAIL"]
+         and [f["hit"] for f in check_values(year_o, _tmpfile(tmp, "year_x100.md", "# b\n\n共202600筆。\n"), quiet=True)
+              if f["verdict"] == "FAIL"] == ["202600"]),
+        ("numbers: a mixed-width decimal 91．4 is one number", nums("命中率91．4%") == [91.4]),
     ]
     for label, ok in checks:
         print(f"  [{'ok ' if ok else 'BAD'}] {label}")
@@ -790,8 +1117,23 @@ def selftest():
     return 0 if good else 2
 
 
+class _Parser(argparse.ArgumentParser):
+    def error(self, message):  # a usage error is "could not run" (3), never FAIL (2)
+        self.print_usage(sys.stderr)
+        print(f"afgate: {message}", file=sys.stderr)
+        sys.exit(3)
+
+
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    try:
+        return _main()
+    except (InputError, OSError) as e:
+        print(f"afgate: could not run: {e}", file=sys.stderr)
+        return 3
+
+
+def _main():
+    ap = _Parser(description=__doc__.split("\n")[0])
     ap.add_argument("mode", nargs="?", choices=["voice", "values", "limits", "scope",
                                                 "terms", "sums", "style", "all"])
     ap.add_argument("files", nargs="*", type=Path)
@@ -806,7 +1148,7 @@ def main():
     if a.selftest:
         return selftest()
     if not a.mode:
-        ap.error("mode required (voice | values | limits | all)")
+        ap.error("mode required (voice | values | limits | scope | terms | sums | style | all)")
 
     found = []
     if a.mode == "voice":
@@ -829,7 +1171,7 @@ def main():
             ap.error(f"{a.mode} takes two files: <original> <companion>")
         o, c = a.files
         if a.mode in ("values", "all"):
-            found += check_values(o, c, allow=a.allow)
+            found += check_values(o, c, allow=a.allow, apparatus=None if a.no_apparatus else APPARATUS)
         if a.mode in ("limits", "all"):
             found += check_limits(o, c)
         if a.mode == "all":
@@ -838,6 +1180,9 @@ def main():
             found += check_terms(c, apparatus=None if a.no_apparatus else APPARATUS)
             found += check_sums(c)
             found += check_style(c, apparatus=None if a.no_apparatus else APPARATUS)
+            # values and voice read the same marker: count its apparatus-early WARN once
+            early = [f for f in found if f["cls"] == "apparatus-early"]
+            found = [f for f in found if f["cls"] != "apparatus-early"] + early[:1]
     if any(f["verdict"] == "FAIL" for f in found):
         return 2
     return 1 if any(f["verdict"] == "WARN" for f in found) else 0

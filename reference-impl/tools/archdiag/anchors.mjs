@@ -26,6 +26,7 @@
 
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const SHA40 = /^[0-9a-f]{40}$/;
 // A path token: a Windows drive path, or a token with a slash or a file
@@ -74,7 +75,8 @@ export function parseEv(ev) {
 }
 
 function git(root, args) {
-  return execFileSync('git', ['-C', root, ...args], { encoding: 'buffer', stdio: ['ignore', 'pipe', 'ignore'] });
+  // maxBuffer: the 1 MiB default made `git show` of a larger blob throw ENOBUFS, read as anchor-missing
+  return execFileSync('git', ['-C', root, ...args], { encoding: 'buffer', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 512 * 1024 * 1024 });
 }
 
 function lineCount(buf) {
@@ -119,8 +121,9 @@ export function resolveAnchors(views, decl) {
     return info;
   };
   let names = null;
-  const basenames = () => names || (names = new Set(git(root, ['ls-tree', '-r', '--name-only', at]).toString()
-    .split('\n').filter(Boolean).map((p) => p.replace(/^"|"$/g, '').split('/').pop())));
+  // -z: without it git quotes non-ASCII names with octal escapes and a bare CJK name never matched
+  const basenames = () => names || (names = new Set(git(root, ['ls-tree', '-r', '-z', '--name-only', at]).toString()
+    .split('\0').filter(Boolean).map((p) => p.split('/').pop())));
   const ignored = (rel) => {
     try { git(root, ['check-ignore', '-q', '--', rel]); return true; } catch { return false; }
   };
@@ -276,5 +279,6 @@ async function selftest() {
   console.log('SELFTEST PASS (anchors.mjs)');
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'))
+// fileURLToPath decodes %20 and non-ASCII; the raw URL pathname never matched such a path (false green)
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))
     && process.argv.includes('--selftest')) await selftest();

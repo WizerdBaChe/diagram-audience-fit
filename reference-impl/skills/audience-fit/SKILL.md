@@ -131,7 +131,10 @@ here); answer first (結論 before 證據 before 方法); reroute
 engineering-only content to an appendix instead of deleting it; first-mention
 terms as 白話名稱（術語）; keep limitations in the main text; translate every
 number; never let the reader walk the author's debugging path to reach the
-conclusion. One term per thing across title, prose, diagram node labels and
+conclusion. A paragraph that de-ai-flavor check 12 makes you rewrite is planned
+first and its section's leads re-read as an outline afterwards
+(`~/.claude/references/writing-norms/paragraph-plan.md` §1–§2); the rest stay
+under Restraint. One term per thing across title, prose, diagram node labels and
 table headers — a step that walks the diagram is titled with the label of
 the node it points at, so the reader can find it on the drawing. Recompute
 every derived number before delivery and show the arithmetic once; table
@@ -193,7 +196,12 @@ rewrite.
 
 - **Truth before simplicity.** A rewrite may not change numbers, causal
   strength, scope, or uncertainty; 「觀察到」 never becomes 「證明」. Claim
-  strength stays on the 可描述/可比較/可推因果/不可判定 ladder it was on.
+  strength stays on the 可描述／可比較／可推論因果／尚不可判定 ladder it was on
+  (spelled as in `references/honest-data-readability.md`, so one grep finds both).
+  The ladder's finer axes (magnitude, significance, equivalence, mechanism,
+  simulated vs real) and the limitation-vs-defect split live in
+  `~/.claude/references/writing-norms/claim-reach.md`; a rewrite keeps each
+  claim on the axes it had.
 - **Readability is layering, not deletion.** Unfavorable findings and
   limitations move UP into the main text, not out of it.
 - **Add zero facts.** A translation pass invents nothing — no specifics,

@@ -156,5 +156,73 @@ const fEdges = [edge('e1', 'st', 'q', [[200, 72], [200, 120]]), edge('e2', 'q', 
   ok('router: every routed end on the decision is a vertex', probs.length === 0, probs.concat(routed.edges.map((e) => e.id + ':' + JSON.stringify(e.pts))));
 }
 
+// 13. model ids reach HTML attributes escaped (outside review 2026-11-01: data-id took n.id raw)
+{
+  const bad = 'a"b<x>&';
+  const html = pageHtml({ doc: { title: 't', h1: 'h', legendbar: '', footerNote: '' },
+    views: [view([node(bad, 'proc', 40, 184, 48, 32), node('z', 'proc', 312, 184, 48, 32)],
+      [edge('e"1', bad, 'z', [[88, 200], [312, 200]])])], sections: [] });
+  ok('emit: node id with " < > & is escaped in data-id and data-from', html.includes('data-id="a&quot;b&lt;x&gt;&amp;"')
+    && html.includes('data-from="a&quot;b&lt;x&gt;&amp;"') && html.includes('data-edge="e&quot;1"'), '');
+  ok('emit: the raw id never reaches the page', !html.includes(bad) && !html.includes('e"1'), '');
+  const plain = pageHtml({ doc: { title: 't', h1: 'h', legendbar: '', footerNote: '' }, views: [view(crossNodes, crossEdges)], sections: [] });
+  ok('emit: a plain ASCII id is emitted unchanged', plain.includes('data-id="a1"') && plain.includes('data-view="v"'), '');
+  const sp = validateViews([{ ...view(crossNodes, crossEdges), id: 'my view' }]);
+  ok('schema: a view id with whitespace is refused (aria-labelledby token)', sp.some((m) => /whitespace/.test(m)), sp);
+  ok('schema: a view id without whitespace passes that rule', !validateViews([view(crossNodes, crossEdges)]).some((m) => /whitespace/.test(m)), '');
+}
+
+// 14. follow-up audit (2026-11-01): malformed input fails with a named message, never a TypeError
+{
+  const msg = (f) => { try { f(); return 'no error'; } catch (e) { return `${e.constructor.name}: ${e.message}`; } };
+  const dangling = view(crossNodes, [edge('e1', 'a1', 'zzz', [[0, 0], [0, 0]])]);
+  const rm = msg(() => route(dangling, { grid: 8 }));
+  ok('router: a dangling edge target is named (Error, not TypeError)', /^Error: .*e1\.to "zzz"/.test(rm), rm);
+  ok('router: a valid view still routes', msg(() => route(view(crossNodes, crossEdges), { grid: 8 })) === 'no error', '');
+  const sv = (patch) => validateViews([{ ...view(crossNodes, crossEdges), ...patch }]);
+  ok('schema: missing edges is refused', sv({ edges: undefined }).some((m) => /edges must be an array/.test(m)), sv({ edges: undefined }));
+  ok('schema: edges: [] passes that rule', !sv({ edges: [] }).some((m) => /edges must be/.test(m)), sv({ edges: [] }));
+  ok('schema: null node / edge / container entries are named, not thrown',
+    msg(() => sv({ nodes: [...crossNodes, null], edges: [...crossEdges, null], containers: [null] })) === 'no error'
+    && sv({ nodes: [...crossNodes, null], edges: [...crossEdges, null], containers: [null] }).filter((m) => /not an object/.test(m)).length === 3, '');
+  ok('schema: a container with w <= 0 is refused', sv({ containers: [{ id: 'c', x: 0, y: 0, w: -96, h: 40 }] }).some((m) => /c\.w: must be > 0/.test(m)), '');
+  ok('schema: containers that is not an array is refused', sv({ containers: 'abc' }).some((m) => /containers must be an array/.test(m)), '');
+  const side = sv({ edges: [{ ...crossEdges[0], fromSide: 'north' }, crossEdges[1]] });
+  ok('schema: an unknown fromSide is refused; a known one passes',
+    side.some((m) => /fromSide: must be one of/.test(m)) && !sv({ edges: [{ ...crossEdges[0], fromSide: 'right' }, crossEdges[1]] }).some((m) => /fromSide/.test(m)), side);
+  const pm = msg(() => pageHtml({ doc: { title: 't', h1: 'h' }, views: [view(crossNodes, crossEdges)], sections: [] }));
+  ok('pageHtml: missing doc strings are named instead of printing "undefined"', /doc\.legendbar, doc\.footerNote/.test(pm), pm);
+  ok('pageHtml: missing sections is named', /sections is missing/.test(msg(() => pageHtml({ doc: { title: 't', h1: 'h', legendbar: '', footerNote: '' }, views: [view(crossNodes, crossEdges)] }))), '');
+  const piped = view(crossNodes.map((n) => (n.id === 'a1' ? { ...n, id: 'a|1' } : n)), [edge('A', 'a|1', 'a2', [[0, 0], [0, 0]]), crossEdges[1]]);
+  ok('router: a node id containing "|" still anchors on its own rect', msg(() => {
+    const r = applyRoutes(piped, route(piped, { grid: 8 }));
+    const p = buildAsserts([r], 8).filter((m) => /start off|end off/.test(m));
+    if (p.length) throw new Error(p.join('; '));
+  }) === 'no error', '');
+}
+{
+  const { stripOverlay } = await import('./delta.mjs');
+  const v = view(crossNodes, [crossEdges[0], { ...crossEdges[1], ov: true }]);
+  const ids = stripOverlay([v])[0].edges.map((e) => e.id);
+  ok('delta: stripOverlay drops an ov edge between two base nodes', ids.join() === 'A', ids);
+  const { validateDeclaration } = await import('./envelope.mjs');
+  const decl = (verifiedAt) => validateDeclaration({ covers: { subsystems: ['x'] }, verifiedAt });
+  ok('envelope: 2026-13-45 and 2026-02-30 are not calendar dates; 2026-02-28 is',
+    decl('2026-13-45').some((m) => /not a calendar date/.test(m)) && decl('2026-02-30').some((m) => /not a calendar date/.test(m)) && !decl('2026-02-28').some((m) => /calendar/.test(m)), decl('2026-13-45'));
+  const { spawnSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const topo = fileURLToPath(new URL('./topology.mjs', import.meta.url));
+  const fs = await import('node:fs'), os = await import('node:os'), path = await import('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archdiag-topo-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'hand.html'), '<html><body><svg><rect/></svg></body></html>');
+    fs.writeFileSync(path.join(dir, 'empty.html'), '<html><body><svg data-view="v"><rect/></svg></body></html>');
+    const rc = (f) => spawnSync(process.execPath, [topo, f], { encoding: 'utf8' }).status;
+    ok('topology CLI: a hand-drawn page, a view with no recognised nodes and a missing file exit 3 (not measured), never 0',
+      rc(path.join(dir, 'hand.html')) === 3 && rc(path.join(dir, 'empty.html')) === 3 && rc(path.join(dir, 'nope.html')) === 3,
+      [rc(path.join(dir, 'hand.html')), rc(path.join(dir, 'empty.html')), rc(path.join(dir, 'nope.html'))]);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
 console.log(failed ? `flow selftest: ${failed} FAILED` : 'flow selftest: PASS');
 process.exit(failed ? 2 : 0);
