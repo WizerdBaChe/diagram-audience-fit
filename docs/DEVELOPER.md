@@ -18,6 +18,7 @@ diagram-audience-fit/
 │   ├── DEVELOPER.md              本頁
 │   ├── BUILD-SPEC.md             規格（英文）：§0–§9，驗收表 A1–A16
 │   ├── EVIDENCE.md               實測紀錄、規則出處、沒有宣稱的事
+│   ├── self-portrait/            用本 repo 的方法畫本 repo：探針、工程版、讀者版（各附建置腳本）
 │   └── assets/                   README 用圖＋重生腳本 build_assets.py
 ├── reference-impl/               原環境 ~/.claude 的實際原檔（逐位元組，宣告修改見規格 §9）
 │   ├── skills/
@@ -160,6 +161,25 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 5. 擁有者視圖在手機寬度下仍讀得懂（對照 `mfp-audit-f3-owner-view-v3.png`）。
 6. 顏色換成灰階後，節點種類與連線種類仍分得出來（形狀＋顏色雙重編碼）。
 7. `flowchart-notation-demo.html` 一頁看得懂每個流程圖記號的意思。
+
+## 自畫像：用本 repo 的方法畫本 repo
+
+[`docs/self-portrait/`](self-portrait/) 是 README 主圖的來源，也是這套做法的完整示範（照規格 §2 的順序）：
+
+1. **來源**：`probe_refs.py` 實讀 `reference-impl/` 的 44 個文字檔，記下每一條檔案間的引用（匯入、路徑引用、skill 互相點名），寫成 `refs.json`。圖不是照資料夾結構猜的。
+2. **工程版**：`self-audit.build.mjs` 的每條線都從 `refs.json` 查出處（查不到就建置失敗），再用 `anchors.mjs` 在固定 commit 上逐一核對檔案與行號；交叉超過 3 個時程式庫拒絕建置，所以版面重排過。頁內附缺口報告與覆蓋宣告。
+3. **讀者版**：`self-owner-view.build.mjs` 由工程版的模型重畫成 8 個節點，附對照表與原樣保留的發現；用 `afgate.py` 對照原版檢查（第一輪抓到 3 處給讀者看的頁面寫了檔案路徑，已改）。
+
+重生（repo 根目錄）：
+
+```text
+python -X utf8 docs/self-portrait/probe_refs.py
+node docs/self-portrait/self-audit.build.mjs
+node docs/self-portrait/self-owner-view.build.mjs
+python -X utf8 reference-impl/tools/audience-fit-gate/afgate.py all docs/self-portrait/self-audit.html docs/self-portrait/self-owner-view.html
+```
+
+探針的限制寫在工程版的缺口報告（G3、G5）：它只認匯入、路徑字串與 4 個 skill 名稱，只在文字裡描述的依賴看不到。
 
 ## README 圖片怎麼重生
 

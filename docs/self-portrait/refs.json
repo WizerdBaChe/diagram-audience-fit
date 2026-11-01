@@ -1,0 +1,722 @@
+{
+ "root": "reference-impl",
+ "files": 44,
+ "refs": [
+  {
+   "src": "outputs/diagram-authoring/flowchart-notation-demo.build.mjs",
+   "dst": "skills/diagram-authoring/SKILL.md",
+   "kind": "cite",
+   "line": 5,
+   "count": 2
+  },
+  {
+   "src": "outputs/diagram-authoring/flowchart-notation-demo.build.mjs",
+   "dst": "skills/diagram-authoring/references/notation-precision.md",
+   "kind": "cite",
+   "line": 62,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/flowchart-notation-demo.build.mjs",
+   "dst": "tools/archdiag/index.mjs",
+   "kind": "import",
+   "line": 10,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/flowchart-notation-demo.build.mjs",
+   "dst": "tools/archdiag/tables.mjs",
+   "kind": "import",
+   "line": 11,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3-measurement.md",
+   "dst": "tools/archdiag/MAINTENANCE.md",
+   "kind": "cite",
+   "line": 94,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3-measurement.md",
+   "dst": "tools/archdiag/README.md",
+   "kind": "cite",
+   "line": 93,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3-owner-view-v3.build.mjs",
+   "dst": "tools/archdiag/asserts.mjs",
+   "kind": "import",
+   "line": 39,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "dst": "outputs/diagram-authoring/mfp-audit-f3-measurement.md",
+   "kind": "cite",
+   "line": 10,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "dst": "tools/archdiag/MAINTENANCE.md",
+   "kind": "cite",
+   "line": 426,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "dst": "tools/archdiag/delta.mjs",
+   "kind": "import",
+   "line": 34,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "dst": "tools/archdiag/index.mjs",
+   "kind": "import",
+   "line": 31,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "dst": "tools/archdiag/route.mjs",
+   "kind": "import",
+   "line": 33,
+   "count": 1
+  },
+  {
+   "src": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "dst": "tools/archdiag/tables.mjs",
+   "kind": "import",
+   "line": 32,
+   "count": 1
+  },
+  {
+   "src": "references/design-axes/part-principles.md",
+   "dst": "rules/deliverable-doc-refs.md",
+   "kind": "cite",
+   "line": 10,
+   "count": 1
+  },
+  {
+   "src": "rules/figure-self-read.md",
+   "dst": "rules/verification-ladder.md",
+   "kind": "cite",
+   "line": 19,
+   "count": 1
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "references/design-axes/part-principles.md",
+   "kind": "cite",
+   "line": 254,
+   "count": 1
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/audience-fit/references/de-ai-flavor.md",
+   "kind": "cite",
+   "line": 206,
+   "count": 2
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/audience-fit/references/honest-data-readability.md",
+   "kind": "cite",
+   "line": 118,
+   "count": 2
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/audience-fit/references/presentational-view.md",
+   "kind": "cite",
+   "line": 79,
+   "count": 2
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/audience-fit/references/project-info-for-general-readers.md",
+   "kind": "cite",
+   "line": 114,
+   "count": 2
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/audience-fit/references/ui-copy-stance.md",
+   "kind": "cite",
+   "line": 155,
+   "count": 2
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/diagram-authoring/",
+   "kind": "name",
+   "line": 14,
+   "count": 3
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "skills/ux-walkthrough/",
+   "kind": "name",
+   "line": 3,
+   "count": 4
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "cite",
+   "line": 97,
+   "count": 1
+  },
+  {
+   "src": "skills/audience-fit/SKILL.md",
+   "dst": "tools/audience-fit-gate/afgate.py",
+   "kind": "cite",
+   "line": 214,
+   "count": 1
+  },
+  {
+   "src": "skills/audience-fit/references/presentational-view.md",
+   "dst": "skills/diagram-authoring/",
+   "kind": "name",
+   "line": 30,
+   "count": 3
+  },
+  {
+   "src": "skills/audience-fit/references/presentational-view.md",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "cite",
+   "line": 127,
+   "count": 1
+  },
+  {
+   "src": "skills/audience-fit/references/ui-copy-stance.md",
+   "dst": "skills/ux-walkthrough/",
+   "kind": "name",
+   "line": 11,
+   "count": 3
+  },
+  {
+   "src": "skills/audience-fit/references/ui-copy-stance.md",
+   "dst": "skills/ux-walkthrough/references/decision-point-contract.md",
+   "kind": "cite",
+   "line": 15,
+   "count": 2
+  },
+  {
+   "src": "skills/diagram-authoring/SKILL.md",
+   "dst": "skills/audience-fit/",
+   "kind": "name",
+   "line": 93,
+   "count": 4
+  },
+  {
+   "src": "skills/diagram-authoring/SKILL.md",
+   "dst": "skills/diagram-authoring/references/carrier-playbook.md",
+   "kind": "cite",
+   "line": 105,
+   "count": 4
+  },
+  {
+   "src": "skills/diagram-authoring/SKILL.md",
+   "dst": "skills/diagram-authoring/references/notation-precision.md",
+   "kind": "cite",
+   "line": 107,
+   "count": 4
+  },
+  {
+   "src": "skills/diagram-authoring/SKILL.md",
+   "dst": "skills/product-design-thinking/",
+   "kind": "name",
+   "line": 12,
+   "count": 3
+  },
+  {
+   "src": "skills/diagram-authoring/SKILL.md",
+   "dst": "tools/archdiag/",
+   "kind": "cite",
+   "line": 34,
+   "count": 2
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "outputs/diagram-authoring/",
+   "kind": "cite",
+   "line": 134,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "outputs/diagram-authoring/mfp-audit-f3.build.mjs",
+   "kind": "cite",
+   "line": 107,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "outputs/skill-reviews/archify-integration-analysis-2026-08-28.md",
+   "kind": "cite",
+   "line": 151,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "skills/audience-fit/",
+   "kind": "name",
+   "line": 23,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "tools/archdiag/",
+   "kind": "cite",
+   "line": 78,
+   "count": 2
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "tools/archdiag/MAINTENANCE.md",
+   "kind": "cite",
+   "line": 104,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "tools/archdiag/README.md",
+   "kind": "cite",
+   "line": 103,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/carrier-playbook.md",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "cite",
+   "line": 22,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/notation-precision.md",
+   "dst": "outputs/skill-reviews/archify-integration-analysis-2026-08-28.md",
+   "kind": "cite",
+   "line": 332,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/notation-precision.md",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "cite",
+   "line": 75,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/notation-precision.md",
+   "dst": "tools/archdiag/tokens.mjs",
+   "kind": "cite",
+   "line": 81,
+   "count": 1
+  },
+  {
+   "src": "skills/diagram-authoring/references/notation-precision.md",
+   "dst": "tools/archdiag/topology.mjs",
+   "kind": "cite",
+   "line": 194,
+   "count": 1
+  },
+  {
+   "src": "skills/product-design-thinking/references/representation-models.md",
+   "dst": "skills/audience-fit/",
+   "kind": "name",
+   "line": 42,
+   "count": 1
+  },
+  {
+   "src": "skills/product-design-thinking/references/representation-models.md",
+   "dst": "skills/diagram-authoring/",
+   "kind": "name",
+   "line": 38,
+   "count": 3
+  },
+  {
+   "src": "skills/product-design-thinking/references/representation-models.md",
+   "dst": "tools/archdiag/",
+   "kind": "cite",
+   "line": 38,
+   "count": 1
+  },
+  {
+   "src": "skills/product-design-thinking/references/view-integrity-checks.md",
+   "dst": "skills/diagram-authoring/",
+   "kind": "name",
+   "line": 8,
+   "count": 5
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "outputs/diagram-authoring/",
+   "kind": "cite",
+   "line": 22,
+   "count": 4
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "outputs/skill-reviews/",
+   "kind": "cite",
+   "line": 117,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "rules/deliverable-doc-refs.md",
+   "kind": "cite",
+   "line": 196,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "skills/diagram-authoring/references/notation-precision.md",
+   "kind": "cite",
+   "line": 402,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "tools/archdiag/",
+   "kind": "cite",
+   "line": 12,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "tools/archdiag/m1.mjs",
+   "kind": "cite",
+   "line": 16,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/MAINTENANCE.md",
+   "dst": "tools/archdiag/tokens.mjs",
+   "kind": "cite",
+   "line": 52,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/README.md",
+   "dst": "outputs/diagram-authoring/mfp-audit-f3-measurement.md",
+   "kind": "cite",
+   "line": 161,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/README.md",
+   "dst": "rules/deliverable-doc-refs.md",
+   "kind": "cite",
+   "line": 80,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/README.md",
+   "dst": "tools/archdiag/tokens.mjs",
+   "kind": "cite",
+   "line": 176,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/emit.mjs",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "import",
+   "line": 19,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/emit.mjs",
+   "dst": "tools/archdiag/selfcheck.mjs",
+   "kind": "import",
+   "line": 18,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/envelope.mjs",
+   "dst": "tools/archdiag/",
+   "kind": "cite",
+   "line": 125,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/envelope.mjs",
+   "dst": "tools/archdiag/anchors.mjs",
+   "kind": "import",
+   "line": 19,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/asserts.mjs",
+   "kind": "import",
+   "line": 9,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 13,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "import",
+   "line": 8,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/layout.mjs",
+   "kind": "import",
+   "line": 11,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/route.mjs",
+   "kind": "import",
+   "line": 14,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/schema.mjs",
+   "kind": "import",
+   "line": 10,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/flow-selftest.mjs",
+   "dst": "tools/archdiag/selfcheck.mjs",
+   "kind": "import",
+   "line": 12,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/hops.mjs",
+   "dst": "tools/archdiag/layout.mjs",
+   "kind": "cite",
+   "line": 32,
+   "count": 2
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/",
+   "kind": "cite",
+   "line": 90,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/anchors.mjs",
+   "kind": "import",
+   "line": 17,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/asserts.mjs",
+   "kind": "import",
+   "line": 12,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 13,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/envelope.mjs",
+   "kind": "import",
+   "line": 16,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/layout.mjs",
+   "kind": "import",
+   "line": 15,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/schema.mjs",
+   "kind": "import",
+   "line": 11,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/index.mjs",
+   "dst": "tools/archdiag/topology.mjs",
+   "kind": "import",
+   "line": 14,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/layout.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 21,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/layout.mjs",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "cite",
+   "line": 35,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/layout.mjs",
+   "dst": "tools/archdiag/hops.mjs",
+   "kind": "import",
+   "line": 22,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/layout.mjs",
+   "dst": "tools/archdiag/route.mjs",
+   "kind": "cite",
+   "line": 33,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/m1.mjs",
+   "dst": "outputs/diagram-authoring/",
+   "kind": "cite",
+   "line": 5,
+   "count": 2
+  },
+  {
+   "src": "tools/archdiag/route.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 48,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/route.mjs",
+   "dst": "tools/archdiag/layout.mjs",
+   "kind": "cite",
+   "line": 135,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/route.mjs",
+   "dst": "tools/archdiag/vendor/archify-geometry.mjs",
+   "kind": "import",
+   "line": 54,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/schema.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 11,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/tables.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 5,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/tokens.mjs",
+   "dst": "tools/archdiag/emit.mjs",
+   "kind": "import",
+   "line": 33,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/vendor/archify-geometry.mjs",
+   "dst": "outputs/skill-reviews/archify-integration-analysis-2026-08-28.md",
+   "kind": "cite",
+   "line": 9,
+   "count": 1
+  },
+  {
+   "src": "tools/archdiag/vendor/archify-geometry.mjs",
+   "dst": "tools/archdiag/route.mjs",
+   "kind": "cite",
+   "line": 13,
+   "count": 1
+  },
+  {
+   "src": "tools/audience-fit-gate/README.md",
+   "dst": "outputs/diagram-authoring/",
+   "kind": "cite",
+   "line": 43,
+   "count": 2
+  },
+  {
+   "src": "tools/audience-fit-gate/afgate.py",
+   "dst": "skills/audience-fit/",
+   "kind": "cite",
+   "line": 4,
+   "count": 1
+  },
+  {
+   "src": "tools/audience-fit-gate/afgate.py",
+   "dst": "tools/audience-fit-gate/vendor/term_match.py",
+   "kind": "import",
+   "line": 52,
+   "count": 1
+  }
+ ],
+ "unresolved_citations": {
+  "outputs/archdiag-m1-reach-20261024/提案單_收據回歸涵蓋庫外圖面_20261024.md": 1,
+  "outputs/archview-coverage-20261021/backfill-envelopes.mjs": 1,
+  "outputs/archview-coverage-20261021/提案單_架構圖覆蓋盤點與過期管控_20261021.md": 1,
+  "outputs/diagram-authoring/archdiag-capability-set-v1": 1,
+  "outputs/diagram-authoring/flowchart-notation-demo.html": 1,
+  "outputs/diagram-authoring/memory-compaction-audit-f1.html": 1,
+  "outputs/diagram-authoring/selfbuild-scope-eval-2026-08-28.md": 2,
+  "outputs/diagram-layout-degeneracy-20261019/提案單_架構圖拓撲退化檢查_20261019.md": 1,
+  "outputs/feedback-criteria-grouping-20261026/篩選稿_排他性與生成力_20261027.md": 1,
+  "outputs/lean4-": 1,
+  "outputs/numberref-extraction-deferred-2026-09-10.md": 1,
+  "outputs/proposal-record-type-20261014/10-inventory.md": 1,
+  "outputs/shell-command-error-audit-2026-08-18.md": 1,
+  "outputs/skill-reviews/archify-graphify-reborrow-2026-10-23.md": 3,
+  "outputs/skill-reviews/diagram-authoring-gaps-2026-08-27.md": 1,
+  "references/audience-fit-ux-gap-review-2026-09-07.md": 1,
+  "references/claude-config-decisions.md": 1,
+  "references/formal-path-governance-design.md": 2,
+  "references/media-fetch-pipeline-context.md": 1,
+  "references/media-fetch-pipeline-phase-log.md": 1,
+  "references/verify.md": 1,
+  "rules/html-page-style.md": 1,
+  "rules/office-deck-deliverables.md": 5,
+  "rules/verification-record.md": 1,
+  "skills/media-fetch-pipeline/SKILL.md": 1,
+  "skills/motion-video/references/whole-film-rules.md": 1,
+  "skills/paper-story/references/lab-template.md": 1,
+  "skills/synced": 1,
+  "tools/cross-index/tests/test_glob_properties.py": 1,
+  "tools/design-axes-mount/parity_census.py": 3,
+  "tools/lean-verify/": 1,
+  "tools/lean-verify/verify.py": 1,
+  "tools/page-fill-gate/": 1,
+  "tools/page-fill-gate/fill_gate.py": 2,
+  "tools/pptx-presentation-gate": 1,
+  "tools/system-hmi/SNAPSHOT-ENVELOPE.md": 2,
+  "tools/system-hmi/controls.py": 1,
+  "tools/system-hmi/hmi/envelopes.py": 1,
+  "tools/token-key-gate/token_key_gate.py": 2,
+  "tools/ui-shot": 1,
+  "tools/x.py": 1,
+  "tools/xi_scan.py": 2
+ }
+}

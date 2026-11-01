@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-Hant" data-page-class="diagram">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diagram-audience-fit 給你什麼</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #ffffff; color: #0f172a; font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif; }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+  header .sp { flex: 1; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; }
+  .tab.on { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+  #geoStatus { font-size: 13px; padding: 4px 10px; border-radius: 8px; }
+  #geoStatus.pass { background: #dcfce7; color: #166534; }
+  #geoStatus.fail { background: #fee2e2; color: #991b1b; }
+  .pane { display: none; border-bottom: 1px solid #e2e8f0; }
+  .pane.on, body.measuring .pane { display: block; }
+  svg.dia { display: block; width: 100%; height: auto; max-height: 78vh; }
+  main { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 18px; margin: 12px 16px 4px; }
+  h2 { font-size: 15px; margin: 20px 0 8px; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { border: 1px solid #e2e8f0; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #f8fafc; }
+  .note { font-size: 12.5px; color: #475569; margin: 8px 16px; }
+  #geoDetail { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; }
+  .legendbar { font-size: 12px; color: #334155; padding: 6px 16px; border-bottom: 1px solid #e2e8f0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<marker id="mOpen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#64748b" stroke-width="1.6"/></marker>
+<marker id="mFill" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0f172a"/></marker>
+<marker id="mProto" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#0369a1" stroke-width="1.6"/></marker>
+<marker id="mEgr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker>
+<marker id="mEps" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7c3aed" stroke-width="1.6"/></marker>
+</defs></svg>
+<h1>diagram-audience-fit 給你什麼（讀者版）</h1>
+<div class="legendbar">藍方塊：做事的步驟。琥珀：你拿到的成品。灰膠囊：你的系統。黑實線表示東西往下傳，灰箭頭表示呼叫。</div>
+<header><button class="tab on" data-tab="own">這個工具包給你什麼</button><span class="sp"></span><span id="geoStatus">幾何自檢：執行中…</span></header>
+
+<section class="pane on" id="pane-own">
+  <p class="note">兩個能力接力：先畫出追得到出處的工程圖，再把同一份發現重畫給不是作者的人看。　宣告：驗收腳本還會重建範例、檢查程式庫，這裡只畫一條代表線（工程版有完整表）</p>
+  <svg class="dia" data-view="own" viewBox="0 0 1072 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-own d-own">
+    <title id="t-own">這個工具包給你什麼</title>
+    <desc id="d-own">兩個能力接力：先畫出追得到出處的工程圖，再把同一份發現重畫給不是作者的人看。</desc>
+    <g class="scene"><path d="M288 160 L384 160" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="o1" data-from="SYS" data-to="DRAW" data-pts="288,160,384,160"  />
+<path d="M520 192 L520 296" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="o2" data-from="DRAW" data-to="LIB" data-pts="520,192,520,296"  />
+<path d="M656 160 L752 160" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="o3" data-from="DRAW" data-to="ENGV" data-pts="656,160,752,160"  />
+<path d="M888 192 L888 296" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="o4" data-from="ENGV" data-to="FIT" data-pts="888,192,888,296"  />
+<path d="M752 336 L656 336" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="o5" data-from="FIT" data-to="LIB" data-pts="752,336,656,336"  />
+<path d="M928 368 L928 472" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="o6" data-from="FIT" data-to="OWN" data-pts="928,368,928,472"  />
+<path d="M752 352 L704 352 L704 488 L656 488" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="o7" data-from="FIT" data-to="GATE" data-pts="752,352,704,352,704,488,656,488"  />
+<path d="M288 512 L384 512" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="o8" data-from="VER" data-to="GATE" data-pts="288,512,384,512"  />
+<metadata data-declared-crossings="0"></metadata>
+<g class="node" data-id="SYS" data-x="48" data-y="120" data-w="240" data-h="72" data-kind="ext"><rect x="48" y="120" width="240" height="72" rx="36" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/><text class="lbl" x="168" y="140" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">你的系統</text><text class="lbl" font-size="11" fill="#334155" text-anchor="middle"><tspan x="168" y="161">程式・設定・設計文件</tspan></text></g>
+<g class="node" data-id="DRAW" data-x="384" data-y="120" data-w="272" data-h="72" data-kind="block"><rect x="384" y="120" width="272" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="396" y="140" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">① 畫圖的做法</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="396" y="161">先列來源，再寫模型，最後才出圖</tspan></text></g>
+<g class="node" data-id="LIB" data-x="384" data-y="296" data-w="272" data-h="72" data-kind="block"><rect x="384" y="296" width="272" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="396" y="316" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">繪圖程式庫</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="396" y="337">排線、跳線、自我檢查</tspan></text></g>
+<g class="node" data-id="ENGV" data-x="752" data-y="120" data-w="272" data-h="72" data-kind="store"><rect x="752" y="120" width="272" height="72" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="764" y="140" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">工程稽核圖＋缺口報告</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="764" y="161">每條線追得到出處</tspan></text></g>
+<g class="node" data-id="FIT" data-x="752" data-y="296" data-w="272" data-h="72" data-kind="block"><rect x="752" y="296" width="272" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="764" y="316" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">② 對讀者調校</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="764" y="337">只換讀者，不換發現</tspan></text></g>
+<g class="node" data-id="OWN" data-x="752" data-y="472" data-w="272" data-h="72" data-kind="store"><rect x="752" y="472" width="272" height="72" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="764" y="492" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">給擁有者看的圖</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="764" y="513">和原版成對交付</tspan></text></g>
+<g class="node" data-id="GATE" data-x="384" data-y="472" data-w="272" data-h="72" data-kind="block"><rect x="384" y="472" width="272" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="396" y="492" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">讀者版檢查</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="396" y="513">數字、範圍、用語不准改輕</tspan></text></g>
+<g class="node" data-id="VER" data-x="48" data-y="472" data-w="240" data-h="72" data-kind="block"><rect x="48" y="472" width="240" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="492" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">驗收腳本</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="513">12 項，每項正反兩面</tspan></text></g>
+<rect class="pillbg" x="308" y="151" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="336" y="164" font-size="11" fill="#334155" text-anchor="middle">讀取來源</text>
+<rect class="pillbg" x="486.5" y="235" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="520" y="248" font-size="11" fill="#334155" text-anchor="middle">交給程式畫</text>
+<rect class="pillbg" x="687" y="151" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="704" y="164" font-size="11" fill="#334155" text-anchor="middle">產出</text>
+<rect class="pillbg" x="854.5" y="235" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="888" y="248" font-size="11" fill="#334155" text-anchor="middle">同一份發現</text>
+<rect class="pillbg" x="676" y="327" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="704" y="340" font-size="11" fill="#334155" text-anchor="middle">共用跳線</text>
+<rect class="pillbg" x="911" y="411" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="928" y="424" font-size="11" fill="#334155" text-anchor="middle">重畫</text>
+<rect class="pillbg" x="670.5" y="411" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="704" y="424" font-size="11" fill="#334155" text-anchor="middle">交付前檢查</text>
+<rect class="pillbg" x="319" y="503" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="336" y="516" font-size="11" fill="#334155" text-anchor="middle">驗收</text></g>
+  </svg>
+</section>
+<main>
+  <h2>這張圖和工程版的對照</h2><table><thead><tr><th>這張圖上</th><th>工程版的元素</th><th>省略了什麼</th></tr></thead><tbody><tr><td>你的系統</td><td>（Step 0 來源，工程版以每條線的憑據呈現）</td><td>—</td></tr><tr><td>① 畫圖的做法</td><td>DA・DAR・PDT</td><td>三份參照文件的名稱</td></tr><tr><td>繪圖程式庫</td><td>BLD・CHK・WRN・EVD・RT</td><td>五組模組的分工與 import 細節</td></tr><tr><td>工程稽核圖＋缺口報告</td><td>B1→H1・B3→H3</td><td>腳本檔名</td></tr><tr><td>② 對讀者調校</td><td>AF・AFR・UX</td><td>5 份參照與決策點契約的名稱</td></tr><tr><td>給擁有者看的圖</td><td>B2→H2</td><td>腳本只借 a11y 斷言的細節（見下方 G1）</td></tr><tr><td>讀者版檢查</td><td>AG</td><td>—</td></tr><tr><td>驗收腳本</td><td>VR（＋驗收表 A1–A16）</td><td>除 A10/A11 外的驗收線</td></tr></tbody></table>
+  <h2>工程版的發現與限制（一條不少）</h2><table><thead><tr><th>#</th><th>工程版的發現（原樣保留）</th></tr></thead><tbody><tr><td>G1</td><td>擁有者視圖的範例不經同一套建置與頁內自檢，靠瀏覽器量測與人工驗收</td></tr><tr><td>G2</td><td>畫圖的做法沒有直接呼叫讀者版檢查；這一步只由「對讀者調校」執行</td></tr><tr><td>G3</td><td>兩個能力互相「點名」而不是引用路徑；只看路徑會漏掉這條線（探針已補）</td></tr><tr><td>G4</td><td>原檔提到 42 個沒附的路徑，只列不畫</td></tr><tr><td>G5</td><td>探針看不到只在文字裡描述的隱性依賴</td></tr></tbody></table>
+  <h2>幾何自檢輸出（notation-precision §4，B-1 診斷物件格式）</h2>
+  <div id="geoDetail">執行中…</div>
+  <p class="note">本頁由工程版的結構模型重畫而成，建置腳本在同一個資料夾。對照表與發現表在上方，和原版成對交付。</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('on', p.id === 'pane-' + b.dataset.tab));
+  }));
+
+  // ---- §4 self-checks, B-1 diagnostic-object output ----
+  const diags = [];
+  const stats = [];
+  const D = (code, subject, evidence, fixes) => diags.push({ code, severity: 'error', subject, evidence, supportedFixes: fixes });
+  // instrument precondition #2: getBBox() on a display:none pane returns zero
+  // rects — measure with every pane rendered, then restore the tab state.
+  document.body.classList.add('measuring');
+  // render receipt (2026-09-02): a label-clearance PASS is a fact about the
+  // font that measured, not about the bytes — bbox height includes leading
+  // and varies ~7% by family (Segoe UI 1.364× vs Noto Sans TC 1.455×; an
+  // external macOS Chromium reported 44 label-overlap on bytes this machine
+  // passed). Record engine, DPR, the computed family and a measured
+  // height/size ratio so reports are comparable across environments.
+  let receipt = null;
+  try {
+    const PAD = 2, EPS = 2, GRIDU = 8;
+    const probe = document.querySelector('svg.dia text.lbl');
+    receipt = {
+      engine: navigator.userAgent, dpr: window.devicePixelRatio, viewport: [window.innerWidth, window.innerHeight],
+      fontFamily: probe ? getComputedStyle(probe).fontFamily : null,
+      fontMetricRatio: probe ? +(probe.getBBox().height / parseFloat(probe.getAttribute('font-size'))).toFixed(3) : null,
+      pad: PAD,
+    };
+    for (const svg of document.querySelectorAll('svg.dia')) {
+      const view = svg.dataset.view;
+      // precondition #1: no transform inside the scene
+      for (const el of svg.querySelectorAll('[transform]'))
+        D('instrument-precondition', { view, element: el.tagName }, { reason: 'transform inside asserted scene' }, ['emit absolute coordinates']);
+      // precondition #2 assert: the scene must actually render
+      if (svg.querySelector('.scene').getBBox().width === 0)
+        D('instrument-precondition', { view }, { reason: 'scene not rendered (hidden pane?) — bboxes would be zero' }, ['measure with the pane rendered']);
+      const nodes = [...svg.querySelectorAll('.node')].map((g) => ({ id: g.dataset.id, kind: g.dataset.kind, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const comps = [...svg.querySelectorAll('.comp')].map((g) => ({ id: g.dataset.id, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const edges = [...svg.querySelectorAll('.edge')].map((p) => {
+        const v = p.dataset.pts.split(',').map(Number); const pts = [];
+        for (let i = 0; i < v.length; i += 2) pts.push([v[i], v[i + 1]]);
+        return { id: p.dataset.edge, from: p.dataset.from, to: p.dataset.to, pts, fromComp: !!p.dataset.fromcomp, selfLoop: !!p.dataset.selfloop };
+      });
+      // 1. label bboxes pairwise disjoint
+      const labels = [...svg.querySelectorAll('.lbl')].map((t) => ({ el: t, b: t.getBBox() }));
+      let pairs = 0;
+      for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+        const a = labels[i].b, b = labels[j].b; pairs++;
+        if (a.x < b.x + b.width + PAD && b.x < a.x + a.width + PAD && a.y < b.y + b.height + PAD && b.y < a.y + a.height + PAD)
+          D('label-overlap', { view, a: labels[i].el.textContent.slice(0, 14), b: labels[j].el.textContent.slice(0, 14) },
+            { aRect: [a.x, a.y, a.width, a.height].map(Math.round), bRect: [b.x, b.y, b.width, b.height].map(Math.round) },
+            ['move one label by ' + Math.ceil(Math.min(a.y + a.height - b.y, b.y + b.height - a.y) + PAD) + 'px vertically']);
+      }
+      // 2. anchors
+      const rects = Object.fromEntries([...nodes, ...comps].map((n) => [n.id, n]));
+      const onB = (p, n) =>
+        ((Math.abs(p[0] - n.x) <= EPS || Math.abs(p[0] - (n.x + n.w)) <= EPS) && p[1] >= n.y - EPS && p[1] <= n.y + n.h + EPS) ||
+        ((Math.abs(p[1] - n.y) <= EPS || Math.abs(p[1] - (n.y + n.h)) <= EPS) && p[0] >= n.x - EPS && p[0] <= n.x + n.w + EPS);
+      for (const e of edges) {
+        if (!onB(e.pts[0], rects[e.from])) D('anchor-off-node', { view, edge: e.id, end: 'start', node: e.from }, { point: e.pts[0] }, ['move start onto ' + e.from + ' border']);
+        if (!onB(e.pts[e.pts.length - 1], rects[e.to])) D('anchor-off-node', { view, edge: e.id, end: 'end', node: e.to }, { point: e.pts[e.pts.length - 1] }, ['move end onto ' + e.to + ' border']);
+      }
+      // 3. containment
+      const vb = svg.viewBox.baseVal, sb = svg.querySelector('.scene').getBBox();
+      if (sb.x < 0 || sb.y < 0 || sb.x + sb.width > vb.width || sb.y + sb.height > vb.height)
+        D('viewbox-clip', { view }, { scene: [sb.x, sb.y, sb.width, sb.height].map(Math.round), viewBox: [vb.width, vb.height] }, ['grow the viewBox or move content inward']);
+      // 4. grid
+      for (const n of nodes) for (const k of ['x', 'y', 'w', 'h'])
+        if (n[k] % GRIDU !== 0) D('grid-off', { view, node: n.id, prop: k }, { value: n[k] }, ['snap to ' + GRIDU + 'px']);
+      // 5. pass-through (self-loops and composite-source edges: own endpoints exempt as usual)
+      const hit = (a, b, r) => Math.min(a[0], b[0]) < r.x + r.w - 1 && Math.max(a[0], b[0]) > r.x + 1 && Math.min(a[1], b[1]) < r.y + r.h - 1 && Math.max(a[1], b[1]) > r.y + 1;
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++)
+        for (const n of nodes) {
+          if (n.id === e.from || n.id === e.to) continue;
+          if (hit(e.pts[i - 1], e.pts[i], n))
+            D('edge-through-node', { view, edge: e.id, segment: i, node: n.id }, { seg: [e.pts[i - 1], e.pts[i]] }, ['reroute segment ' + i + ' around ' + n.id]);
+        }
+      // 6. crossings vs the view's DECLARED count — report WHICH pair at WHERE
+      const declared = +(svg.querySelector('metadata')?.getAttribute('data-declared-crossings') || 0);
+      let crossings = 0;
+      const found = [];
+      const segs = [];
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++) segs.push({ e: e.id, a: e.pts[i - 1], b: e.pts[i] });
+      for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length; j++) {
+        const s = segs[i], t = segs[j];
+        if (s.e === t.e) continue;
+        const sv = s.a[0] === s.b[0], tv = t.a[0] === t.b[0];
+        if (sv === tv) continue;
+        const [vv, hh] = sv ? [s, t] : [t, s];
+        const x = vv.a[0], y = hh.a[1];
+        if (x > Math.min(hh.a[0], hh.b[0]) + 1 && x < Math.max(hh.a[0], hh.b[0]) - 1 && y > Math.min(vv.a[1], vv.b[1]) + 1 && y < Math.max(vv.a[1], vv.b[1]) - 1) {
+          crossings++;
+          found.push({ pair: [s.e, t.e], at: [x, y] });
+        }
+      }
+      if (crossings > declared)
+        for (const f of found)
+          D('crossing-over-declared', { view, pair: f.pair }, { at: f.at, crossings, declared }, ['reroute ' + f.pair[0] + ' or ' + f.pair[1] + ' around (' + f.at + ')', 'or declare the crossing (≤3) with its coordinates']);
+      stats.push(view + ': ' + nodes.length + ' nodes, ' + edges.length + ' edges, ' + pairs + ' label pairs, crossings ' + crossings + '/' + declared);
+      // 7. fonts
+      for (const t of svg.querySelectorAll('text.lbl'))
+        if (parseFloat(t.getAttribute('font-size')) < 11)
+          D('font-below-floor', { view, text: t.textContent.slice(0, 12) }, { size: t.getAttribute('font-size') }, ['raise to 11px']);
+      // 8. reference resolution: a dangling url(#id) reference renders as
+      // silently absent — assert every url(#id) resolves (positive-control calibrated).
+      for (const el of svg.querySelectorAll('*')) {
+        for (const attr of ['marker-end', 'marker-start', 'fill', 'stroke']) {
+          const val = el.getAttribute && el.getAttribute(attr);
+          const m = val && val.match(/^url\(#([^)]+)\)$/);
+          if (m && !document.getElementById(m[1]))
+            D('dangling-reference', { view, attr, id: m[1] }, { element: el.tagName }, ['define #' + m[1] + ' in a <defs> block']);
+        }
+      }
+      // 9. edge-label pill over a node (B-1, 2026-09-05): check #1 is label×label
+      // only. Rule: the pill's CENTRE (its pillAt) must not lie inside a node —
+      // the reader then attributes the label to the node, not to its edge.
+      // A pill straddling a border passes: calibration 2026-09-05 measured 70
+      // straddles across the 7 accepted artifacts (depth 3–18px, every centre
+      // outside) and 0 centres inside — each had passed the user's visual gate,
+      // and #1 already guarantees a pill never covers node text. Pill = .pillbg
+      // ∪ its label (next sibling), measured; nodes only — a pill inside a
+      // CONTAINER is the normal case.
+      for (const bg of svg.querySelectorAll('.pillbg')) {
+        const r = bg.getBBox(), t = bg.nextElementSibling;
+        const tb = t && t.classList.contains('lbl') ? t.getBBox() : r;
+        const x0 = Math.min(r.x, tb.x), y0 = Math.min(r.y, tb.y);
+        const x1 = Math.max(r.x + r.width, tb.x + tb.width), y1 = Math.max(r.y + r.height, tb.y + tb.height);
+        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+        for (const n of nodes)
+          if (cx > n.x + EPS && cx < n.x + n.w - EPS && cy > n.y + EPS && cy < n.y + n.h - EPS)
+            D('label-over-node', { view, pill: (t ? t.textContent : '').slice(0, 14), node: n.id },
+              { pillRect: [x0, y0, x1 - x0, y1 - y0].map(Math.round), centre: [cx, cy].map(Math.round), nodeRect: [n.x, n.y, n.w, n.h] },
+              ['move the pill off ' + n.id + ' (pillAt) or reroute the edge']);
+      }
+      // 10. shared anchor (B-2, 2026-09-05): two DIFFERENT edges anchored on one
+      // border side closer than the grid unit read as one smudged line (the R10
+      // near-coincidence band). Exact coincidence (gap 0) is a deliberate bundle
+      // and passes; a corner point belongs to both of its sides.
+      const sidesOf = (p, n) => {
+        const s = [];
+        if (Math.abs(p[0] - n.x) <= EPS) s.push('left');
+        if (Math.abs(p[0] - (n.x + n.w)) <= EPS) s.push('right');
+        if (Math.abs(p[1] - n.y) <= EPS) s.push('top');
+        if (Math.abs(p[1] - (n.y + n.h)) <= EPS) s.push('bottom');
+        return s;
+      };
+      const slots = {};
+      for (const e of edges) for (const [p, id] of [[e.pts[0], e.from], [e.pts[e.pts.length - 1], e.to]]) {
+        const n = rects[id]; if (!n) continue;
+        for (const side of sidesOf(p, n)) {
+          const key = id + '|' + side;
+          (slots[key] = slots[key] || []).push({ e: e.id, p, c: side === 'left' || side === 'right' ? p[1] : p[0] });
+        }
+      }
+      for (const key in slots) {
+        const list = slots[key];
+        for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+          if (list[i].e === list[j].e) continue;
+          const gap = Math.abs(list[i].c - list[j].c);
+          if (gap > 0 && gap < GRIDU)
+            D('shared-anchor', { view, node: key.split('|')[0], side: key.split('|')[1], edges: [list[i].e, list[j].e] },
+              { points: [list[i].p, list[j].p], gap },
+              ['separate the anchors by >= ' + GRIDU + 'px, or bundle both on one point']);
+        }
+      }
+    }
+  } catch (err) {
+    diags.push({ code: 'selfcheck-crashed', severity: 'error', subject: {}, evidence: { message: err.message }, supportedFixes: [] });
+  } finally {
+    document.body.classList.remove('measuring');
+  }
+  const status = document.getElementById('geoStatus');
+  const detail = document.getElementById('geoDetail');
+  window.__geometryReport = { pass: diags.length === 0, diagnostics: diags, stats, receipt };
+  const receiptLine = receipt
+    ? 'measured under: ' + receipt.fontFamily + ' (bbox/size ' + receipt.fontMetricRatio + '), dpr ' + receipt.dpr + ', ' + receipt.engine
+    : 'measured under: (receipt unavailable)';
+  if (diags.length === 0) {
+    status.textContent = '幾何自檢：PASS（1 視圖）'; status.className = 'pass';
+    detail.textContent = 'PASS\n' + stats.join('\n') + '\n' + receiptLine;
+  } else {
+    status.textContent = '幾何自檢：FAIL（' + diags.length + '）'; status.className = 'fail';
+    detail.textContent = JSON.stringify(diags, null, 1) + '\n---\n' + stats.join('\n') + '\n' + receiptLine;
+    console.error('geometry diagnostics', diags);
+  }
+})();
+</script>
+</body>
+</html>

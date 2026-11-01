@@ -6,6 +6,7 @@ Maintainer tool, not part of the capability: needs Python Playwright with Chromi
     python -X utf8 docs/assets/build_assets.py            # from the repo root
 
 Inputs  : reference-impl/outputs/diagram-authoring/*.html (the shipped example pages)
+Inputs also: docs/self-portrait/self-audit.html + self-owner-view.html (the hero pair)
 Outputs : docs/assets/hero.zh-TW.png, hero.en.png, audit-tabs.gif, line-hop.png,
           flowchart.png, owner-view.png
 Output bytes are not claimed to be deterministic (browser font rendering); the pages are.
@@ -27,24 +28,26 @@ OUT = REPO / "docs" / "assets"
 AUDIT = PAGES / "mfp-audit-f3.html"
 OWNER = PAGES / "mfp-audit-f3-owner-view-v3.html"
 FLOW = PAGES / "flowchart-notation-demo.html"
+SELF_ENG = REPO / "docs" / "self-portrait" / "self-audit.html"
+SELF_OWN = REPO / "docs" / "self-portrait" / "self-owner-view.html"
 
 HERO_TEXT = {
     "zh-TW": {
         "lang": "zh-Hant",
-        "title": "同一份稽核，畫兩次：一張給作者驗，一張給擁有者讀",
-        "left": "① 工程稽核圖",
-        "left_sub": "每個節點與連線追得到來源 · 頁面自帶幾何自檢 · 附缺口報告",
-        "right": "② 擁有者視圖",
-        "right_sub": "同樣的發現與數字，重畫成少量可讀節點 · 規則上不增不減，由人工對照驗收",
+        "title": "這個 repo 用自己的方法畫自己：一張給作者驗，一張給讀者看",
+        "left": "① 工程版（diagram-authoring）",
+        "left_sub": "20 條線各追到檔案與行號；39 處出處在固定版本上逐一核對過才出圖 · 附缺口報告",
+        "right": "② 讀者版（audience-fit）",
+        "right_sub": "同一份模型重畫成 8 個節點；發現與限制原樣保留，讀者版檢查 0 FAIL",
         "arrow": "重畫，不加註",
     },
     "en": {
         "lang": "en",
-        "title": "One audit, drawn twice: one for the builder to verify, one for the owner to read",
-        "left": "① Engineering audit diagram",
-        "left_sub": "Every node and edge traces to a source · geometry self-check built into the page · gap report attached",
-        "right": "② Owner view",
-        "right_sub": "Same findings and numbers, redrawn as a few readable nodes · nothing added or dropped by rule, checked by a person",
+        "title": "This repo drawn by its own method: one view to verify, one to read",
+        "left": "① Engineering view (diagram-authoring)",
+        "left_sub": "20 edges, each traced to a file and line; 39 citations resolved at a pinned commit before rendering · gap report attached",
+        "right": "② Reader view (audience-fit)",
+        "right_sub": "Same model redrawn as 8 nodes; findings and limits kept as is; reader-edition gate 0 FAIL",
         "arrow": "redraw, don't annotate",
     },
 }
@@ -52,10 +55,10 @@ HERO_TEXT = {
 HERO_HTML = """<!doctype html><html lang="{lang}"><meta charset="utf-8"><style>
 :root{{--ink:#1f2328;--mute:#57606a;--line:#d0d7de;--bg:#ffffff;--accent:#0969da}}
 *{{box-sizing:border-box;margin:0}}
-body{{width:1600px;height:820px;background:var(--bg);color:var(--ink);
+body{{width:1600px;height:700px;background:var(--bg);color:var(--ink);
  font-family:"Segoe UI","Microsoft JhengHei","Noto Sans TC",sans-serif;padding:36px 40px}}
 h1{{font-size:30px;font-weight:650;letter-spacing:.2px;margin-bottom:24px}}
-.row{{display:grid;grid-template-columns:1.32fr 92px 1fr;gap:0;align-items:stretch;height:690px}}
+.row{{display:grid;grid-template-columns:1fr 92px 1fr;gap:0;align-items:stretch;height:570px}}
 .card{{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}}
 .cap{{padding:12px 16px;border-bottom:1px solid var(--line);background:#f6f8fa}}
 .cap b{{font-size:20px}} .cap span{{display:block;font-size:14.5px;color:var(--mute);margin-top:3px}}
@@ -88,17 +91,17 @@ def build(tmp: Path) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
         b = p.chromium.launch()
-        # Diagram regions measured on the shipped pages at 1440 px viewport width.
+        # Hero = the self-portrait pair (this repo drawn by its own method). Diagram regions
+        # measured on those pages at 1440 px viewport width.
         audit_png = tmp / "audit.png"
-        shot(b, AUDIT, audit_png, clip={"x": 110, "y": 236, "width": 1220, "height": 606})
+        shot(b, SELF_ENG, audit_png, clip={"x": 150, "y": 228, "width": 1140, "height": 646})
         owner_png = tmp / "owner.png"
-        shot(b, OWNER, owner_png, clip={"x": 196, "y": 40, "width": 1050, "height": 880},
-             before=lambda pg: pg.set_viewport_size({"width": 1440, "height": 960}))
+        shot(b, SELF_OWN, owner_png, clip={"x": 140, "y": 290, "width": 1160, "height": 516})
         for key, t in HERO_TEXT.items():
             html = tmp / f"hero.{key}.html"
             html.write_text(HERO_HTML.format(audit_png=audit_png.as_uri(), owner_png=owner_png.as_uri(), **t),
                             encoding="utf-8")
-            pg = b.new_page(viewport={"width": 1600, "height": 820}, device_scale_factor=1)
+            pg = b.new_page(viewport={"width": 1600, "height": 700}, device_scale_factor=1)
             pg.goto(html.as_uri())
             pg.wait_for_timeout(300)
             pg.screenshot(path=str(OUT / f"hero.{key}.png"))

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-Hant" data-page-class="diagram">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diagram-audience-fit 自畫像</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #ffffff; color: #0f172a; font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif; }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+  header .sp { flex: 1; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer; }
+  .tab.on { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+  #geoStatus { font-size: 13px; padding: 4px 10px; border-radius: 8px; }
+  #geoStatus.pass { background: #dcfce7; color: #166534; }
+  #geoStatus.fail { background: #fee2e2; color: #991b1b; }
+  .pane { display: none; border-bottom: 1px solid #e2e8f0; }
+  .pane.on, body.measuring .pane { display: block; }
+  svg.dia { display: block; width: 100%; height: auto; max-height: 78vh; }
+  main { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 18px; margin: 12px 16px 4px; }
+  h2 { font-size: 15px; margin: 20px 0 8px; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { border: 1px solid #e2e8f0; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #f8fafc; }
+  .note { font-size: 12.5px; color: #475569; margin: 8px 16px; }
+  #geoDetail { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; }
+  .legendbar { font-size: 12px; color: #334155; padding: 6px 16px; border-bottom: 1px solid #e2e8f0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<marker id="mOpen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#64748b" stroke-width="1.6"/></marker>
+<marker id="mFill" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0f172a"/></marker>
+<marker id="mProto" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#0369a1" stroke-width="1.6"/></marker>
+<marker id="mEgr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker>
+<marker id="mEps" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7c3aed" stroke-width="1.6"/></marker>
+</defs></svg>
+<h1>diagram-audience-fit 自畫像：用這個 repo 自己的方法畫自己</h1>
+<div class="legendbar">藍方塊＝檔案群（skill 或程式），琥珀＝產出的頁面。灰開箭頭＝引用／import，黑實線＝產生或交棒。虛線大框＝資料夾分組。交叉以跳線畫出。</div>
+<header><button class="tab on" data-tab="self">這個 repo 的組成與呼叫關係</button><span class="sp"></span><span id="geoStatus">幾何自檢：執行中…</span></header>
+
+<section class="pane on" id="pane-self">
+  <p class="note">問題：兩個 skill 怎麼分工、各自呼叫哪段程式、範例頁從哪裡來？每條線都追到檔案與行號（探針 probe_refs.py 實讀，不是看資料夾猜的）。　宣告：verify/run_controls.py 還重建全部範例並對 sha256（A1/A2）、跑 archdiag 各自我校準（A13–A16）：只畫一條代表線，其餘見下表；rules/ 與 references/design-axes/ 的 5 份通則被參照檔引用，未單畫（聚合在各 skill 方塊）</p>
+  <svg class="dia" data-view="self" viewBox="0 0 1280 768" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t-self d-self">
+    <title id="t-self">這個 repo 的組成與呼叫關係</title>
+    <desc id="d-self">問題：兩個 skill 怎麼分工、各自呼叫哪段程式、範例頁從哪裡來？每條線都追到檔案與行號（探針 probe_refs.py 實讀，不是看資料夾猜的）。</desc>
+    <g class="scene"><rect x="24" y="56" width="384" height="696" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="CS" data-x="24" data-y="56" data-w="384" data-h="696"/>
+<text class="lbl" x="38" y="78" font-size="12" font-weight="600" fill="#475569">做法 skills（agent 讀）</text>
+<rect x="456" y="56" width="432" height="696" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="CT" data-x="456" data-y="56" data-w="432" data-h="696"/>
+<text class="lbl" x="470" y="78" font-size="12" font-weight="600" fill="#475569">程式 tools</text>
+<rect x="936" y="56" width="320" height="584" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 5" class="comp" data-id="CO" data-x="936" data-y="56" data-w="320" data-h="584"/>
+<text class="lbl" x="950" y="78" font-size="12" font-weight="600" fill="#475569">範例 outputs（腳本 → 頁面）</text>
+<path d="M144 168 L144 216" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e1" data-from="DA" data-to="DAR" data-pts="144,168,144,216"  />
+<path d="M384 152 L400 152 L400 336 L384 336" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e2" data-from="DA" data-to="PDT" data-pts="384,152,400,152,400,336,384,336"  />
+<path d="M384 136 L480 136" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e3" data-from="DA" data-to="BLD" data-pts="384,136,480,136"  />
+<path d="M48 152 L32 152 L32 472 L48 472" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e4" data-from="DA" data-to="AF" data-pts="48,152,32,152,32,472,48,472"  />
+<path d="M144 528 L144 576" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e5" data-from="AF" data-to="AFR" data-pts="144,528,144,576"  />
+<path d="M384 512 L400 512 L400 696 L384 696" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e6" data-from="AF" data-to="UX" data-pts="384,512,400,512,400,696,384,696"  />
+<path d="M384 512 L496 512 L496 544" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e7" data-from="AF" data-to="RT" data-pts="384,512,496,512,496,544"  />
+<path d="M48 512 L32 512 L32 744 L496 744 L496 728" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e8" data-from="AF" data-to="AG" data-pts="48,512,32,512,32,744,496,744,496,728"  />
+<path d="M728 168 L728 216" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e9" data-from="BLD" data-to="CHK" data-pts="728,168,728,216"  />
+<path d="M864 152 L880 152 L880 344 L864 344" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e10" data-from="BLD" data-to="WRN" data-pts="864,152,880,152,880,344,864,344"  />
+<path d="M480 152 L464 152 L464 456 L480 456" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e11" data-from="BLD" data-to="EVD" data-pts="480,152,464,152,464,456,480,456"  />
+<path d="M672 96 L672 80 L896 80 L896 560 L864 560" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e12" data-from="BLD" data-to="RT" data-pts="672,96,672,80,896,80,896,560,864,560"  />
+<path d="M960 136 L896 136 L896 128 L864 128" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e13" data-from="B1" data-to="BLD" data-pts="960,136,896,136,896,128,864,128"  />
+<path d="M1232 136 L1248 136 L1248 648 L848 648 L848 608" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e14" data-from="B1" data-to="RT" data-pts="1232,136,1248,136,1248,648,848,648,848,608"  />
+<path d="M960 304 L901 304 A5 5 0 0 0 891 304 L885 304 A5 5 0 0 0 875 304 L848 304 L848 280" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e15" data-from="B2" data-to="CHK" data-pts="960,304,848,304,848,280"  />
+<path d="M1232 488 L1243 488 A5 5 0 0 1 1253 488 L1264 488 L1264 80 L848 80 L848 96" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e16" data-from="B3" data-to="BLD" data-pts="1232,488,1264,488,1264,80,848,80,848,96"  />
+<path d="M1136 152 L1136 192" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e17" data-from="B1" data-to="H1" data-pts="1136,152,1136,192"  />
+<path d="M1096 344 L1096 384" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e18" data-from="B2" data-to="H2" data-pts="1096,344,1096,384"  />
+<path d="M1096 528 L1096 568" fill="none" stroke="#0f172a" stroke-width="1.6"  marker-end="url(#mFill)" class="edge" data-edge="e19" data-from="B3" data-to="H3" data-pts="1096,528,1096,568"  />
+<path d="M960 696 L864 696" fill="none" stroke="#64748b" stroke-width="1.6"  marker-end="url(#mOpen)" class="edge" data-edge="e20" data-from="VR" data-to="AG" data-pts="960,696,864,696"  />
+<circle class="junction" cx="400" cy="512" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="896" cy="80" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="896" cy="136" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="896" cy="128" r="3.5" fill="#64748b"/>
+<circle class="junction" cx="848" cy="80" r="3.5" fill="#64748b"/>
+<metadata data-declared-crossings="3"></metadata>
+<g class="node" data-id="DA" data-x="48" data-y="96" data-w="336" data-h="72" data-kind="block"><rect x="48" y="96" width="336" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">diagram-authoring（畫圖）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="137">Step 0–6：來源→模型→缺口→渲染→驗證</tspan></text></g>
+<g class="node" data-id="DAR" data-x="48" data-y="216" data-w="336" data-h="56" data-kind="block"><rect x="48" y="216" width="336" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="236" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">記號精準度・載體手冊</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="257">notation-precision・carrier-playbook</tspan></text></g>
+<g class="node" data-id="PDT" data-x="48" data-y="320" data-w="336" data-h="56" data-kind="block"><rect x="48" y="320" width="336" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="340" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">選型表・視圖健全性檢查</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="361">product-design-thinking/references</tspan></text></g>
+<g class="node" data-id="AF" data-x="48" data-y="456" data-w="336" data-h="72" data-kind="block"><rect x="48" y="456" width="336" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="476" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">audience-fit（對讀者調校）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="497">A1 重畫・A2 摘要・B 介面文案</tspan></text></g>
+<g class="node" data-id="AFR" data-x="48" data-y="576" data-w="336" data-h="56" data-kind="block"><rect x="48" y="576" width="336" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="596" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">5 份參照</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="60" y="617">presentational-view R1–R13 等</tspan></text></g>
+<g class="node" data-id="UX" data-x="48" data-y="680" data-w="336" data-h="48" data-kind="block"><rect x="48" y="680" width="336" height="48" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="60" y="700" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">決策點契約（ux-walkthrough）</text></g>
+<g class="node" data-id="BLD" data-x="480" data-y="96" data-w="384" data-h="72" data-kind="block"><rect x="480" y="96" width="384" height="72" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">build() ＋ 輸出</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="492" y="137">index.mjs・emit.mjs・tables.mjs</tspan></text></g>
+<g class="node" data-id="CHK" data-x="480" data-y="216" data-w="384" data-h="64" data-kind="block"><rect x="480" y="216" width="384" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="236" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">結構與幾何檢查（會擋建置）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="492" y="257">schema・asserts・selfcheck（頁內）</tspan></text></g>
+<g class="node" data-id="WRN" data-x="480" data-y="328" data-w="384" data-h="56" data-kind="block"><rect x="480" y="328" width="384" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="348" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">可讀性警告（只警告）</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="492" y="369">topology・layout</tspan></text></g>
+<g class="node" data-id="EVD" data-x="480" data-y="440" data-w="384" data-h="56" data-kind="block"><rect x="480" y="440" width="384" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="460" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">證據錨點與覆蓋宣告</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="492" y="481">anchors・envelope</tspan></text></g>
+<g class="node" data-id="RT" data-x="480" data-y="544" data-w="384" data-h="64" data-kind="block"><rect x="480" y="544" width="384" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="564" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">路由與跳線</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="492" y="585">route・hops・vendor/archify-geometry</tspan></text></g>
+<g class="node" data-id="AG" data-x="480" data-y="664" data-w="384" data-h="64" data-kind="block"><rect x="480" y="664" width="384" height="64" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="492" y="684" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">afgate.py 讀者版檢查</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="492" y="705">Python 標準庫</tspan></text></g>
+<g class="node" data-id="B1" data-x="960" data-y="96" data-w="272" data-h="56" data-kind="block"><rect x="960" y="96" width="272" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="972" y="116" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">稽核頁建置腳本</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="972" y="137">mfp-audit-f3.build.mjs</tspan></text></g>
+<g class="node" data-id="H1" data-x="960" data-y="192" data-w="272" data-h="48" data-kind="store"><rect x="960" y="192" width="272" height="48" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="972" y="212" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">工程稽核頁 .html</text></g>
+<g class="node" data-id="B2" data-x="960" data-y="288" data-w="272" data-h="56" data-kind="block"><rect x="960" y="288" width="272" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="972" y="308" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">擁有者視圖建置腳本</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="972" y="329">手畫 SVG，只借 a11y 斷言</tspan></text></g>
+<g class="node" data-id="H2" data-x="960" data-y="384" data-w="272" data-h="48" data-kind="store"><rect x="960" y="384" width="272" height="48" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="972" y="404" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">擁有者視圖 .html</text></g>
+<g class="node" data-id="B3" data-x="960" data-y="472" data-w="272" data-h="56" data-kind="block"><rect x="960" y="472" width="272" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="972" y="492" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">流程圖示範腳本</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="972" y="513">flowchart-notation-demo.build.mjs</tspan></text></g>
+<g class="node" data-id="H3" data-x="960" data-y="568" data-w="272" data-h="48" data-kind="store"><rect x="960" y="568" width="272" height="48" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/><text class="lbl" x="972" y="588" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">流程圖示範 .html</text></g>
+<g class="node" data-id="VR" data-x="960" data-y="672" data-w="272" data-h="56" data-kind="block"><rect x="960" y="672" width="272" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/><text class="lbl" x="972" y="692" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">verify/run_controls.py</text><text class="lbl" font-size="11" fill="#334155" text-anchor="start"><tspan x="972" y="713">12 項雙向驗收</tspan></text></g>
+<rect class="pillbg" x="127" y="183" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="144" y="196" font-size="11" fill="#334155" text-anchor="middle">引用</text>
+<rect class="pillbg" x="377.5" y="180" width="45" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="400" y="193" font-size="11" fill="#334155" text-anchor="middle">選圖種</text>
+<rect class="pillbg" x="398.5" y="127" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="432" y="140" font-size="11" fill="#334155" text-anchor="middle">用程式庫畫</text>
+<rect class="pillbg" x="10.5" y="399" width="67" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="44" y="412" font-size="11" fill="#334155" text-anchor="middle">讀者版交給</text>
+<rect class="pillbg" x="116" y="543" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="144" y="556" font-size="11" fill="#334155" text-anchor="middle">重畫規則</text>
+<rect class="pillbg" x="372" y="540" width="56" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="400" y="553" font-size="11" fill="#334155" text-anchor="middle">介面文案</text>
+<rect class="pillbg" x="395.5" y="503" width="89" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="440" y="516" font-size="11" fill="#334155" text-anchor="middle">hopEdges 跳線</text>
+<rect class="pillbg" x="241.5" y="735" width="45" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="264" y="748" font-size="11" fill="#334155" text-anchor="middle">跑檢查</text>
+<rect class="pillbg" x="703.5" y="183" width="49" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="728" y="196" font-size="11" fill="#334155" text-anchor="middle">import</text>
+<rect class="pillbg" x="855.5" y="181" width="49" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="880" y="194" font-size="11" fill="#334155" text-anchor="middle">import</text>
+<rect class="pillbg" x="439.5" y="295" width="49" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="464" y="308" font-size="11" fill="#334155" text-anchor="middle">import</text>
+<rect class="pillbg" x="873.5" y="311" width="45" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="896" y="324" font-size="11" fill="#334155" text-anchor="middle">畫跳線</text>
+<rect class="pillbg" x="900.5" y="127" width="55" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="928" y="140" font-size="11" fill="#334155" text-anchor="middle">build()</text>
+<rect class="pillbg" x="1220.5" y="537" width="55" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1248" y="550" font-size="11" fill="#334155" text-anchor="middle">route()</text>
+<rect class="pillbg" x="808.5" y="283" width="79" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="848" y="296" font-size="11" fill="#334155" text-anchor="middle">a11yAsserts</text>
+<rect class="pillbg" x="1153.5" y="71" width="55" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1181" y="84" font-size="11" fill="#334155" text-anchor="middle">build()</text>
+<rect class="pillbg" x="1119" y="163" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1136" y="176" font-size="11" fill="#334155" text-anchor="middle">產生</text>
+<rect class="pillbg" x="1079" y="355" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1096" y="368" font-size="11" fill="#334155" text-anchor="middle">產生</text>
+<rect class="pillbg" x="1079" y="539" width="34" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="1096" y="552" font-size="11" fill="#334155" text-anchor="middle">產生</text>
+<rect class="pillbg" x="882" y="687" width="60" height="18" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text class="lbl" x="912" y="700" font-size="11" fill="#334155" text-anchor="middle">A10・A11</text></g>
+  </svg>
+</section>
+<main>
+  <h2>每條線的憑據</h2><table><thead><tr><th>線</th><th>從 → 到</th><th>憑據（檔案 行號，探針種類）</th></tr></thead><tbody><tr><td>e1</td><td>diagram-authoring（畫圖） → 記號精準度・載體手冊</td><td>reference-impl/skills/diagram-authoring/SKILL.md L107 (cite ×4)</td></tr><tr><td>e2</td><td>diagram-authoring（畫圖） → 選型表・視圖健全性檢查</td><td>reference-impl/skills/diagram-authoring/SKILL.md L12 (name ×3)</td></tr><tr><td>e3</td><td>diagram-authoring（畫圖） → build() ＋ 輸出</td><td>reference-impl/skills/diagram-authoring/SKILL.md L34 (cite ×2)</td></tr><tr><td>e4</td><td>diagram-authoring（畫圖） → audience-fit（對讀者調校）</td><td>reference-impl/skills/diagram-authoring/SKILL.md L93 (name ×4)</td></tr><tr><td>e5</td><td>audience-fit（對讀者調校） → 5 份參照</td><td>reference-impl/skills/audience-fit/SKILL.md L79 (cite ×2)</td></tr><tr><td>e6</td><td>audience-fit（對讀者調校） → 決策點契約（ux-walkthrough）</td><td>reference-impl/skills/audience-fit/SKILL.md L3 (name ×4)</td></tr><tr><td>e7</td><td>audience-fit（對讀者調校） → 路由與跳線</td><td>reference-impl/skills/audience-fit/SKILL.md L97 (cite)</td></tr><tr><td>e8</td><td>audience-fit（對讀者調校） → afgate.py 讀者版檢查</td><td>reference-impl/skills/audience-fit/SKILL.md L214 (cite)</td></tr><tr><td>e9</td><td>build() ＋ 輸出 → 結構與幾何檢查（會擋建置）</td><td>reference-impl/tools/archdiag/index.mjs L11 (import)</td></tr><tr><td>e10</td><td>build() ＋ 輸出 → 可讀性警告（只警告）</td><td>reference-impl/tools/archdiag/index.mjs L14 (import)</td></tr><tr><td>e11</td><td>build() ＋ 輸出 → 證據錨點與覆蓋宣告</td><td>reference-impl/tools/archdiag/index.mjs L17 (import)</td></tr><tr><td>e12</td><td>build() ＋ 輸出 → 路由與跳線</td><td>reference-impl/tools/archdiag/emit.mjs L19 (import)</td></tr><tr><td>e13</td><td>稽核頁建置腳本 → build() ＋ 輸出</td><td>reference-impl/outputs/diagram-authoring/mfp-audit-f3.build.mjs L31 (import)</td></tr><tr><td>e14</td><td>稽核頁建置腳本 → 路由與跳線</td><td>reference-impl/outputs/diagram-authoring/mfp-audit-f3.build.mjs L33 (import)</td></tr><tr><td>e15</td><td>擁有者視圖建置腳本 → 結構與幾何檢查（會擋建置）</td><td>reference-impl/outputs/diagram-authoring/mfp-audit-f3-owner-view-v3.build.mjs L39 (import)</td></tr><tr><td>e16</td><td>流程圖示範腳本 → build() ＋ 輸出</td><td>reference-impl/outputs/diagram-authoring/flowchart-notation-demo.build.mjs L10 (import)</td></tr><tr><td>e17</td><td>稽核頁建置腳本 → 工程稽核頁 .html</td><td>reference-impl/outputs/diagram-authoring/mfp-audit-f3.build.mjs L36</td></tr><tr><td>e18</td><td>擁有者視圖建置腳本 → 擁有者視圖 .html</td><td>reference-impl/outputs/diagram-authoring/mfp-audit-f3-owner-view-v3.build.mjs L42</td></tr><tr><td>e19</td><td>流程圖示範腳本 → 流程圖示範 .html</td><td>reference-impl/outputs/diagram-authoring/flowchart-notation-demo.build.mjs L13</td></tr><tr><td>e20</td><td>verify/run_controls.py → afgate.py 讀者版檢查</td><td>verify/run_controls.py L94</td></tr></tbody></table>
+  <h2>驗收碰到哪些元件</h2><table><thead><tr><th>驗收</th><th>它碰的元件</th><th>憑據</th></tr></thead><tbody><tr><td>A1/A2</td><td>三支範例腳本：重建並比對 sha256</td><td>verify/run_controls.py L57</td></tr><tr><td>A10/A11</td><td>afgate.py：自我校準＋檢查擁有者視圖</td><td>verify/run_controls.py L94</td></tr><tr><td>A13</td><td>可讀性警告（topology）</td><td>verify/run_controls.py L112</td></tr><tr><td>A15</td><td>證據錨點與覆蓋宣告（anchors・envelope）</td><td>verify/run_controls.py L137</td></tr><tr><td>A16</td><td>流程圖記號與跳線（flow-selftest）</td><td>verify/run_controls.py L143</td></tr></tbody></table>
+  <h2>缺口報告</h2><table><thead><tr><th>#</th><th>缺口／發現</th><th>種類</th><th>憑據</th></tr></thead><tbody><tr><td>G1</td><td>擁有者視圖不經 build()：它是手畫 SVG，只借 asserts.mjs 的 a11y 斷言；頁內幾何自檢不在它身上，靠瀏覽器量測與人工驗收</td><td>發現</td><td>reference-impl/outputs/diagram-authoring/mfp-audit-f3-owner-view-v3.build.mjs L39</td></tr><tr><td>G2</td><td>diagram-authoring 的 SKILL.md 沒有直接提到 afgate.py；讀者版的機械檢查只由 audience-fit 呼叫</td><td>發現</td><td>reference-impl/skills/audience-fit/SKILL.md L214</td></tr><tr><td>G3</td><td>兩個 skill 互相是「點名」不是「路徑引用」：只掃路徑的探針看不到這條線，所以探針另掃 skill 名稱</td><td>探針限制（已補）</td><td>docs/self-portrait/probe_refs.py</td></tr><tr><td>G4</td><td>原檔提到 42 個沒附的路徑（其他 skill、規則、紀錄）；只列不畫，清單在 refs.json 與 verify/unshipped_paths.txt</td><td>範圍外</td><td>docs/self-portrait/refs.json</td></tr><tr><td>G5</td><td>探針只認匯入、路徑字串與 4 個 skill 名稱；「讀了檔才知道」的隱性依賴（例如規格文字描述的流程）看不到</td><td>探針限制</td><td>docs/self-portrait/probe_refs.py</td></tr></tbody></table>
+  <h2>覆蓋宣告</h2><table><thead><tr><th>範圍</th><th>狀態</th></tr></thead><tbody><tr><td>reference-impl/ 的 44 個文字檔</td><td>探針全讀：96 條引用；圖上 20 條線是其中的代表，聚合規則見各方塊副標</td></tr><tr><td>3 個範例頁（.html）與 1 張截圖</td><td>畫了（腳本 → 頁面）</td></tr><tr><td>verify/</td><td>畫一條代表線，其餘在驗收表</td></tr><tr><td>docs/、README、AGENTS</td><td>排除：說明文件，不是能力的一部分</td></tr></tbody></table>
+  <h2>幾何自檢輸出（notation-precision §4，B-1 診斷物件格式）</h2>
+  <div id="geoDetail">執行中…</div>
+  <p class="note">再生源：docs/self-portrait/self-audit.build.mjs（節點座標人排；線與標籤位置由 route() 產生）。來源：probe_refs.py 對 reference-impl/ 的實讀結果 refs.json；每條憑據在固定 commit 49001fb 上逐一解析過才寫出本頁。</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('on', p.id === 'pane-' + b.dataset.tab));
+  }));
+
+  // ---- §4 self-checks, B-1 diagnostic-object output ----
+  const diags = [];
+  const stats = [];
+  const D = (code, subject, evidence, fixes) => diags.push({ code, severity: 'error', subject, evidence, supportedFixes: fixes });
+  // instrument precondition #2: getBBox() on a display:none pane returns zero
+  // rects — measure with every pane rendered, then restore the tab state.
+  document.body.classList.add('measuring');
+  // render receipt (2026-09-02): a label-clearance PASS is a fact about the
+  // font that measured, not about the bytes — bbox height includes leading
+  // and varies ~7% by family (Segoe UI 1.364× vs Noto Sans TC 1.455×; an
+  // external macOS Chromium reported 44 label-overlap on bytes this machine
+  // passed). Record engine, DPR, the computed family and a measured
+  // height/size ratio so reports are comparable across environments.
+  let receipt = null;
+  try {
+    const PAD = 2, EPS = 2, GRIDU = 8;
+    const probe = document.querySelector('svg.dia text.lbl');
+    receipt = {
+      engine: navigator.userAgent, dpr: window.devicePixelRatio, viewport: [window.innerWidth, window.innerHeight],
+      fontFamily: probe ? getComputedStyle(probe).fontFamily : null,
+      fontMetricRatio: probe ? +(probe.getBBox().height / parseFloat(probe.getAttribute('font-size'))).toFixed(3) : null,
+      pad: PAD,
+    };
+    for (const svg of document.querySelectorAll('svg.dia')) {
+      const view = svg.dataset.view;
+      // precondition #1: no transform inside the scene
+      for (const el of svg.querySelectorAll('[transform]'))
+        D('instrument-precondition', { view, element: el.tagName }, { reason: 'transform inside asserted scene' }, ['emit absolute coordinates']);
+      // precondition #2 assert: the scene must actually render
+      if (svg.querySelector('.scene').getBBox().width === 0)
+        D('instrument-precondition', { view }, { reason: 'scene not rendered (hidden pane?) — bboxes would be zero' }, ['measure with the pane rendered']);
+      const nodes = [...svg.querySelectorAll('.node')].map((g) => ({ id: g.dataset.id, kind: g.dataset.kind, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const comps = [...svg.querySelectorAll('.comp')].map((g) => ({ id: g.dataset.id, x: +g.dataset.x, y: +g.dataset.y, w: +g.dataset.w, h: +g.dataset.h }));
+      const edges = [...svg.querySelectorAll('.edge')].map((p) => {
+        const v = p.dataset.pts.split(',').map(Number); const pts = [];
+        for (let i = 0; i < v.length; i += 2) pts.push([v[i], v[i + 1]]);
+        return { id: p.dataset.edge, from: p.dataset.from, to: p.dataset.to, pts, fromComp: !!p.dataset.fromcomp, selfLoop: !!p.dataset.selfloop };
+      });
+      // 1. label bboxes pairwise disjoint
+      const labels = [...svg.querySelectorAll('.lbl')].map((t) => ({ el: t, b: t.getBBox() }));
+      let pairs = 0;
+      for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+        const a = labels[i].b, b = labels[j].b; pairs++;
+        if (a.x < b.x + b.width + PAD && b.x < a.x + a.width + PAD && a.y < b.y + b.height + PAD && b.y < a.y + a.height + PAD)
+          D('label-overlap', { view, a: labels[i].el.textContent.slice(0, 14), b: labels[j].el.textContent.slice(0, 14) },
+            { aRect: [a.x, a.y, a.width, a.height].map(Math.round), bRect: [b.x, b.y, b.width, b.height].map(Math.round) },
+            ['move one label by ' + Math.ceil(Math.min(a.y + a.height - b.y, b.y + b.height - a.y) + PAD) + 'px vertically']);
+      }
+      // 2. anchors
+      const rects = Object.fromEntries([...nodes, ...comps].map((n) => [n.id, n]));
+      const onB = (p, n) =>
+        ((Math.abs(p[0] - n.x) <= EPS || Math.abs(p[0] - (n.x + n.w)) <= EPS) && p[1] >= n.y - EPS && p[1] <= n.y + n.h + EPS) ||
+        ((Math.abs(p[1] - n.y) <= EPS || Math.abs(p[1] - (n.y + n.h)) <= EPS) && p[0] >= n.x - EPS && p[0] <= n.x + n.w + EPS);
+      for (const e of edges) {
+        if (!onB(e.pts[0], rects[e.from])) D('anchor-off-node', { view, edge: e.id, end: 'start', node: e.from }, { point: e.pts[0] }, ['move start onto ' + e.from + ' border']);
+        if (!onB(e.pts[e.pts.length - 1], rects[e.to])) D('anchor-off-node', { view, edge: e.id, end: 'end', node: e.to }, { point: e.pts[e.pts.length - 1] }, ['move end onto ' + e.to + ' border']);
+      }
+      // 3. containment
+      const vb = svg.viewBox.baseVal, sb = svg.querySelector('.scene').getBBox();
+      if (sb.x < 0 || sb.y < 0 || sb.x + sb.width > vb.width || sb.y + sb.height > vb.height)
+        D('viewbox-clip', { view }, { scene: [sb.x, sb.y, sb.width, sb.height].map(Math.round), viewBox: [vb.width, vb.height] }, ['grow the viewBox or move content inward']);
+      // 4. grid
+      for (const n of nodes) for (const k of ['x', 'y', 'w', 'h'])
+        if (n[k] % GRIDU !== 0) D('grid-off', { view, node: n.id, prop: k }, { value: n[k] }, ['snap to ' + GRIDU + 'px']);
+      // 5. pass-through (self-loops and composite-source edges: own endpoints exempt as usual)
+      const hit = (a, b, r) => Math.min(a[0], b[0]) < r.x + r.w - 1 && Math.max(a[0], b[0]) > r.x + 1 && Math.min(a[1], b[1]) < r.y + r.h - 1 && Math.max(a[1], b[1]) > r.y + 1;
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++)
+        for (const n of nodes) {
+          if (n.id === e.from || n.id === e.to) continue;
+          if (hit(e.pts[i - 1], e.pts[i], n))
+            D('edge-through-node', { view, edge: e.id, segment: i, node: n.id }, { seg: [e.pts[i - 1], e.pts[i]] }, ['reroute segment ' + i + ' around ' + n.id]);
+        }
+      // 6. crossings vs the view's DECLARED count — report WHICH pair at WHERE
+      const declared = +(svg.querySelector('metadata')?.getAttribute('data-declared-crossings') || 0);
+      let crossings = 0;
+      const found = [];
+      const segs = [];
+      for (const e of edges) for (let i = 1; i < e.pts.length; i++) segs.push({ e: e.id, a: e.pts[i - 1], b: e.pts[i] });
+      for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length; j++) {
+        const s = segs[i], t = segs[j];
+        if (s.e === t.e) continue;
+        const sv = s.a[0] === s.b[0], tv = t.a[0] === t.b[0];
+        if (sv === tv) continue;
+        const [vv, hh] = sv ? [s, t] : [t, s];
+        const x = vv.a[0], y = hh.a[1];
+        if (x > Math.min(hh.a[0], hh.b[0]) + 1 && x < Math.max(hh.a[0], hh.b[0]) - 1 && y > Math.min(vv.a[1], vv.b[1]) + 1 && y < Math.max(vv.a[1], vv.b[1]) - 1) {
+          crossings++;
+          found.push({ pair: [s.e, t.e], at: [x, y] });
+        }
+      }
+      if (crossings > declared)
+        for (const f of found)
+          D('crossing-over-declared', { view, pair: f.pair }, { at: f.at, crossings, declared }, ['reroute ' + f.pair[0] + ' or ' + f.pair[1] + ' around (' + f.at + ')', 'or declare the crossing (≤3) with its coordinates']);
+      stats.push(view + ': ' + nodes.length + ' nodes, ' + edges.length + ' edges, ' + pairs + ' label pairs, crossings ' + crossings + '/' + declared);
+      // 7. fonts
+      for (const t of svg.querySelectorAll('text.lbl'))
+        if (parseFloat(t.getAttribute('font-size')) < 11)
+          D('font-below-floor', { view, text: t.textContent.slice(0, 12) }, { size: t.getAttribute('font-size') }, ['raise to 11px']);
+      // 8. reference resolution: a dangling url(#id) reference renders as
+      // silently absent — assert every url(#id) resolves (positive-control calibrated).
+      for (const el of svg.querySelectorAll('*')) {
+        for (const attr of ['marker-end', 'marker-start', 'fill', 'stroke']) {
+          const val = el.getAttribute && el.getAttribute(attr);
+          const m = val && val.match(/^url\(#([^)]+)\)$/);
+          if (m && !document.getElementById(m[1]))
+            D('dangling-reference', { view, attr, id: m[1] }, { element: el.tagName }, ['define #' + m[1] + ' in a <defs> block']);
+        }
+      }
+      // 9. edge-label pill over a node (B-1, 2026-09-05): check #1 is label×label
+      // only. Rule: the pill's CENTRE (its pillAt) must not lie inside a node —
+      // the reader then attributes the label to the node, not to its edge.
+      // A pill straddling a border passes: calibration 2026-09-05 measured 70
+      // straddles across the 7 accepted artifacts (depth 3–18px, every centre
+      // outside) and 0 centres inside — each had passed the user's visual gate,
+      // and #1 already guarantees a pill never covers node text. Pill = .pillbg
+      // ∪ its label (next sibling), measured; nodes only — a pill inside a
+      // CONTAINER is the normal case.
+      for (const bg of svg.querySelectorAll('.pillbg')) {
+        const r = bg.getBBox(), t = bg.nextElementSibling;
+        const tb = t && t.classList.contains('lbl') ? t.getBBox() : r;
+        const x0 = Math.min(r.x, tb.x), y0 = Math.min(r.y, tb.y);
+        const x1 = Math.max(r.x + r.width, tb.x + tb.width), y1 = Math.max(r.y + r.height, tb.y + tb.height);
+        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+        for (const n of nodes)
+          if (cx > n.x + EPS && cx < n.x + n.w - EPS && cy > n.y + EPS && cy < n.y + n.h - EPS)
+            D('label-over-node', { view, pill: (t ? t.textContent : '').slice(0, 14), node: n.id },
+              { pillRect: [x0, y0, x1 - x0, y1 - y0].map(Math.round), centre: [cx, cy].map(Math.round), nodeRect: [n.x, n.y, n.w, n.h] },
+              ['move the pill off ' + n.id + ' (pillAt) or reroute the edge']);
+      }
+      // 10. shared anchor (B-2, 2026-09-05): two DIFFERENT edges anchored on one
+      // border side closer than the grid unit read as one smudged line (the R10
+      // near-coincidence band). Exact coincidence (gap 0) is a deliberate bundle
+      // and passes; a corner point belongs to both of its sides.
+      const sidesOf = (p, n) => {
+        const s = [];
+        if (Math.abs(p[0] - n.x) <= EPS) s.push('left');
+        if (Math.abs(p[0] - (n.x + n.w)) <= EPS) s.push('right');
+        if (Math.abs(p[1] - n.y) <= EPS) s.push('top');
+        if (Math.abs(p[1] - (n.y + n.h)) <= EPS) s.push('bottom');
+        return s;
+      };
+      const slots = {};
+      for (const e of edges) for (const [p, id] of [[e.pts[0], e.from], [e.pts[e.pts.length - 1], e.to]]) {
+        const n = rects[id]; if (!n) continue;
+        for (const side of sidesOf(p, n)) {
+          const key = id + '|' + side;
+          (slots[key] = slots[key] || []).push({ e: e.id, p, c: side === 'left' || side === 'right' ? p[1] : p[0] });
+        }
+      }
+      for (const key in slots) {
+        const list = slots[key];
+        for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+          if (list[i].e === list[j].e) continue;
+          const gap = Math.abs(list[i].c - list[j].c);
+          if (gap > 0 && gap < GRIDU)
+            D('shared-anchor', { view, node: key.split('|')[0], side: key.split('|')[1], edges: [list[i].e, list[j].e] },
+              { points: [list[i].p, list[j].p], gap },
+              ['separate the anchors by >= ' + GRIDU + 'px, or bundle both on one point']);
+        }
+      }
+    }
+  } catch (err) {
+    diags.push({ code: 'selfcheck-crashed', severity: 'error', subject: {}, evidence: { message: err.message }, supportedFixes: [] });
+  } finally {
+    document.body.classList.remove('measuring');
+  }
+  const status = document.getElementById('geoStatus');
+  const detail = document.getElementById('geoDetail');
+  window.__geometryReport = { pass: diags.length === 0, diagnostics: diags, stats, receipt };
+  const receiptLine = receipt
+    ? 'measured under: ' + receipt.fontFamily + ' (bbox/size ' + receipt.fontMetricRatio + '), dpr ' + receipt.dpr + ', ' + receipt.engine
+    : 'measured under: (receipt unavailable)';
+  if (diags.length === 0) {
+    status.textContent = '幾何自檢：PASS（1 視圖）'; status.className = 'pass';
+    detail.textContent = 'PASS\n' + stats.join('\n') + '\n' + receiptLine;
+  } else {
+    status.textContent = '幾何自檢：FAIL（' + diags.length + '）'; status.className = 'fail';
+    detail.textContent = JSON.stringify(diags, null, 1) + '\n---\n' + stats.join('\n') + '\n' + receiptLine;
+    console.error('geometry diagnostics', diags);
+  }
+})();
+</script>
+</body>
+</html>

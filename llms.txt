@@ -23,6 +23,12 @@ Start at AGENTS.md. Pin a release tag, not main. Code MIT, documentation CC BY 4
 - [reference-impl/tools/audience-fit-gate/README.md](reference-impl/tools/audience-fit-gate/README.md): reader-edition gate
 - [reference-impl/outputs/diagram-authoring/](reference-impl/outputs/diagram-authoring/): worked example pages with their build scripts
 
+## Self-portrait (this repo drawn by its own method)
+
+- [docs/self-portrait/refs.json](docs/self-portrait/refs.json): probe output, every file-to-file reference inside reference-impl/ with line numbers (from probe_refs.py)
+- [docs/self-portrait/self-audit.html](docs/self-portrait/self-audit.html): engineering view with per-edge evidence, gap report, coverage declaration
+- [docs/self-portrait/self-owner-view.html](docs/self-portrait/self-owner-view.html): reader view of the same model with its mapping table
+
 ## Optional
 
 - [docs/DEVELOPER.md](docs/DEVELOPER.md): structure tree, component and workflow diagrams, design choices, limits, manual acceptance (Traditional Chinese)

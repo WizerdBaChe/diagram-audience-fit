@@ -18,7 +18,9 @@ Two Claude Code skills + a zero-install Node diagram library + a Python gate + r
 
 [Examples](#at-a-glance) · [Quick start](#quick-start-hand-it-to-your-agent) · [How it works](#how-it-works) · [Developer guide (zh-TW)](docs/DEVELOPER.md) · [Agent entry](AGENTS.md) · [Changelog](CHANGELOG.md)
 
-<img src="docs/assets/hero.en.png" alt="Left: an engineering audit diagram, dense nodes and edges, each traced to a source. Right: the same audit redrawn as an owner view with a few large nodes and clear layers. The arrow between them reads: redraw, don't annotate." width="960">
+<img src="docs/assets/hero.en.png" alt="This repo drawn by its own method. Left, the engineering view: methods, code and examples in three columns, 20 edges each traced to a file and line. Right, the reader view: the same model redrawn as 8 nodes, from your system through the drawing method and the audit diagram to audience fit, the reader-edition gate and the owner's diagram. The arrow between them reads: redraw, don't annotate." width="960">
+
+<sub>The image above is produced by this repository itself: a probe reads the references between files → engineering view (every citation resolved at a pinned commit) → reader view (reader-edition gate 0 FAIL). Both pages and their build scripts: <a href="docs/self-portrait/"><code>docs/self-portrait/</code></a>.</sub>
 
 </div>
 
@@ -119,7 +121,7 @@ Four principles run through everything: **a diagram without a model is a screens
 
 ## This release
 
-**v1.0.1 (2026-11-01)**: documentation and README images only (this page, the zh-TW page, the developer guide, llms.txt); code and examples unchanged.
+**v1.0.1 (2026-11-01)**: a self-portrait (this repo drawn by its own method, engineering + reader view) as the hero; rewritten overview, English page, developer guide, llms.txt. The capability itself (skills, library, gate, original examples) is unchanged.
 
 **v1.0.0 (2026-11-01)**: flowchart notation, line hops by default, a flowchart added to the audit's standard view set, presentational-view rule R13 (a crossing never reads as a join); all 12 machine controls pass. Full notes: [`CHANGELOG.md`](CHANGELOG.md).
 
