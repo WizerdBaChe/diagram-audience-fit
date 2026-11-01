@@ -42,7 +42,7 @@ This repository connects both ends:
 **Five views of one audit**<br>
 <sub>context, processes and channels, import layers, state machine, branch overlay; geometry self-check top right</sub>
 
-<img src="docs/assets/audit-tabs.gif" alt="Cycling through the five tabs of the audit page, each showing geometry self-check PASS" width="100%">
+<img src="docs/assets/audit-tabs.gif" alt="Cycling through the five tabs of the audit page, each with the in-page geometry self-check badge top right" width="100%">
 
 </td>
 <td width="50%" valign="top">
@@ -58,7 +58,7 @@ This repository connects both ends:
 <td valign="top">
 
 **Line hops**<br>
-<sub>lines that merely pass each other hop with a small semicircle; only real joins get a dot — no "+" that looks like a join</sub>
+<sub>lines that merely pass each other hop with a small semicircle; only real joins get a dot — by default no "+" that looks like a join (old pages can pin the plain style; a bare "+" raises a warning)</sub>
 
 <img src="docs/assets/line-hop.png" alt="A solid line hops over a red dashed line with a small semicircle" width="100%">
 
@@ -83,7 +83,7 @@ This repository connects both ends:
 
 ```text
 Read AGENTS.md first and follow its reading order through docs/BUILD-SPEC.md and docs/EVIDENCE.md; reference-impl/ holds working originals to learn from, not to paste wholesale.
-From the repo root run python -X utf8 verify/run_controls.py reference-impl <a-new-folder-that-does-not-exist> (it copies, mutates and deletes that folder, so never point it at an existing one) and compare the output with verify/controls_run.txt; sha256 values and counts must match and every line must end in ok (route-stats timings differ per run).
+From the repo root run python -X utf8 verify/run_controls.py reference-impl <a-new-folder-that-does-not-exist> (it copies, mutates and deletes that folder, so never point it at an existing one) and compare the output with verify/controls_run.txt; sha256 values and counts must match and every control line must end in ok (route-stats timings differ per run).
 Then read spec §8 and list which paths and tools map to what in my environment; wait for my confirmation before adapting.
 Then draw my first audit diagram per spec §2: list sources (step 0), write the text model, open the gap report, render last; have a subagent that did not draw it review the gap table.
 ```
@@ -117,9 +117,15 @@ Four principles run through everything: **a diagram without a model is a screens
 | see what was measured and what is not claimed | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | English |
 | a machine-readable index (llms.txt) | [`llms.txt`](llms.txt) | English |
 
+## This release
+
+**v1.0.1 (2026-11-01)**: documentation and README images only (this page, the zh-TW page, the developer guide, llms.txt); code and examples unchanged.
+
+**v1.0.0 (2026-11-01)**: flowchart notation, line hops by default, a flowchart added to the audit's standard view set, presentational-view rule R13 (a crossing never reads as a join); all 12 machine controls pass. Full notes: [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Limits (summary)
 
-Run only on Windows 11 + Node 24.22 + Python 3.12. This release did not re-run the in-page geometry check in a browser, and appearance was not re-confirmed by a person. Full list: [`docs/EVIDENCE.md`](docs/EVIDENCE.md) "Not claimed".
+Run only on Windows 11 + Node 24.22 + Python 3.12. This release did not re-run the in-page geometry check in a browser, and appearance was not re-confirmed by a person. The full limits list and the manual acceptance checklist are in [`docs/DEVELOPER.md`](docs/DEVELOPER.md#範圍與限制) (Traditional Chinese) and spec §8; what this release did not claim is in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ## Author
 

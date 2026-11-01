@@ -2,7 +2,7 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
-## v1.0.1 — unreleased
+## v1.0.1 — 2026-11-01
 
 Documentation only; nothing under `reference-impl/` or `verify/` changed.
 
