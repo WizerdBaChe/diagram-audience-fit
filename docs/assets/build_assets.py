@@ -8,7 +8,8 @@ Maintainer tool, not part of the capability: needs Python Playwright with Chromi
 Inputs  : reference-impl/outputs/diagram-authoring/*.html (the shipped example pages)
 Inputs also: docs/self-portrait/self-audit.html + self-owner-view.html (the hero pair)
 Outputs : docs/assets/hero.zh-TW.png, hero.en.png, audit-tabs.gif, line-hop.png,
-          flowchart.png, owner-view.png
+          flowchart.png, owner-view.png, pipeline.zh-TW.png (from pipeline.zh-TW.svg; run
+          node docs/assets/pipeline.build.mjs first; --only pipeline [--selftest] renders just it)
 Output bytes are not claimed to be deterministic (browser font rendering); the pages are.
 """
 from __future__ import annotations
@@ -87,6 +88,71 @@ def shot(browser, page_path: Path, dest: Path, clip=None, full=False, scale=2, b
     pg.close()
 
 
+PIPE_SVG = OUT / "pipeline.zh-TW.svg"   # from pipeline.build.mjs
+
+# In-browser text fit (font metrics need the renderer that makes the PNG): every node text inside its
+# node (a diamond's text inside the diamond), every chip text inside its chip, every group label clear
+# of nodes, edges and chips. Returns a list of failures.
+FIT_JS = """() => {
+  const fail = [], box = (el) => el.getBBox(), inset = 4;
+  const nodes = {}; document.querySelectorAll('[data-node]').forEach(n => nodes[n.dataset.node] = n);
+  for (const t of document.querySelectorAll('[data-name],[data-role]')) {
+    const id = t.dataset.name || t.dataset.role, n = nodes[id], b = box(t), r = box(n);
+    if (n.tagName === 'path') {
+      const cx = r.x + r.width / 2, cy = r.y + r.height / 2, hw = r.width / 2, hh = r.height / 2;
+      for (const [x, y] of [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]])
+        if (Math.abs(x - cx) / hw + Math.abs(y - cy) / hh > 1) { fail.push(id + ': text leaves the diamond'); break; }
+    } else {
+      // a capsule's round ends are not usable width: keep text inside its straight run plus a quarter of each end
+      const rx = Number(n.getAttribute('rx')) || 0, side = Math.max(inset, rx > 12 ? rx * 0.75 : inset);
+      if (b.x < r.x + side || b.x + b.width > r.x + r.width - side || b.y < r.y || b.y + b.height > r.y + r.height)
+        fail.push(id + ': text ' + Math.round(b.width) + 'px does not fit ' + Math.round(r.width - 2 * side) + 'px usable width');
+    }
+  }
+  for (const g of document.querySelectorAll('[data-chip]')) {
+    const [rect, ...rest] = g.children, r = box(rect);
+    for (const t of rest) if (t.tagName === 'text') { const b = box(t);
+      if (b.x < r.x + 2 || b.x + b.width > r.x + r.width - 2) fail.push(g.dataset.chip + ': chip text overflows'); }
+  }
+  const hit = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  for (const l of document.querySelectorAll('[data-label]')) {
+    const b = box(l);
+    for (const o of document.querySelectorAll('[data-node],[data-chip]')) if (hit(b, box(o))) fail.push(l.dataset.label + ' label touches ' + (o.dataset.node || o.dataset.chip));
+    for (const e of document.querySelectorAll('[data-edge]')) {  // per segment: a path's bbox is not its ink
+      const p = e.dataset.pts.split(' ').map(s => s.split(',').map(Number));
+      for (let i = 1; i < p.length; i++) {
+        const s = { x: Math.min(p[i-1][0], p[i][0]) - 2, y: Math.min(p[i-1][1], p[i][1]) - 2,
+                    width: Math.abs(p[i][0] - p[i-1][0]) + 4, height: Math.abs(p[i][1] - p[i-1][1]) + 4 };
+        if (hit(b, s)) { fail.push(l.dataset.label + ' label touches ' + e.dataset.edge); break; }
+      }
+    }
+  }
+  return fail;
+}"""
+
+
+def pipeline(browser, tmp: Path, selftest: bool = False) -> int:
+    svg = PIPE_SVG.read_text(encoding="utf-8")
+    cases = [("built", svg, True)]
+    if selftest:  # known-bad control: a role line too long for its node must FAIL
+        cases.append(("control: long role", svg.replace("與原版成對交付</text>", "與原版成對交付並且再加長很多字</text>"), False))
+    bad = 0
+    for name, text, expect_clean in cases:
+        page_file = tmp / "pipeline.html"
+        page_file.write_text(f"<!doctype html><meta charset=utf-8><body style='margin:0'>{text}</body>", encoding="utf-8")
+        pg = browser.new_page(viewport={"width": 1700, "height": 700}, device_scale_factor=2)
+        pg.goto(page_file.as_uri())
+        pg.wait_for_timeout(300)
+        fails = pg.evaluate(FIT_JS)
+        if expect_clean:
+            pg.locator("svg").screenshot(path=str(OUT / "pipeline.zh-TW.png"))
+        pg.close()
+        ok = (not fails) if expect_clean else bool(fails)
+        print(f"{'ok' if ok else 'BAD'}  {name}: {len(fails)} text-fit FAIL" + "".join(f"\n  {f}" for f in fails))
+        bad += not ok
+    return bad
+
+
 def build(tmp: Path) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
@@ -137,8 +203,19 @@ def build(tmp: Path) -> None:
 
 
 if __name__ == "__main__":
+    if "--only" in sys.argv and sys.argv[sys.argv.index("--only") + 1] == "pipeline":
+        # node docs/assets/pipeline.build.mjs first; --selftest adds the known-bad text-fit control
+        with tempfile.TemporaryDirectory() as d, sync_playwright() as p:
+            b = p.chromium.launch()
+            code = pipeline(b, Path(d), selftest="--selftest" in sys.argv)
+            b.close()
+        sys.exit(2 if code else 0)
     with tempfile.TemporaryDirectory() as d:
         build(Path(d))
+        with sync_playwright() as p:
+            b = p.chromium.launch()
+            pipeline(b, Path(d))
+            b.close()
     for f in sorted(OUT.glob("*.*")):
         if f.suffix in {".png", ".gif"}:
             print(f"{f.name}\t{f.stat().st_size // 1024} KB")
