@@ -7,14 +7,16 @@ paths:
   - "**/m3p/npr3d.py"
   - "**/m3p/annot.py"
   - "**/m3p/figaudit.py"
+  - "**/docs/assets/**"
+  - "**/build_assets*.py"
 review-when: the harness stops rendering PNG/JPG through the Read tool (the visual channel then needs a viewer tool), or a figure generator gains a raster diff gate that names layout classes (the read then narrows to appearance only)
 enforced-by: prose-only
-origin: research-figure rounds 2026-09-10 and 2026-09-15 (model3d-pipeline m3p.annot / m3p.figaudit; L-044, L-095, L-096); 4x pass borrowed 2026-10-20 from wheresryan22/anatomy (locator: `<projects>\anatomy-trial\upstream`) references/verify.md (its density clause "no bare face" deliberately not borrowed: journal schematics are sparse by design); candidate mechanism, not built: a PostToolUse hook listing the PNGs a build_* run emitted and asking for the read record
+origin: research-figure rounds 2026-09-10 and 2026-09-15 (model3d-pipeline m3p.annot / m3p.figaudit; L-044, L-095, L-096); 4x pass borrowed 2026-10-20 from wheresryan22/anatomy (locator: `<projects>\anatomy-trial\upstream`) references/verify.md (its density clause "no bare face" deliberately not borrowed: journal schematics are sparse by design); README-asset globs added 2026-11-03 (a public README pipeline diagram under docs/assets shipped squeezed arrowheads, never read at 4x because no glob matched; README assets carry no verify JSON, so their read record is the delivery note's evidence list); candidate mechanism, not built: a PostToolUse hook listing the PNGs a build_* run emitted and asking for the read record
 ---
 
 # Figure self-read: a rendered figure ships with two channels of evidence
 
-- **A rendered figure (PNG/SVG/PDF emitted by a generator) whose delivery says "pass", "clean" or "0 FAIL" carries two independent channels of evidence,** both named in the delivery or the verify record.
+- **A rendered figure (PNG/SVG/PDF emitted by a generator, hand-drawn SVG/HTML figure pages rendered to one included) whose delivery says "pass", "clean" or "0 FAIL" carries two independent channels of evidence,** both named in the delivery or the verify record.
 - **Channel 1: the instrument's verdict on the EMITTED artifact** (audit, gate, selftest with two-sided calibration), ruling only on what it can determine.
 - **Channel 2: a model visual read of the raster, written as a record:** files read (absolute paths), at what size, what was seen, ending in `no defect named` or a NAMED defect class per figure. A raster nobody read is rung 0 of `rules/verification-ladder.md` whatever the audit says.
 - **Neither channel substitutes for the other:** the instrument measures position and crossing to the pixel; the read finds the CLASS the instrument has no object for.

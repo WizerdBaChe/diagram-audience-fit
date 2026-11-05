@@ -71,10 +71,15 @@ layout per artifact; never transplant it.
 - **R6 Flows show the happy path plus NAMED side-states.** Never draw a
   transition or edge the system does not have; simplification is
   omission, never invention (whitelist truth).
-- **R7 No imported chrome.** No icon ornaments, no decorative metrics,
+- **R7 No imported chrome, and no pictures at all.** No icons, logos,
+  brand marks or pictograms on nodes or groups, no decorative metrics,
   and no SaaS/Tailwind card aesthetic — uniform rounded-corner cards in
-  soft-bordered grids are a named user rejection. The reference look is
-  the plainness of a paper figure.
+  soft-bordered grids are a named user rejection. A node is identified by
+  its text and its relations; meaning is carried by edges, position and
+  words. The reference look is the plainness of a paper figure. Excuse
+  answered: "a product logo is identity, not decoration" — the reader
+  finds a node by its name, and a picture spends the attention the
+  relations need (owner ruling 2026-11-05).
 - **R8 Carrier parity**: same carrier as the original (HTML → HTML,
   PPTX → PPTX); the reader gets the same KIND of artifact.
 - **R9 Visual venue sampling** (B-4 applied to the visual register):
@@ -93,7 +98,10 @@ layout per artifact; never transplant it.
   edges touching it turned almost-but-not-vertical); an edge is
   axis-straight, an orthogonal elbow, or clearly diagonal (≈30° or more)
   — never almost-straight; an endpoint touches the border it points at or
-  keeps a uniform marker gap — never a stray 2px short. Both round-1
+  keeps a uniform marker gap — never a stray 2px short; an arrowhead's tip
+  IS the endpoint and its terminal run is longer than the marker (about
+  1.5× its length), or the head reads squeezed against the border
+  (2026-11-03, README pipeline). Both round-1
   visual defects (G-8, G-9) were instances of this one band.
 - **R11 Positions derive from named anchors — no per-element numbers.**
   Declare the column centerlines, row baselines, and border ports ONCE
@@ -102,7 +110,9 @@ layout per artifact; never transplant it.
   edit moves a column, not a box. Hand-picked local coordinates are how
   the near-coincidence band gets entered by accident — each raw number is
   an unchecked collision bet (270/334 happened to be clean; that was
-  luck, not design). Before delivery, run the closing sweep as a
+  luck, not design). A group box is derived the same way: from its
+  members' bounds plus one fixed pad, never given numbers of its own;
+  nest one level at most (re-borrow ledger B-23). Before delivery, run the closing sweep as a
   checklist, not a glance: every edge's dx/dy classified against R10's
   three allowed kinds, every parallel pair's gap, every endpoint's border
   contact, every label's clearance.
@@ -130,6 +140,27 @@ layout per artifact; never transplant it.
   squeezed hop. A dotted remark line crosses nothing (a hop on it is
   invisible). Excuse answered: "it has only one crossing" — one misread
   join is still a wrong arrow. Owner ruling 2026-11-01.
+- **R14 Default visual vocabulary — every mark carries a meaning.** R9's
+  inherited vocabulary wins; this default fills the case R9 leaves empty
+  (no canonical, no host-page images). Nothing is added for looks alone:
+  a colour, weight or line style that encodes nothing is cut. Owner ruling
+  2026-11-05; re-borrow ledger B-19–B-22.
+  - *One reading path* (B-19): the one path the reader should follow takes
+    the page's single accent colour and numbered steps on its edges; every
+    other edge stays neutral. The accent never doubles as an R4 status
+    colour. Under the canvas, a step list gives each
+    number one plain sentence, opening with the node labels it joins
+    (one term per thing). A page with no single path draws no accent.
+  - *Few edge kinds, dual-coded* (B-20): at most four kinds (e.g. main
+    path / call / event-or-async / build-and-deploy), each told apart by
+    colour AND line style; the legend lists only the kinds drawn.
+  - *Two text registers* (B-21): the node name and its R3 role line differ
+    by weight and size (role smaller, lighter, a second face allowed), so
+    name and role never read as one sentence.
+  - *Spacing budget* (B-22): neighbouring nodes on one row or column sit at
+    least one node width apart; an edge label fits on its segment with
+    ≥ 14px clear at each end, or the nodes move (R10), never the label onto
+    a node.
 
 ## Boundary (D-071, user ruling 2026-10-23)
 
@@ -142,3 +173,6 @@ structural model as input (R5 maps to its element ids), and past roughly
 directly. Precision checks — completeness gates, gap tables — are NOT
 applied here: a presentational view carries no completeness claim, so it
 does not need the instrument that proves one; the canonical audit does.
+Geometry asserts are not completeness checks and DO apply: R10/R11 and the
+endpoint / edge-through-node asserts of diagram-authoring
+`skills/diagram-authoring/references/notation-precision.md` §4, with a known-bad control.

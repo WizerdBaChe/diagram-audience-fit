@@ -28,7 +28,8 @@ in the same directory.
 | Ask | Mode | Carrier default |
 |---|---|---|
 | Explain/discuss with a quick visual, in-chat, disposable | Sketch | mermaid fence / visualize widget — declare "auto-layout, no precision claim" |
-| Figure inside a doc (design doc, README, report) | Doc figure | mermaid if auto-layout suffices; inline SVG when position/alignment carry meaning |
+| Figure inside a builder doc (design doc, spec, internal README, report for builders) | Doc figure | mermaid if auto-layout suffices; inline SVG when position/alignment carry meaning |
+| Diagram whose reader is NOT its builder (public README flow, promo/ad image, audience page), with or without an engineering original | not this skill | → audience-fit A1 + its `references/presentational-view.md` R1–R13 (D-071, see Handoffs) |
 | Standalone deliverable to view/share | Standalone | self-contained HTML (inline SVG + pan/zoom) or an Artifact |
 | Editable slides humans will present/annotate | Deck | PPTX via anthropic-skills:pptx — native shapes + bound connectors, never baked images |
 | Reconstruct an EXISTING system from data and find holes（體檢繪圖、找缺口） | Audit drawing | any of the above + mandatory gap report; precision view-set → `tools/archdiag` (carrier-playbook §archdiag) |
@@ -90,8 +91,8 @@ drawn element back to a registered component without a human legend.
 selection table + pairing rules in `representation-models.md`. If the user
 asked for "one diagram of everything", split it there and say why. Close
 the step with ONE line before anything is drawn — view(s) / carrier and
-size preset (carrier-playbook.md) / what the budget will cut (audience-fit
-R12 order when presentational) / what the source cannot answer — so the
+size preset (carrier-playbook.md) / what the budget will cut (builder views
+only; a presentational view is audience-fit's) / what the source cannot answer — so the
 reader corrects the frame here, not after rendering.
 
 **Step 2 — Build the structural model, then check it.** Write the diagram as
@@ -203,7 +204,12 @@ code-review-deep-checklist Mode B focused first (Handoffs).
   data and may call the shared `tools/` renderers directly. This skill
   never gains a presentational view type. Excuse answered: "the owner view
   is drawn from our model, so it is ours" — the model is shared data; who
-  the page is FOR decides the owning skill.
+  the page is FOR decides the owning skill. This holds when no engineering
+  original exists: a NEW reader diagram (a public README's pipeline, a
+  promo image) is audience-fit's from its first line. Excuse answered:
+  "there is no original to re-render, so A1 does not apply" — the reader
+  decides the owner, not whether a builder version exists (2026-11-03: a
+  README flow hand-drawn outside both skills shipped squeezed arrowheads).
 - An owner/audience version of an audit → audience-fit A1. It restates the
   findings for another reader and adds or removes none; a gap the audit
   missed stays missed (a later audience-fit pass is not a second audit).

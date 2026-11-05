@@ -230,7 +230,7 @@ third party or a private location, and to keep everything that carries informati
    → "its pit 7".
 2. **Session id and local page.** `skills/audience-fit/references/presentational-view.md`: a session id
    and a local path to an analysis page → "analysis kept locally, not shipped".
-3. **Drive root.** 12 occurrences in 6 files (`part-principles.md` 5, `notation-precision.md` 2,
+3. **Drive root.** 15 occurrences in 6 files (`part-principles.md` 8, `notation-precision.md` 2,
    `figure-self-read.md` 1, `MAINTENANCE.md` 2, `m1.mjs` 1 comment, `mfp-audit-f3.build.mjs` 1 comment):
    the origin's project-folder drive root → `<projects>`. Emitted pages are unchanged (A2 hashes).
 4. **Home directory.** `tools/archdiag/README.md` (example comment): the origin's home path →

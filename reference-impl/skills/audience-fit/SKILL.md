@@ -1,6 +1,6 @@
 ---
 name: audience-fit
-description: 'Post-production audience-adaptation pass (受眾調校) for anything a NON-BUILDER reads: (A) turn an engineering-voiced deliverable (report, summary HTML, README, release notes) into a reader-facing version in a NEW file; (B) write or fix UI copy (設定頁、狀態列、錯誤訊息) from the user''s stance, not the engine''s. Trigger on 「使用者導向」「白話版」「寫給非工程師看」「UI 文案」「這段太工程」「AI味」 "rewrite for end users"; OFFER once, unprompted, after any skill produces a deliverable whose primary consumer is not its builder. NOT machine-read docs (phase logs, specs), NOT layout/theming (→ artifact-design), NOT technical docs from code (→ engineering:documentation), NOT task/flow/state evaluation 「走得通嗎」「停用還是隱藏」 (→ ux-walkthrough; findings hand off both ways).'
+description: 'Post-production audience-adaptation pass (受眾調校) for anything a NON-BUILDER reads: (A) turn an engineering-voiced deliverable (report, summary HTML, README, release notes) into a reader-facing version in a NEW file, or draw a NEW diagram for a non-builder reader (public README flow, promo/ad image, audience page) even with no engineering original; (B) write or fix UI copy (設定頁、狀態列、錯誤訊息) from the user''s stance, not the engine''s. Trigger on 「使用者導向」「白話版」「寫給非工程師看」「UI 文案」「這段太工程」「AI味」 "rewrite for end users"; OFFER once, unprompted, after any skill produces a deliverable whose primary consumer is not its builder. NOT machine-read docs (phase logs, specs), NOT layout/theming (→ artifact-design), NOT technical docs from code (→ engineering:documentation), NOT task/flow/state evaluation 「走得通嗎」「停用還是隱藏」 (→ ux-walkthrough; findings hand off both ways).'
 ---
 
 # audience-fit — adapt finished output to the human who will actually read it
@@ -21,7 +21,9 @@ builder can be unusable for its consumer. Two observed failure shapes:
 
 This is a POST-production pass: it runs after another skill has produced its
 artifact, and never weakens that artifact — the engineering version stays
-canonical and untouched.
+canonical and untouched. One product class has no earlier artifact: a
+reader diagram with no engineering original (Mode A1, "A1 with no
+original").
 
 ## Step 0 — decide whether to fire at all
 
@@ -99,6 +101,26 @@ the wrong output):
   diagram-authoring. The card-grid form is a named user rejection
   (G-7), never a fallback (round-2 field proof:
   `ccfg-retrieval-audit-f1-owner-view.html` v2, user gate PASS 2026-08-31).
+  **A1 with no original:** a diagram whose reader is not its builder (a
+  public README's pipeline, a promo or ad image) is an A1 product whether
+  or not an engineering original exists; a diagram's reader decides its
+  owner. A public README's reader is a first-pass visitor, so the audience
+  is declared like any other (a developer audience is a declared
+  audience, R3 still applies). With no original, the parts that assume
+  one are replaced: R5 maps each node to the source material it depicts
+  (file, section, step); R8/R9 take the carrier and vocabulary of the
+  host page (the README's other images), or with none the R14 default; the provenance block
+  cites the source material and the regeneration script instead of a
+  canonical link; the delivery pair is the render beside its R5 table and
+  the nearest real baseline (a previous render, or "none"); the afgate
+  pair gate, which needs an `<original>`, is reported as not run, never as
+  passed. Geometry is checked, not eyeballed: R10/R11 plus the endpoint and
+  edge-through-node asserts of diagram-authoring
+  `skills/diagram-authoring/references/notation-precision.md` §4, run with a known-bad control in
+  the renderer that produces the delivered pixels. Excuse answered: "it is
+  just a promo picture, there is nothing to re-render" (2026-11-03: a
+  hand-drawn README flow shipped squeezed arrowheads; D-071 in
+  diagram-authoring Handoffs).
 - **A2 prose digest (整理性報告) — only when a summary/report is what was
   asked for,** or when the original is itself prose. Answer-first
   structure per the honest-data guide.
