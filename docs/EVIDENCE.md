@@ -1,12 +1,12 @@
 ---
 layer: share-repo evidence
 audience: agent (builder) and human
-version: 1.0.2
+version: 1.1.0
 ---
 
 # Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
 
-Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-01
+Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-05
 against the files exactly as shipped (transcript: `verify/controls_run.txt`). "Origin record" = stated
 in a shipped file, cited by path; not re-run here. Evidence rung of every control here: 0 (example
 inputs, each two-sided with both asserted values printed; `rules/verification-ladder.md`).
@@ -35,7 +35,7 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   self-test uses made-up ones such as `D:/w/f.py`), no session ids, no exchange-folder names. The screen
   runs with a planted positive control in the same invocation (a drive path, a home path, one listed
   name and an e-mail must all fire: 5 hits) and then reports 0 hits on the repo. The screen and its
-  name list are the maintainer's and not shipped. The five declared edits are in spec §9.
+  name list are the maintainer's and not shipped. The six declared edits are in spec §9.
 - **M8 Unshipped references.** 52 origin paths are mentioned but not shipped
   (`verify/unshipped_paths.txt`, produced by `verify/list_unshipped.py`). The count is higher than the
   2026-10-24 edition's 43 because four reference files were added and they cite further records; v1.0.2
@@ -100,9 +100,9 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 |---|---|---|
 | every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:75`, `:105` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
 | a source anchor points at a real file and line range | code, opt-in: `tools/archdiag/anchors.mjs:167`, enabled by `archview.anchors` (`index.mjs:70`) | the path exists at the pinned commit and the range is inside the file; not that the line supports the edge; the three example pages do not enable it, the self-portrait build calls `resolveAnchors` directly (`docs/self-portrait/self-audit.build.mjs:118`) |
-| an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:38` (Step 0) | — |
-| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:70` | — |
-| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:130` | — |
+| an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:39` (Step 0) | — |
+| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:71` | — |
+| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:131` | — |
 | same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:128`) |
 | sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:99-106`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:139`); verifying means rebuilding and comparing |
 | at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:51` (build fails) | the declared count; over 3 means split the view |
@@ -115,7 +115,7 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 | a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:343`) | lists the original's limitation lines; a human rules |
 | a reader edition carries no builder apparatus (paths, hashes, run ids) | code: afgate `voice` FAIL outside the provenance block (`afgate.py:172`, verdict at `:188`) | pattern match; known false positives are listed under "Not claimed" |
 | a reader edition ships as a pair with its original | process only: spec A12 (review) | — |
-| a reader diagram with no inherited vocabulary follows R14 (one numbered accent path, ≤ 4 dual-coded edge kinds, two text registers, gap ≥ one node width) and draws no icons (R7) | process only: `skills/audience-fit/references/presentational-view.md:143`, `:74` | the README workflow figure alone is checked by its own script: spacing and chip clearance (`docs/assets/pipeline.build.mjs:181`, `:198`), borders, terminal runs, edges through nodes, parallel gaps (`asserts()`, `:153`), text fit incl. capsule ends (`docs/assets/build_assets.py:108`); no shared tool enforces R14 on other diagrams |
+| a reader diagram with no inherited vocabulary follows R14 (one numbered accent path, ≤ 4 dual-coded edge kinds, two text registers, gap ≥ one node width) and draws no icons (R7) | process only: `skills/audience-fit/references/presentational-view.md:144`, `:74` | the README workflow figure alone is checked by its own script: spacing and chip clearance (`docs/assets/pipeline.build.mjs:181`, `:198`), borders, terminal runs, edges through nodes, parallel gaps (`asserts()`, `:153`), text fit incl. capsule ends (`docs/assets/build_assets.py:109`); no shared tool enforces R14 on other diagrams |
 
 ## Not claimed
 

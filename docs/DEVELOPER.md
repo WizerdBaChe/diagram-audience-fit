@@ -19,7 +19,7 @@ diagram-audience-fit/
 │   ├── BUILD-SPEC.md             規格（英文）：§0–§9，驗收表 A1–A16
 │   ├── EVIDENCE.md               實測紀錄、規則出處、沒有宣稱的事
 │   ├── self-portrait/            用本 repo 的方法畫本 repo：探針、工程版、讀者版（各附建置腳本）
-│   └── assets/                   README 用圖＋重生腳本 build_assets.py
+│   └── assets/                   README 用圖＋重生腳本 build_assets.py、運作流程圖 pipeline.build.mjs
 ├── reference-impl/               原環境 ~/.claude 的實際原檔（逐位元組，宣告修改見規格 §9）
 │   ├── skills/
 │   │   ├── diagram-authoring/    畫圖的做法本體＋記號精準度、載體手冊
@@ -123,7 +123,7 @@ flowchart TB
 python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新資料夾>
 ```
 
-腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.0.2，乾淨 clone）：A1–A5、A7、A10、A11、A13–A16 共 12 項全過。
+腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.1.0，乾淨 clone）：A1–A5、A7、A10、A11、A13–A16 共 12 項全過。
 
 ## 設計上刻意的幾件事（改之前請先看）
 

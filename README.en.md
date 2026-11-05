@@ -110,14 +110,14 @@ Then draw my first audit diagram per spec §2: list sources (step 0), write the 
 
 ```mermaid
 flowchart LR
-  S["Sources<br/>code · config · design docs"] --> M["Text model<br/>node · edge · state tables"]
+  S["Sources<br/>code · config · docs"] --> M["Text model<br/>nodes · edges · states"]
   M --> G{"Structure check<br/>schema · asserts"}
   G -- fail --> M
-  G -- pass --> R["Render<br/>routing · hops · in-page check"]
-  R --> P["Engineering audit page<br/>+ gap report"]
-  P --> V["Clean-context reviewer<br/>checks the gap table"]
+  G -- pass --> R["Render<br/>routing · hops · checks"]
+  R --> P["Audit page<br/>+ gap report"]
+  P --> V["Fresh reviewer<br/>checks the gap table"]
   P --> A["audience-fit<br/>redraw for readers"]
-  A --> K{"afgate<br/>numbers · scope · terms"}
+  A --> K{"afgate check<br/>numbers · scope · terms"}
   K -- fail --> A
   K -- pass --> O["Owner view<br/>shipped as a pair"]
 ```

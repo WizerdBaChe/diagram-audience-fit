@@ -35,8 +35,7 @@
    the venue expects them; confidently wrong facts are the top-tier tell.
 6. **Formatting flags** — bold headings substituting for prose; emoji
    decoration (copy in the author's own voice: mood emoji such as 🫠 are
-   allowed, pointer/icon emoji are not — `references/design-axes/part-principles.md`
-   §18); lists of exactly three; identical section lengths; a heading
+   allowed, pointer/icon emoji are not); lists of exactly three; identical section lengths; a heading
    restated by its own first sentence.
 7. **Conclusion bloat** — "in conclusion/總結來說" sections; generic future
    outlook (「我們會持續改進」).

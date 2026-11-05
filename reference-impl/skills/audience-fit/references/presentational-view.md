@@ -112,7 +112,8 @@ layout per artifact; never transplant it.
   an unchecked collision bet (270/334 happened to be clean; that was
   luck, not design). A group box is derived the same way: from its
   members' bounds plus one fixed pad, never given numbers of its own;
-  nest one level at most (re-borrow ledger B-23). Before delivery, run the closing sweep as a
+  nest one level at most (re-borrow ledger B-23).
+  Before delivery, run the closing sweep as a
   checklist, not a glance: every edge's dx/dy classified against R10's
   three allowed kinds, every parallel pair's gap, every endpoint's border
   contact, every label's clearance.

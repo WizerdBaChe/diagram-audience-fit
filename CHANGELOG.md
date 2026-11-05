@@ -23,7 +23,9 @@ controls ok).
   `build_assets.py --only pipeline --selftest` adds an in-browser text-fit check (a capsule's round
   ends do not count as usable width) with its own control.
 - **Also refreshed from origin:** wording updates in `diagram-authoring/SKILL.md`,
-  `de-ai-flavor.md`, `figure-self-read.md` and `part-principles.md` (spec §9 drive-root count 12 → 15).
+  `de-ai-flavor.md`, `figure-self-read.md` and `part-principles.md` (spec §9 drive-root count 12 → 13).
+- **Not shipped:** the origin's new §18 of `part-principles.md` (the owner's personal writing-voice
+  notes) and the `de-ai-flavor.md` pointer to it; declared as spec §9 item 6.
 
 ## v1.0.2 — 2026-11-01
 

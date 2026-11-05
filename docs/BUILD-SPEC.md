@@ -1,8 +1,8 @@
 ---
 layer: share-repo spec
 audience: agent (builder)
-version: 1.0.2
-snapshot: 2026-11-01
+version: 1.1.0
+snapshot: 2026-11-05
 ---
 
 # BUILD SPEC — verifiable architecture/audit diagrams and their reader-facing editions
@@ -10,7 +10,7 @@ snapshot: 2026-11-01
 Audience: an agent that has never seen this capability and must build an equivalent in its own
 environment. Read this file fully, then `docs/EVIDENCE.md`, then the files under `reference-impl/`
 (the working originals this spec describes; adapt them, do not paste them wholesale). Snapshot date
-2026-11-01. Earlier editions (2026-10-11, 2026-10-19, 2026-10-24) were folder-and-zip packs; this repo
+2026-11-05. Earlier editions (2026-10-11, 2026-10-19, 2026-10-24) were folder-and-zip packs; this repo
 continues them as release `1.0.0` (see `CHANGELOG.md`).
 
 **What changed since the 2026-10-24 edition:** flowchart node kinds (`term`, `decision`, `note`) and
@@ -20,6 +20,10 @@ that really connect meet at a filled junction dot, and a bare "+" crossing raise
 the audit coverage set gains "a flowchart per multi-step procedure that branches or loops back on
 failure"; audience-fit presentational views gain rule R13 (a crossing never reads as a join) and reuse
 the same hop plan for hand-drawn SVG. The shipped audit page is re-issued with hops (new hash, §7 A2/A16).
+**Since 1.0.2 (release 1.1.0):** presentational views gain R14, a meaning-only default visual
+vocabulary for when no original or host page offers one (one numbered accent path, at most four
+dual-coded edge kinds, two text registers, a spacing budget); R7 bans pictures outright and R11 derives
+group boxes from their members. No tool or page bytes change (A1/A2 hashes as before).
 
 ## 0. What it is, in one paragraph
 
@@ -220,7 +224,7 @@ review items. Re-run the script after adapting anything.
 
 ## 9. Declared edits relative to the origin (everything else is byte-identical)
 
-Applied to fresh copies on 2026-11-01 by an anchored script kept by the maintainer (each anchor must
+Applied to fresh copies on 2026-11-05 by an anchored script kept by the maintainer (each anchor must
 hit its stated count, or the run stops before writing). The policy is to remove what identifies a
 third party or a private location, and to keep everything that carries information.
 
@@ -230,7 +234,7 @@ third party or a private location, and to keep everything that carries informati
    → "its pit 7".
 2. **Session id and local page.** `skills/audience-fit/references/presentational-view.md`: a session id
    and a local path to an analysis page → "analysis kept locally, not shipped".
-3. **Drive root.** 15 occurrences in 6 files (`part-principles.md` 8, `notation-precision.md` 2,
+3. **Drive root.** 13 occurrences in 6 files (`part-principles.md` 6, `notation-precision.md` 2,
    `figure-self-read.md` 1, `MAINTENANCE.md` 2, `m1.mjs` 1 comment, `mfp-audit-f3.build.mjs` 1 comment):
    the origin's project-folder drive root → `<projects>`. Emitted pages are unchanged (A2 hashes).
 4. **Home directory.** `tools/archdiag/README.md` (example comment): the origin's home path →
@@ -241,3 +245,7 @@ third party or a private location, and to keep everything that carries informati
    and lesson ids: `rules/{deliverable-doc-refs (2), figure-self-read, layout-convergence,
    verification-ladder}.md`, `tools/audience-fit-gate/README.md` and `afgate.py` (comment only). No
    behaviour changes (A10 unchanged).
+6. **Owner's writing-voice section.** `references/design-axes/part-principles.md` ends before the
+   origin's §18, the owner's personal writing-voice notes (owner decision 2026-11-05: personal, not a
+   reusable principle); `skills/audience-fit/references/de-ai-flavor.md` drops its pointer to that
+   section and keeps the rule it pointed from. No tool reads either file (A10 unchanged).
