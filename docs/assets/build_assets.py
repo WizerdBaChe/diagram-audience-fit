@@ -8,8 +8,8 @@ Maintainer tool, not part of the capability: needs Python Playwright with Chromi
 Inputs  : reference-impl/outputs/diagram-authoring/*.html (the shipped example pages)
 Inputs also: docs/self-portrait/self-audit.html + self-owner-view.html (the hero pair)
 Outputs : docs/assets/hero.zh-TW.png, hero.en.png, audit-tabs.gif, line-hop.png,
-          flowchart.png, owner-view.png, pipeline.zh-TW.png (from pipeline.zh-TW.svg; run
-          node docs/assets/pipeline.build.mjs first; --only pipeline [--selftest] renders just it)
+          flowchart.png, owner-view.png, pipeline.zh-TW.png + pipeline.en.png (from the SVGs; run
+          node docs/assets/pipeline.build.mjs [--lang en] first; --only pipeline [--selftest] renders just them)
 Output bytes are not claimed to be deterministic (browser font rendering); the pages are.
 """
 from __future__ import annotations
@@ -88,7 +88,9 @@ def shot(browser, page_path: Path, dest: Path, clip=None, full=False, scale=2, b
     pg.close()
 
 
-PIPE_SVG = OUT / "pipeline.zh-TW.svg"   # from pipeline.build.mjs
+# from pipeline.build.mjs [--lang en]; each with the known-bad control: a role line too long for its node
+PIPE = {"zh-TW": ("與原版成對交付</text>", "與原版成對交付並且再加長很多字</text>"),
+        "en": ("shipped as a pair</text>", "shipped as a pair with a much longer role line</text>")}
 
 # In-browser text fit (font metrics need the renderer that makes the PNG): every node text inside its
 # node (a diamond's text inside the diamond), every chip text inside its chip, every group label clear
@@ -132,20 +134,28 @@ FIT_JS = """() => {
 
 
 def pipeline(browser, tmp: Path, selftest: bool = False) -> int:
-    svg = PIPE_SVG.read_text(encoding="utf-8")
-    cases = [("built", svg, True)]
-    if selftest:  # known-bad control: a role line too long for its node must FAIL
-        cases.append(("control: long role", svg.replace("與原版成對交付</text>", "與原版成對交付並且再加長很多字</text>"), False))
+    bad = 0
+    for lang, (anchor, longer) in PIPE.items():
+        svg = (OUT / f"pipeline.{lang}.svg").read_text(encoding="utf-8")
+        cases = [(f"{lang} built", svg, True)]
+        if selftest:
+            assert svg.count(anchor) == 1, f"{lang}: control anchor not found once"
+            cases.append((f"{lang} control: long role", svg.replace(anchor, longer), False))
+        bad += _pipeline_cases(browser, tmp, lang, cases)
+    return bad
+
+
+def _pipeline_cases(browser, tmp: Path, lang: str, cases) -> int:
     bad = 0
     for name, text, expect_clean in cases:
         page_file = tmp / "pipeline.html"
         page_file.write_text(f"<!doctype html><meta charset=utf-8><body style='margin:0'>{text}</body>", encoding="utf-8")
-        pg = browser.new_page(viewport={"width": 1700, "height": 700}, device_scale_factor=2)
+        pg = browser.new_page(viewport={"width": 1800, "height": 700}, device_scale_factor=2)
         pg.goto(page_file.as_uri())
         pg.wait_for_timeout(300)
         fails = pg.evaluate(FIT_JS)
         if expect_clean:
-            pg.locator("svg").screenshot(path=str(OUT / "pipeline.zh-TW.png"))
+            pg.locator("svg").screenshot(path=str(OUT / f"pipeline.{lang}.png"))
         pg.close()
         ok = (not fails) if expect_clean else bool(fails)
         print(f"{'ok' if ok else 'BAD'}  {name}: {len(fails)} text-fit FAIL" + "".join(f"\n  {f}" for f in fails))

@@ -7,6 +7,7 @@
 // README's existing images (R9): grey capsule = outside the drawing session, blue = step,
 // amber = deliverable, pink diamond = check; red dashed = sent back.
 //
+// Add --lang en for README.en.md's edition (default zh-TW); same model, own text and widths.
 //   node docs/assets/pipeline.build.mjs             build + model asserts (exit 1 on any FAIL)
 //   node docs/assets/pipeline.build.mjs --selftest  known-bad controls must FAIL (exit 2 if not)
 //   node docs/assets/pipeline.build.mjs --mapping   print the R5 node -> source table
@@ -20,11 +21,20 @@ import { hopEdges, DOT_R } from '../../reference-impl/tools/archdiag/hops.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
+// ── language: zh-TW (README.md) or en (README.en.md); same model, own text widths ──
+const li = process.argv.indexOf('--lang');
+const LANG = li > 0 ? process.argv[li + 1] : 'zh-TW';
+if (!['zh-TW', 'en'].includes(LANG)) { console.error(`unknown --lang ${LANG}`); process.exit(2); }
+const SIZE = {  // W node, DW diamond width, CAP capsule width, PITCH column pitch
+  'zh-TW': { W: 148, DW: 176, CAP: 180, PITCH: 312 },
+  en: { W: 164, DW: 188, CAP: 196, PITCH: 344 },
+}[LANG];
+
 // ── anchors (R11): every coordinate below derives from these ─────────────────
-const W = 148, H = 64;            // standard node
-const DW = 176, DH = 88;          // check (diamond)
-const PITCH = 312;                // column pitch: rect gap 164, diamond gap 150, both >= W (R14 B-22)
-const CAP = 180;                  // capsule width: its round ends hold no text
+const W = SIZE.W, H = 64;         // standard node
+const DW = SIZE.DW, DH = 88;      // check (diamond)
+const PITCH = SIZE.PITCH;         // column pitch: every neighbour gap >= W (R14 B-22, asserted)
+const CAP = SIZE.CAP;             // capsule width: its round ends hold no text
 const X0 = 40 + CAP / 2;          // first column centre
 const COL = [0, 1, 2, 3, 4].map((i) => X0 + i * PITCH);
 const PAD = { x: 28, top: 64, bottom: 56 };   // one fixed group pad (R11)
@@ -39,7 +49,7 @@ const LANE = 28;                  // two edges leaving one side sit LANE either 
 const ARC = 26;                   // run between a check's vertex and its send-back line
 const MARK = 10;                  // arrowhead length; terminal run must be >= 1.5 * MARK (R10)
 const LEGEND_Y = G2_BOTTOM + 40;
-const CANVAS = { w: COL[4] + 74 + PAD.x + 28, h: LEGEND_Y + 30 };
+const CANVAS = { w: COL[4] + Math.max(W / 2 + PAD.x, CAP / 2) + 28, h: LEGEND_Y + 30 };
 
 const C = {
   ink: '#1f2328', mute: '#57606a', bg: '#ffffff', groupFill: '#fafbfc', groupLine: '#d0d7de',
@@ -47,31 +57,45 @@ const C = {
   ext: ['#eef1f4', '#57606a'], step: ['#ddeafb', '#3b74c9'], out: ['#fcecc9', '#c58a16'], check: ['#fce4ee', '#bf1f5a'],
 };
 
-const T = {  // zh-TW text; one term per thing with README.md (R14 B-19)
-  title: '運作流程',
-  g1: '① 畫圖（diagram-authoring）', g2: '② 對讀者調校（audience-fit）',
-  legend: ['主路徑：照編號讀', '旁支', '不通過時退回'], pass: '通過', fail: '不通過',
+const TEXT = {  // one term per thing with the README of the same language (R14 B-19)
+  'zh-TW': {
+    title: '運作流程',
+    g1: '① 畫圖（diagram-authoring）', g2: '② 對讀者調校（audience-fit）',
+    legend: ['主路徑：照編號讀', '旁支', '不通過時退回'], pass: '通過', fail: '不通過',
+    SRC: ['來源', '程式・設定・設計文件'], MOD: ['文字模型', '節點表・邊表・狀態表'], CHK: ['結構檢查'],
+    REN: ['渲染', '路由・跳線・頁內自檢'], AUD: ['工程稽核頁', '＋缺口報告'], REV: ['另一個乾淨脈絡', '審缺口表'],
+    FIT: ['audience-fit', '重畫給讀者'], GATE: ['afgate 檢查'], OWN: ['擁有者視圖', '與原版成對交付'],
+  },
+  en: {
+    title: 'How it works',
+    g1: '① Diagram authoring', g2: '② Audience fit',
+    legend: ['main path: read by number', 'side branch', 'sent back on fail'], pass: 'pass', fail: 'fail',
+    SRC: ['Sources', 'code · config · docs'], MOD: ['Text model', 'nodes · edges · states'], CHK: ['Structure check'],
+    REN: ['Render', 'routing · hops · checks'], AUD: ['Audit page', '+ gap report'], REV: ['Fresh reviewer', 'checks the gap table'],
+    FIT: ['audience-fit', 'redraw for readers'], GATE: ['afgate check'], OWN: ['Owner view', 'shipped as a pair'],
+  },
 };
+const T = TEXT[LANG];
 
 // kind: ext | step | out | check.  src = what each node depicts (R5, A1 with no original).
 const nodes = [
-  { id: 'SRC', kind: 'ext', col: 0, row: 1, w: CAP, name: '來源', role: '程式・設定・設計文件',
+  { id: 'SRC', kind: 'ext', col: 0, row: 1, w: CAP,
     src: 'README.md L99 node S; diagram-authoring/SKILL.md L38 Step 0' },
-  { id: 'MOD', kind: 'step', col: 1, row: 1, name: '文字模型', role: '節點表・邊表・狀態表',
+  { id: 'MOD', kind: 'step', col: 1, row: 1,
     src: 'README.md L99 node M; diagram-authoring/SKILL.md L97 Step 2' },
-  { id: 'CHK', kind: 'check', col: 2, row: 1, name: '結構檢查',
+  { id: 'CHK', kind: 'check', col: 2, row: 1,
     src: 'README.md L100-101 node G', cut: 'role 「schema・斷言」 -> step list sentence ② (no room in a diamond)' },
-  { id: 'REN', kind: 'step', col: 3, row: 1, name: '渲染', role: '路由・跳線・頁內自檢',
+  { id: 'REN', kind: 'step', col: 3, row: 1,
     src: 'README.md L102 node R; diagram-authoring/SKILL.md L115 Step 5' },
-  { id: 'AUD', kind: 'out', col: 4, row: 1, name: '工程稽核頁', role: '＋缺口報告',
+  { id: 'AUD', kind: 'out', col: 4, row: 1,
     src: 'README.md L103 node P' },
-  { id: 'REV', kind: 'ext', col: 4, row: 2, w: CAP, name: '另一個乾淨脈絡', role: '審缺口表',
+  { id: 'REV', kind: 'ext', col: 4, row: 2, w: CAP,
     src: 'README.md L104 node V; diagram-authoring/SKILL.md L131' },
-  { id: 'FIT', kind: 'step', col: 1, row: 2, name: 'audience-fit', role: '重畫給讀者',
+  { id: 'FIT', kind: 'step', col: 1, row: 2,
     src: 'README.md L105 node A' },
-  { id: 'GATE', kind: 'check', col: 2, row: 2, name: 'afgate 檢查',
+  { id: 'GATE', kind: 'check', col: 2, row: 2,
     src: 'README.md L106 node K; audience-fit/SKILL.md L216 Gate', cut: 'role 「數字・範圍・用語」 -> step list sentence ⑥' },
-  { id: 'OWN', kind: 'out', col: 3, row: 2, name: '擁有者視圖', role: '與原版成對交付',
+  { id: 'OWN', kind: 'out', col: 3, row: 2,
     src: 'README.md L107 node O' },
 ];
 const groups = [
@@ -79,7 +103,8 @@ const groups = [
   { id: 'G2', label: T.g2, contains: ['FIT', 'GATE', 'OWN'] },
 ];
 
-function geom(n) {
+function geom(n0) {
+  const n = { ...n0, name: T[n0.id][0], role: T[n0.id][1] };
   const cx = X0 + n.col * PITCH, cy = n.row === 1 ? ROW1 : ROW2;
   const w = n.kind === 'check' ? DW : (n.w || W), h = n.kind === 'check' ? DH : H;
   return { ...n, cx, cy, w, h, l: cx - w / 2, r: cx + w / 2, t: cy - h / 2, b: cy + h / 2 };
@@ -258,17 +283,17 @@ function model(mutate) {
   return { N, E, G };
 }
 
-const arg = process.argv[2];
+const arg = process.argv.slice(2).find((a) => a === '--mapping' || a === '--selftest');
 if (arg === '--mapping') {
   console.log('| node | depicts (source) | cut |\n|---|---|---|');
-  for (const n of nodes) console.log(`| ${n.name} | ${n.src} | ${n.cut || '—'} |`);
+  for (const n of nodes) console.log(`| ${T[n.id][0]} | ${n.src} | ${n.cut || '—'} |`);
   const { N, E } = model();
   console.log('\n| edge | from → to | source |\n|---|---|---|');
   for (const e of E) console.log(`| ${e.id}${e.step ? ` (${e.step})` : ''} | ${N[e.from].name} → ${N[e.to].name} | ${e.src} |`);
 } else if (arg === '--selftest') {
   // known-bad controls: each must produce at least one FAIL naming its class
   const controls = [
-    ['near-coincident neighbour (gap < W)', { node: (n) => (n.id === 'REN' ? { ...n, col: 2.6 } : n) }, /gap .* < 148|runs through|chip/],
+    ['near-coincident neighbour (gap < W)', { node: (n) => (n.id === 'REN' ? { ...n, col: 2.6 } : n) }, new RegExp(`gap .* < ${W}|runs through|chip`)],
     ['squeezed arrowhead', { edges: (E) => E.map((e) => (e.id === 'b1' ? { ...e, pts: e.pts.map((p, i) => (i === 3 ? [p[0], e.pts[2][1] + 8] : p)) } : e)) }, /terminal run|tip not on/],
     ['edge through a node', { edges: (E, N) => E.map((e) => (e.id === 'e1' ? { ...e, pts: [[N.SRC.r, ROW1], [N.CHK.l, ROW1]], to: 'CHK' } : e)) }, /runs through MOD/],
     ['parallel runs 6px apart', { edges: (E) => E.map((e) => (e.id === 's1' ? { ...e, pts: e.pts.map((p) => [p[0] - 2 * LANE + 6, p[1]]) } : e)) }, /parallel 6px|start not on|tip not on/],
@@ -288,7 +313,7 @@ if (arg === '--mapping') {
   const { N, E, G } = model();
   const { fail, hops } = asserts(N, E, G);
   for (const f of fail) console.log(`FAIL ${f}`);
-  const out = path.join(HERE, 'pipeline.zh-TW.svg');
+  const out = path.join(HERE, `pipeline.${LANG}.svg`);
   fs.writeFileSync(out, emit(N, E, G, hops));
   console.log(`${fail.length} FAIL · ${Object.keys(N).length} nodes · ${E.length} edges · ${hops.dots.length} dots · canvas ${CANVAS.w}x${CANVAS.h} -> ${path.relative(process.cwd(), out)}`);
   process.exit(fail.length ? 1 : 0);

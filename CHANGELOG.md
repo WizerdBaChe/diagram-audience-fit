@@ -2,6 +2,29 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
+## v1.1.0 — 2026-11-05
+
+A default visual vocabulary for reader diagrams, field-tested on this README's own workflow figure.
+Fixed at the origin and copied by the refresh script; example page bytes unchanged (A1/A2, 12 of 12
+controls ok).
+
+- **audience-fit presentational views, R14 (new):** when the original and the host page offer no
+  visual vocabulary, a meaning-only default applies — one accent reading path with numbered steps and
+  a step list under the figure; at most four edge kinds, each told apart by colour and line style, the
+  legend listing only kinds drawn; name and role in two text registers; neighbouring nodes at least one
+  node width apart and edge labels 14px clear of segment ends. Anything that encodes nothing is cut.
+- **R7:** no pictures at all — no icons, logos, brand marks or pictograms, product logos included.
+- **R11:** a group box is derived from its members' bounds plus one fixed pad; one nesting level.
+- **README / README.en workflow figure:** the auto-laid mermaid flow is redrawn under R14
+  (`docs/assets/pipeline.build.mjs`, `--lang en` for the English edition), with a seven-step list
+  under it; the mermaid stays as a collapsed text edition and gains the afgate send-back edge the
+  figure shows. The script asserts geometry (borders, terminal runs, edges through nodes, parallel
+  gaps, spacing, chip clearance, group containment) with four known-bad controls;
+  `build_assets.py --only pipeline --selftest` adds an in-browser text-fit check (a capsule's round
+  ends do not count as usable width) with its own control.
+- **Also refreshed from origin:** wording updates in `diagram-authoring/SKILL.md`,
+  `de-ai-flavor.md`, `figure-self-read.md` and `part-principles.md` (spec §9 drive-root count 12 → 15).
+
 ## v1.0.2 — 2026-11-01
 
 Fixes from an outside read-only review of v1.0.1, a follow-up code audit and two clean-context review

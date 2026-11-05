@@ -76,6 +76,12 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
 - **Crossings hop (R13, notation-precision §2).** Bare "+" crossings read as joins on dense audit
   views; hops became the default on 2026-11-01 after the issued pages were first pinned plain, then
   re-issued. → `tools/archdiag/MAINTENANCE.md` 2026-10-29 … 2026-11-01 logs.
+- **Default visual vocabulary (R14, 2026-11-05).** Borrowed as concepts only (no code or text) from an
+  outside architecture-diagram skill's reading-path and spacing conventions; its icons and logos were
+  deliberately not taken (R7). First field test: the README workflow figure. The figure's own read
+  found a defect class the first text-fit check had no object for (text on a capsule's round ends);
+  the check gained that class and was confirmed to fire on the defective build before the fix. →
+  `docs/assets/pipeline.build.mjs`, `docs/assets/build_assets.py`.
 - **afgate apparatus split.** The first `voice` run on an accepted owner view raised 6 FAILs, all
   inside the provenance block and aggregation table the skill itself mandates; `voice` now rules only
   on the main text. → `tools/audience-fit-gate/README.md`.
@@ -109,11 +115,13 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 | a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:343`) | lists the original's limitation lines; a human rules |
 | a reader edition carries no builder apparatus (paths, hashes, run ids) | code: afgate `voice` FAIL outside the provenance block (`afgate.py:172`, verdict at `:188`) | pattern match; known false positives are listed under "Not claimed" |
 | a reader edition ships as a pair with its original | process only: spec A12 (review) | — |
+| a reader diagram with no inherited vocabulary follows R14 (one numbered accent path, ≤ 4 dual-coded edge kinds, two text registers, gap ≥ one node width) and draws no icons (R7) | process only: `skills/audience-fit/references/presentational-view.md:143`, `:74` | the README workflow figure alone is checked by its own script: spacing and chip clearance (`docs/assets/pipeline.build.mjs:181`, `:198`), borders, terminal runs, edges through nodes, parallel gaps (`asserts()`, `:153`), text fit incl. capsule ends (`docs/assets/build_assets.py:108`); no shared tool enforces R14 on other diagrams |
 
 ## Not claimed
 
-- Appearance: no page in this repo was visually re-checked for this release; the origin's human gates
-  applied to the originals only.
+- Appearance: no example page in this repo was visually re-checked for this release; the origin's
+  human gates applied to the originals only. The README workflow figure (zh-TW) was seen and accepted
+  by the owner on 2026-11-05; its English edition was read by the model only.
 - Other platforms or runtimes: only Windows 11, Node 24.22.1, Python 3.12.7 were run.
 - `m1.mjs` was not run from this repo: it needs the origin's envelope discovery (not shipped).
 - The in-page geometry check (spec A6) was not executed in a browser for this release.

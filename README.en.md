@@ -94,6 +94,20 @@ Then draw my first audit diagram per spec §2: list sources (step 0), write the 
 
 ## How it works
 
+<img src="docs/assets/pipeline.en.png" alt="Workflow figure. Top row, Diagram authoring: Sources, Text model, Structure check, Render, Audit page. Bottom row, Audience fit: audience-fit, afgate check, Owner view. The blue main path is numbered 1 to 7; both checks send work back along a red dashed line on fail; a grey line from the Audit page hands the gap table to a Fresh reviewer." width="100%">
+
+1. **Sources → Text model**: code, config and design docs are written down as node, edge and state tables first.
+2. **Text model → Structure check**: schema and asserts check the model; on fail it goes back to the Text model.
+3. **Structure check → Render**: only a passing model is drawn — routing, line hops, an in-page geometry self-check.
+4. **Render → Audit page**: the audit page ships with its gap report; the gap table goes to a Fresh reviewer, a clean context that did not draw it.
+5. **Audit page → audience-fit**: the same findings are redrawn for readers.
+6. **audience-fit → afgate check**: numbers, scope and terms are checked; on fail it goes back to be redrawn.
+7. **afgate check → Owner view**: on pass it ships paired with the original.
+
+<sub>Drawn by <a href="docs/assets/pipeline.build.mjs"><code>docs/assets/pipeline.build.mjs</code></a> (<code>--lang en</code>); the model asserts and the in-browser text-fit check each ship with known-bad controls.</sub>
+
+<details><summary>Text edition (mermaid)</summary>
+
 ```mermaid
 flowchart LR
   S["Sources<br/>code · config · design docs"] --> M["Text model<br/>node · edge · state tables"]
@@ -104,8 +118,11 @@ flowchart LR
   P --> V["Clean-context reviewer<br/>checks the gap table"]
   P --> A["audience-fit<br/>redraw for readers"]
   A --> K{"afgate<br/>numbers · scope · terms"}
-  K --> O["Owner view<br/>shipped as a pair"]
+  K -- fail --> A
+  K -- pass --> O["Owner view<br/>shipped as a pair"]
 ```
+
+</details>
 
 Four principles run through everything: **a diagram without a model is a screenshot** (build scripts ship with the figures) · **structure and geometry are machine-checked, appearance is human-checked** · **a check rules only on what it can determine** · **a reader edition changes the reader, never the findings**.
 
@@ -120,6 +137,8 @@ Four principles run through everything: **a diagram without a model is a screens
 | a machine-readable index (llms.txt) | [`llms.txt`](llms.txt) | English |
 
 ## This release
+
+**v1.1.0 (2026-11-05)**: reader diagrams gain a default visual vocabulary, rule R14: one accent path numbered with a step list under the figure; at most four edge kinds, told apart by colour and line style; name and role in two text sizes; at least one node width between nodes. Nothing that encodes no meaning is added, and no icons or logos (R7). The "How it works" figure above is the first one drawn under R14, with its build script and two-sided checks. Example page bytes unchanged; all 12 machine controls pass.
 
 **v1.0.2 (2026-11-01)**: correctness fixes in both checkers (numbers glued to Chinese text were missed, plain long numbers were taken for hashes, malformed models crashed the build), each with self-test cases; `docs/EVIDENCE.md` gains an enforcement map (which rules code enforces, which are process only), `AGENTS.md` opens with facts, `llms.txt` gains a read-only route. Example page bytes unchanged.
 

@@ -195,3 +195,14 @@ python -X utf8 docs/assets/build_assets.py
 ```
 
 範例頁改了就重跑。圖片位元組會因字型渲染而不同，不宣稱可逐位元組重現；頁面本身才是可重現的。
+
+「運作流程」圖不是截圖，是照展示圖規則 R14 直接畫的：先跑 [`pipeline.build.mjs`](assets/pipeline.build.mjs) 產生 SVG（英文版加 `--lang en`），再只渲染這張並跑頁內文字檢查：
+
+```text
+node docs/assets/pipeline.build.mjs
+node docs/assets/pipeline.build.mjs --lang en
+node docs/assets/pipeline.build.mjs --selftest
+python -X utf8 docs/assets/build_assets.py --only pipeline --selftest
+```
+
+`--selftest` 會先故意做壞幾份（節點太近、箭頭被擠、線穿過節點、平行線太近、文字塞不進節點），確認每一種都會被抓到，再檢查正常版是 0 FAIL。
