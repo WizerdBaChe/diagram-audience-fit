@@ -29,7 +29,11 @@ export function build(opts) {
   const { outPath, grid = 8, views, write = true } = opts;
   if (!outPath) throw new Error('build(): outPath is required');
   const schemaProblems = validateViews(views);
+  if (opts.animateFlow !== undefined && typeof opts.animateFlow !== 'boolean')
+    schemaProblems.push('animateFlow must be a boolean');
   if (schemaProblems.length) throw new Error('SCHEMA FAILED:\n- ' + schemaProblems.join('\n- '));
+  if (opts.animateFlow !== undefined)
+    opts = { ...opts, views: views.map((v) => v.animateFlow === undefined ? { ...v, animateFlow: opts.animateFlow } : v) };
   const assertProblems = buildAsserts(views, grid);
   if (assertProblems.length) throw new Error('BUILD FAILED:\n- ' + assertProblems.join('\n- '));
   // Marker closure — determinable at build time, so it FAILS here instead of
