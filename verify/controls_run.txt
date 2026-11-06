@@ -1,9 +1,9 @@
-# python -X utf8 verify/run_controls.py reference-impl <new-scratch-dir>   (2026-11-05; fresh git clone of v1.1.0 content; Windows 11; node v24.22.1; Python 3.12.7)
+# python -X utf8 verify/run_controls.py reference-impl <new-scratch-dir>   (2026-11-07; fresh git clone of v1.2.0 content; Windows 11; node v24.22.1; Python 3.12.7)
 # shipped page sha256 (before the run): 2c92bacb 3b773da1 5dad793e (flowchart, owner view, audit) equal the A2 rebuilt hashes below
 A2 built flowchart-notation-demo.build.mjs exit=0
 A2 built mfp-audit-f3-owner-view-v3.build.mjs exit=0
 A2 built mfp-audit-f3.build.mjs exit=0
-   route stats: l1 17/17 x0/0 130.4ms | l2p 16/16 x0/0 36.0ms | l3i 14/14 x0/0 58.7ms | tsm 19/19 x1/2 91.2ms | txd 23/23 x1/1 159.1ms
+   route stats: l1 17/17 x0/0 135.6ms | l2p 16/16 x0/0 35.8ms | l3i 14/14 x0/0 61.4ms | tsm 19/19 x1/2 97.1ms | txd 23/23 x1/1 167.5ms
    2c92bacb5d68ffbbcc7a8200d0476ec1f52813ad84900087de4b60d614f8285c  flowchart-notation-demo.html
    3b773da18f914c06b6541c80b6f10ac142a83a7fa6d305c0fa3741d189b47e78  mfp-audit-f3-owner-view-v3.html
    5dad793e0f0a7833bb71be6d014e9b0ee5782a9f8f055a11db6196d4b5fd077f  mfp-audit-f3.html
@@ -16,7 +16,7 @@ A7 shipped exit=0 (contrast: 0 fail, 1 warn (text AA 4.5:1 = FAIL; edge graphics
 A10 selftest exit=0 ok-lines=52 other-lines=0: calibration: PASS — every check separated its known-true from its known-false input -> ok
 A11 shipped owner view exit=1 (1 = WARN only) | path-injected exit=2 -> ok
 A13 selftest exit=0 (calibration: PASS) | shipped page exit=0 WARN=0, build WARN=0 | one-column page exit=1 WARN=5 single-line=5 | pill->包含 contain-edge=1 -> ok
-A14 rev1 exit=0 layout WARN=59 sha=5dad793e0f0a | rev2 exit=0 layout WARN=21 sha=91a06a7dbfca -> ok
+A14 rev1 exit=0 layout WARN=194 sha=5dad793e0f0a | rev2 exit=0 layout WARN=97 sha=91a06a7dbfca -> ok
 A15 envelope exit=0: SELFTEST PASS (envelope.mjs) | anchors exit=0: SELFTEST PASS (anchors.mjs) -> ok
 A16 flow-selftest exit=0 ok-cases=58 | hops (shipped) exit=0 bare-crossing=0 sha=5dad793e0f0a | plain pin exit=0 bare-crossing=2 sha=b1377243ee6f -> ok
-# README workflow figure, same clone: node docs/assets/pipeline.build.mjs --selftest -> 4 controls fire, known-good model 0 FAIL; same with --lang en
+A17 selftest exit=0: clearance selftest: 31/31 | clear page exit=0 warnings=0 | pre-clearance page exit=1 warnings=134 -> ok
