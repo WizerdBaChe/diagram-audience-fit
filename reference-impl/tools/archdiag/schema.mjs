@@ -53,6 +53,8 @@ export function validateViews(views) {
       P(`${vid}: declaredCrossings must be an integer 0..3 (over 3: split the view instead of declaring)`);
     if (v.crossingStyle !== undefined && !CROSSING_STYLES.includes(v.crossingStyle))
       P(`${vid}: crossingStyle must be one of ${CROSSING_STYLES.join(', ')} (got "${v.crossingStyle}")`);
+    if (v.animateFlow !== undefined && typeof v.animateFlow !== 'boolean')
+      P(`${vid}: animateFlow must be a boolean`);
     const nodes = Array.isArray(v.nodes) ? v.nodes : [];
     const containers = Array.isArray(v.containers) ? v.containers : [];
     const edges = Array.isArray(v.edges) ? v.edges : [];

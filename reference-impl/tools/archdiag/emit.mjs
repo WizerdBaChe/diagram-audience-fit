@@ -149,10 +149,12 @@ function viewSvg(v) {
     if (c.title) s.push(`<text class="lbl" x="${c.x + 14}" y="${c.y + 22}" font-size="12" font-weight="600" fill="${TEXT.container}">${esc(c.title)}</text>`);
   }
   const plan = hopPlan(v); // empty only for crossingStyle 'plain' (hop is the default)
-  for (const e of v.edges) {
+  for (const [i, e] of v.edges.entries()) {
     const st = EDGE[e.type];
     const d = hopPath(e, plan.hops.get(e.id));
     s.push(`<path d="${d}" fill="none" stroke="${st.stroke}" stroke-width="1.6" ${st.dash ? `stroke-dasharray="${st.dash}"` : ''} ${st.marker ? `marker-end="url(#${st.marker})"` : ''} class="edge" data-edge="${esc(e.id)}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" data-pts="${e.pts.flat().join(',')}" ${e.fromComp ? 'data-fromcomp="1"' : ''} ${e.selfLoop ? 'data-selfloop="1"' : ''}/>`);
+    if (v.animateFlow && st.marker)
+      s.push(`<path class="flow-anim" d="${d}" fill="none" stroke="${st.stroke}" aria-hidden="true" style="animation-delay:-${((i % 12) / 10).toFixed(1)}s"/>`);
     if (e.type === 'absent') { // contractual non-dependency: ✕ at first-segment midpoint
       const mx = (e.pts[0][0] + e.pts[1][0]) / 2, my = (e.pts[0][1] + e.pts[1][1]) / 2;
       s.push(`<path d="M${mx - 5} ${my - 5} L${mx + 5} ${my + 5} M${mx - 5} ${my + 5} L${mx + 5} ${my - 5}" stroke="#64748b" stroke-width="1.8" fill="none"/>`);
@@ -240,7 +242,11 @@ export function pageHtml({ grid = 8, doc, views, sections, selfcheckNotes }) {
   th { background: #f8fafc; }
   .note { font-size: 12.5px; color: #475569; margin: 8px 16px; }
   #geoDetail { font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; }
-  .legendbar { font-size: 12px; color: #334155; padding: 6px 16px; border-bottom: 1px solid #e2e8f0; }
+  .legendbar { font-size: 12px; color: #334155; padding: 6px 16px; border-bottom: 1px solid #e2e8f0; }${views.some((v) => v.animateFlow) ? `
+  .flow-anim { stroke-width: 3; stroke-linecap: round; stroke-dasharray: 6 30; pointer-events: none; animation: archdiag-flow 2.4s linear infinite; }
+  @keyframes archdiag-flow { to { stroke-dashoffset: -72; } }
+  @media (prefers-reduced-motion: reduce) { .flow-anim { display: none; } }
+  @media print { .flow-anim { display: none; } }` : ''}
 </style>
 </head>
 <body>

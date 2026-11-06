@@ -62,6 +62,7 @@ dead only while the invariants below hold.
 | `topology.mjs` | Topology-readability WARNINGS over a neutral `{views:[{id,nodes,edges}]}` shape. T1 `single-line`: ≥5 nodes in one column/row with an edge between non-adjacent nodes. T2 `trunk`: ≥4 edges and ≥50% of a view's edges on one collinear run. T3 `no-edges`: ≥3 boxes in one line and 0 edges (a list, not a diagram). T4 `contain-edge`: an edge labelled as containment (model face only). T5 `grid-no-edges`: ≥6 boxes in a 2D layout and 0 edges (T3's 2D twin; the relations belong in a matrix view, e.g. the interception-chain registration matrix in `view-integrity-checks.md` §4). Adapters: `fromViews` (build time), `fromHtml` (archdiag markup or `svg[data-scene]`). CLI `node topology.mjs <page.html…>` exits 1 on any WARN, 3 when a page is not measured or unreadable; `--selftest` runs the two-sided calibration (exit 2 on failure). Views whose id matches `legend` are skipped and listed. |
 | `hops.mjs` | Line hops and junction dots (2026-10-29, notation-precision §2). `hopPlan(view)` → `{hops, dots, problems}` — the SINGLE source both `emit.mjs` (draws) and `layout.mjs` (L5 `hop-no-room`, L7 `bare-crossing` WARN) read. Default since 2026-11-01: a view without `crossingStyle` hops; `'plain'` (per view, or `build({ crossingStyle: 'plain' })` per page) is the receipt pin of a page issued before that, and L7 names its bare crossings. `hopEdges(edges)` gives hand-drawn SVG (audience-fit views) the same plan. The horizontal segment hops (radius `HOP_R` 5), the vertical stays continuous; an interior bend lying on another edge's line gets a junction dot. `data-pts` stays the orthogonal polyline, so every in-page check reads the same geometry. |
 | `flow-selftest.mjs` | Two-sided calibration for flowchart kinds (`term`/`decision`/`note`, edge `annot`), decision-vertex anchoring (router clamp, build assert, in-page check #11 emitted only on pages that draw a decision) and hops. `node flow-selftest.mjs` → exit 0 / 2. Reference specimen: `outputs/diagram-authoring/flowchart-notation-demo.html`. |
+| `flow-anim-selftest.mjs` | Two-sided calibration for opt-in animated flow overlays and their unchanged static geometry. `node flow-anim-selftest.mjs` → exit 0 / 2. |
 | `tokens.mjs` | Style-token table + WCAG contrast check DERIVED from `emit.mjs` (`node tokens.mjs` prints the README table; `--check` exits 2 on a text/fill pair under AA 4.5:1). Roles, not hex, are the contract. |
 | `emit.mjs` | `FILL/STROKE/OVL/EDGE` styling, `esc/cjkW`, `nodeSvg/viewSvg` (ov overlay + 未驗收 badge, absent ✕ edges, multi-inits, lifeline containers), `DEFS`, `pageHtml`. |
 | `tables.mjs` | `table(headers, rows)` HTML table emitter. |
@@ -124,6 +125,14 @@ hook-spine 4/237 resolved, its abbreviation anchors declined (233).
 
 View-model strings are escaped; `doc` strings and `sections[].html` are
 trusted raw (legendbar carries markup by design).
+
+**Animated flow**: pass `animateFlow: true` to `build()` to animate flow edges;
+`view.animateFlow` overrides the page setting, including `false`. Both accept
+only booleans. The moving dash shows edge direction only, not runtime traffic
+or volume. Only edge types with an arrowhead animate; `absent` and `annot` do
+not. Overlays are hidden for reduced motion and print. There is no in-page pause
+control; viewers can stop the animation through the system reduced-motion
+setting. The default output bytes stay unchanged.
 
 ## Extraction acceptance (2026-08-29, S1)
 
