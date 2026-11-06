@@ -33,8 +33,9 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
 - **M7 Screening.** Shipped text holds no personal names from the maintainer's known-names list, no
   e-mail, no home-directory or local drive paths of the maintainer's machine (the `anchors.mjs`
   self-test uses made-up ones such as `D:/w/f.py`), no session ids, no exchange-folder names. The screen
-  runs with a planted positive control in the same invocation (a drive path, a home path, one listed
-  name and an e-mail must all fire: 5 hits) and then reports 0 hits on the repo. The screen and its
+  runs with a planted positive control in the same invocation (a drive path, a home path, an e-mail
+  and every excluded name on the list must all fire: at least 3 plus the number of excluded names;
+  this run: 10 hits, 5 excluded names) and then reports 0 hits on the repo. The screen and its
   name list are the maintainer's and not shipped. The six declared edits are in spec §9.
 - **M8 Unshipped references.** 52 origin paths are mentioned but not shipped
   (`verify/unshipped_paths.txt`, produced by `verify/list_unshipped.py`). The count is higher than the
@@ -48,8 +49,9 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   on none of its 13 sequence and timeline views.
 - **M10 Layout warnings and router revision (spec A14).** The shipped audit build (pinned `rev: 1`)
   logs 194 `layout WARN` and still emits the A2 bytes. Switched to `rev: 2` it logs 97 and emits
-  different bytes. v1.1.0 measured 59 and 21: the rise is the line-clearance kinds L8–L15 added in
-  v1.2.0, which this page predates (the 2026-10-24 edition measured 18 before hops).
+  different bytes. v1.1.0 measured 59 and 21 (its transcript, not this run): the rise comes from
+  v1.2.0's layout changes, which this page predates — the new line-clearance kinds L8–L15, L4 moved
+  into `clearance.mjs` (now container borders), and L6 widened to every node kind (the 2026-10-24 edition measured 18 before hops).
 - **M11 Envelope and anchors (spec A15).** Both self-tests print `SELFTEST PASS`. Neither runs inside
   the three example builds (they declare no archview), so the envelope's end-to-end path is
   origin-side only. The self-portrait build (`docs/self-portrait/self-audit.build.mjs:118`) calls
@@ -123,6 +125,9 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 | a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:343`) | lists the original's limitation lines; a human rules |
 | a reader edition carries no builder apparatus (paths, hashes, run ids) | code: afgate `voice` FAIL outside the provenance block (`afgate.py:172`, verdict at `:188`) | pattern match; known false positives are listed under "Not claimed" |
 | a reader edition ships as a pair with its original | process only: spec A12 (review) | — |
+| an audit build reads the audited sources frozen at a commit, never the live tree | process only: `skills/diagram-authoring/references/carrier-playbook.md:126` | — (the example builds read nothing from an audited repo) |
+| structure, module and org-chart asks are drawn by diagram authoring as a containment view | process only: `skills/diagram-authoring/SKILL.md:37` | — |
+| a reader's question picks the lead views (structure plus one task flow) the reader edition opens with | process only: `skills/audience-fit/SKILL.md:104` | — |
 | a reader diagram with no inherited vocabulary follows R14 (one numbered accent path, ≤ 4 dual-coded edge kinds, two text registers, gap ≥ one node width) and draws no icons (R7) | process only: `skills/audience-fit/references/presentational-view.md:144`, `:74` | the README workflow figure alone is checked by its own script: spacing and chip clearance (`docs/assets/pipeline.build.mjs:181`, `:198`), borders, terminal runs, edges through nodes, parallel gaps (`asserts()`, `:153`), text fit incl. capsule ends (`docs/assets/build_assets.py:109`); no shared tool enforces R14 on other diagrams |
 
 ## Not claimed

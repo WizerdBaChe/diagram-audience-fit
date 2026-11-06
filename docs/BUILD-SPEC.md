@@ -120,8 +120,9 @@ report reviewed by a clean-context reader → (optional) audience-fit A1 owner v
 - **Router revision**: `route(view, {grid, rev})` defaults to `rev: 3` (since 1.2.0). `rev: 2` spreads
   edges over every free grid track and avoids pills over nodes, shared tracks and border-riding edges;
   `rev: 3` adds soft costs for the line-clearance classes below (a line through a foreign group box,
-  over a title, near a node, against another line or its own endpoints) and warns when a gap between
-  boxes is too narrow for the lines it must carry. Pages already issued pin their revision so their
+  over a title, near a node, against another line or its own endpoints: L8–L13). The gap-capacity
+  warning (L14, a gap too narrow for the lines it must carry) comes from the build's layout check at
+  every revision, not from the router. Pages already issued pin their revision so their
   accepted bytes do not move (the shipped audit page pins `rev: 1`).
 - **Line clearance** (`clearance.mjs`, 1.2.0) is one shared module: the same classes (L4, L8–L15) are
   logged by `layout.mjs` as `layout WARN`, priced by the router at `rev: 3`, and run standalone as a page
@@ -134,7 +135,9 @@ report reviewed by a clean-context reader → (optional) audience-fit A1 owner v
   Hops are what make the extra crossings readable.
 - **Layout legibility** (`layout.mjs`) is WARN only, logged as `layout WARN` and returned as
   `result.layout`, never in page bytes: L1 pill over a node, L2 micro-jogs, L3 two edges sharing a
-  track, L4 an edge riding a node border, L5 no room for a hop, L7 bare crossing.
+  track, L5 no room for a hop, L6 text wider than its node (every node kind), L7 bare crossing; and,
+  through `clearance.mjs`, L4 an edge riding a container border plus L8–L15 (line clearance, above;
+  L12 is an edge riding a node border).
 - **Archview envelope** (`envelope.mjs`): `build()` writes a sidecar declaring what an audit view
   covers when the call declares it. **Evidence anchors** (`anchors.mjs`): with `archview.anchors:
   {root, at}`, every machine-form `ev` is resolved against the audited repo at the pinned commit before
@@ -238,7 +241,7 @@ review items. Re-run the script after adapting anything.
 
 ## 9. Declared edits relative to the origin (everything else is byte-identical)
 
-Applied to fresh copies on 2026-11-05 by an anchored script kept by the maintainer (each anchor must
+Applied to fresh copies on 2026-11-07 by an anchored script kept by the maintainer (each anchor must
 hit its stated count, or the run stops before writing). The policy is to remove what identifies a
 third party or a private location, and to keep everything that carries information.
 

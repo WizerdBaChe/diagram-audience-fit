@@ -8,12 +8,14 @@ Line clearance as one shared module, router revision 3 by default, and audit pag
 view set they were checked against. Fixed at the origin and copied by the refresh script; example
 page bytes unchanged (A1/A2, 13 of 13 controls ok).
 
-- **archdiag `clearance.mjs` (new):** classes L4 and L8–L15 — a line inside a foreign group box, over
-  a container title, near a foreign node, parallel and too close to another line, opposite flow on a
-  shared track, back toward its own endpoints, through a gap too narrow for its lines. One module
-  feeds three callers: `layout.mjs` (`layout WARN`), the router's soft costs, and a page CLI
-  (`node tools/archdiag/clearance.mjs <page.html>`, `--selftest` 31/31). WARN only.
-- **Router `rev: 3` (new default):** `rev: 2` plus clearance costs and a gap-capacity warning. Pages
+- **archdiag `clearance.mjs` (new):** classes L4 and L8–L15 — a line riding a container border (L4)
+  or a node border (L12), inside a foreign group box, over a container title, near a foreign node,
+  parallel and too close to another line, opposite flow on a shared track, back toward its own
+  endpoints, through a gap too narrow for its lines (L14), and a label that could belong to two
+  lines (L15). One module feeds three callers: `layout.mjs` (`layout WARN`, every revision), the
+  router's soft costs (L8–L13, `rev: 3`), and a page CLI (`node tools/archdiag/clearance.mjs
+  <page.html>`, `--selftest` 31/31). WARN only.
+- **Router `rev: 3` (new default):** `rev: 2` plus soft costs for L8–L13. Pages
   that pin an older revision keep their bytes. Origin A/B on one audit page, layout held fixed: 17
   clearance warnings under rev 2, 0 under rev 3.
 - **View-set versioning:** `archview.viewSet` records the audit view set a page was declared against;
