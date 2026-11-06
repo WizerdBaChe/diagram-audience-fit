@@ -18,8 +18,8 @@ the origin and copied by the refresh script; example page bytes unchanged (A1/A2
   −4712 px. Pages that pin an older revision keep their bytes.
 - **`rev-ab.mjs` (new, origin maintenance tool):** rebuilds every build at two revisions, reports
   per-view metrics and an explained-change check (each changed edge must carry a warning class that
-  explains it), and draws a red/blue overlay; `--selftest` 7/7. Needs `m1.mjs --list`, so it does not
-  run in this repo. `m1.mjs` now covers every build that imports any archdiag module.
+  explains it), and draws a red/blue overlay; `--selftest` 7/7 (origin-run, not a control here). The
+  A/B harness needs `m1.mjs --list` and so runs only in the origin; the self-test needs neither. `m1.mjs` now covers every build that imports any archdiag module.
 - **Skills:** audience-fit gains R15 (a line stays near its relation; the closing sweep uses
   L16/L17); diagram-authoring notation-precision §2 gains the same rule.
 - **Unshipped references:** 52 → 56 (`verify/unshipped_paths.txt`; new MAINTENANCE log lines cite

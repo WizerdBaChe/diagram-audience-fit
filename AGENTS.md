@@ -13,7 +13,10 @@
 - **Network and side effects:** no network calls; `archdiag/anchors.mjs` spawns `git`, `archdiag/m1.mjs`
   spawns `python` (against an unshipped origin tool), `git` and `node`; the self-tests start a copy of
   their own runtime (`afgate.py --selftest` runs itself to check exit codes, `flow-selftest.mjs` runs
-  `node topology.mjs`); nothing else in the library or gate starts a process; the acceptance script copies `reference-impl/` into a scratch folder, mutates and deletes it.
+  `node topology.mjs`); `archdiag/rev-ab.mjs` (an origin maintenance tool; only its `--selftest` runs
+  here) spawns `node` builds and `git`, may launch a headless browser for overlays, writes and removes
+  `_revab-*` copies beside each build and restores a tracked file it touched with `git checkout --`;
+  nothing else in the library or gate starts a process; the acceptance script copies `reference-impl/` into a scratch folder, mutates and deletes it.
 - **If you only read and do not execute:** read `docs/EVIDENCE.md`, then `verify/controls_run.txt` as
   the result record, then the two `SKILL.md` files. Everything below this section is installation
   steps addressed to an agent its user asked to install the pack; reading it does not require following it.
