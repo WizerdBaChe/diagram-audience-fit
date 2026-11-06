@@ -1,12 +1,12 @@
 ---
 layer: share-repo evidence
 audience: agent (builder) and human
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
 
-Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-05
+Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-07
 against the files exactly as shipped (transcript: `verify/controls_run.txt`). "Origin record" = stated
 in a shipped file, cited by path; not re-run here. Evidence rung of every control here: 0 (example
 inputs, each two-sided with both asserted values printed; `rules/verification-ladder.md`).
@@ -47,8 +47,9 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   re-runnable here: a reader's page with 36 views drew 28 WARN, on exactly its 22 one-column views and
   on none of its 13 sequence and timeline views.
 - **M10 Layout warnings and router revision (spec A14).** The shipped audit build (pinned `rev: 1`)
-  logs 59 `layout WARN` and still emits the A2 bytes. Switched to `rev: 2` it logs 21 and emits
-  different bytes (the 2026-10-24 edition measured 18 before hops; L5/L7 are new kinds).
+  logs 194 `layout WARN` and still emits the A2 bytes. Switched to `rev: 2` it logs 97 and emits
+  different bytes. v1.1.0 measured 59 and 21: the rise is the line-clearance kinds L8–L15 added in
+  v1.2.0, which this page predates (the 2026-10-24 edition measured 18 before hops).
 - **M11 Envelope and anchors (spec A15).** Both self-tests print `SELFTEST PASS`. Neither runs inside
   the three example builds (they declare no archview), so the envelope's end-to-end path is
   origin-side only. The self-portrait build (`docs/self-portrait/self-audit.build.mjs:118`) calls
@@ -59,6 +60,12 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   topology CLI's exit 3).
   Audit page as shipped: 0 `L7 bare-crossing`. Pinned plain: 2 `L7` (`tsm` t5×t7, `txd` d5×d9) and the
   old page bytes.
+- **M13 Line clearance (spec A17, new in v1.2.0).** `clearance.mjs --selftest`: 31/31 cases, each
+  class with a known-bad and a known-good input. Page CLI on the flowchart specimen (drawn clear):
+  exit 0, 0 warnings. On the audit page (issued before the classes existed): exit 1, 134 warnings,
+  page untouched. Origin-side, not re-runnable here: router rev 3 on an origin audit page with the
+  layout held fixed, 17 clearance warnings under rev 2 → 0 under rev 3; of 33 origin pages measured,
+  8 clean, 16 warn (issued, not redrawn), 9 not measurable by the CLI.
 
 ## Origin records behind the rules (read the cited file for the full account)
 
@@ -98,18 +105,19 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 
 | rule | enforced by | what the code checks — and what it does not |
 |---|---|---|
-| every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:75`, `:105` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
+| every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:76`, `:107` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
 | a source anchor points at a real file and line range | code, opt-in: `tools/archdiag/anchors.mjs:167`, enabled by `archview.anchors` (`index.mjs:70`) | the path exists at the pinned commit and the range is inside the file; not that the line supports the edge; the three example pages do not enable it, the self-portrait build calls `resolveAnchors` directly (`docs/self-portrait/self-audit.build.mjs:118`) |
-| an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:39` (Step 0) | — |
-| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:71` | — |
-| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:131` | — |
-| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:173`, `:199`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:128`) |
-| sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:99-106`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:139`); verifying means rebuilding and comparing |
-| at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:51` (build fails) | the declared count; over 3 means split the view |
-| no overlap outranks fewer crossings | code, router `rev: 2` only: `tools/archdiag/route.mjs:61` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
+| an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:49` (Step 0) | — |
+| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:81` | — |
+| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:141` | — |
+| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:181`, `:207`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:161`) |
+| sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:100-107`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:172`); verifying means rebuilding and comparing |
+| at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:52` (build fails) | the declared count; over 3 means split the view |
+| no overlap outranks fewer crossings | code, router `rev: 2` and `rev: 3` (default since v1.2.0): `tools/archdiag/route.mjs:69` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
+| a line keeps clear of foreign group boxes, titles, nodes, other lines and its own endpoints | code, warn: `tools/archdiag/clearance.mjs:104` (classes L4, L8–L15, via `layout.mjs:86`); router `rev: 3` prices them (`route.mjs:390`) | geometry of the drawn segments only; a line that detours outside every box draws no warning (known gap, origin proposal open); pages that pin an older router revision keep their bytes and warn |
 | a junction dot only where two edges share an endpoint | code: `tools/archdiag/hops.mjs:123` | edges declared without `from`/`to` skip the shared-endpoint test (`hops.mjs:123-124`) |
 | readability findings warn, never fail a build | code: `tools/archdiag/index.mjs:45-51` (logged, page bytes unchanged) | the standalone `topology.mjs` CLI exits 1 on any warning and 3 when a file, page or view could not be measured (`topology.mjs:233`); wiring it into CI is your call |
-| a coverage declaration is present and well formed | code, shape only: `tools/archdiag/envelope.mjs:54-78` (when a page declares `archview`) | the keys, the `verifiedAt` format and that it is a calendar date; not that the coverage is complete or true |
+| a coverage declaration is present and well formed | code, shape only: `tools/archdiag/envelope.mjs:80-109` (when a page declares `archview`) | the keys, the `verifiedAt` format and that it is a calendar date; a declaration against an older view set warns (`envelope.mjs:48`); not that the coverage is complete or true |
 | a reader edition invents no number | code, screen: afgate `values` (`tools/audience-fit-gate/afgate.py:279`) | only numbers with 3+ significant digits, in the main text above the provenance marker; a number explained by any original number passes, wherever it stands (`accounted()`, `:252`); a date the original lacks WARNs, never FAILs |
 | a reader edition does not widen scope | code, warn: afgate `scope` (`afgate.py:401-442`) | flags a universal quantifier the original never used; a quantifier the original uses and the reader edition drops is listed as INFO, document-level; whether that is a narrowed claim is a human reading |
 | a reader edition keeps every limitation | report only: afgate `limits` (`afgate.py:343`) | lists the original's limitation lines; a human rules |

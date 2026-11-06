@@ -4,7 +4,7 @@ Usage (from the pack root):  python -X utf8 verify/run_controls.py reference-imp
 
 <new-scratch-dir> must not exist or must be empty; it is created, used and deleted.
 Each control prints BOTH asserted values (correct build vs mutant), not only a verdict.
-Covers spec A1, A2, A3, A4, A5, A7, A10, A11, A13, A14, A15, A16; A6 needs a browser, A8/A9/A12 are review items.
+Covers spec A1, A2, A3, A4, A5, A7, A10, A11, A13, A14, A15, A16, A17; A6 needs a browser, A8/A9/A12 are review items.
 Evidence rung: 0 (example controls, each two-sided with both asserted values printed).
 """
 import hashlib, re, shutil, subprocess, sys, pathlib
@@ -146,4 +146,15 @@ rc0, out0 = run("node", F3); h0 = out0.count("layout WARN L7"); s0 = sha(OUT)
 mutate(F3, "build({", "build({ crossingStyle: 'plain',"); rc1, out1 = run("node", F3); h1 = out1.count("layout WARN L7"); s1 = sha(OUT)
 print(f"A16 flow-selftest exit={rcf} ok-cases={nok} | hops (shipped) exit={rc0} bare-crossing={h0} sha={s0} | "
       f"plain pin exit={rc1} bare-crossing={h1} sha={s1} -> {verdict(rcf == 0 and rc0 == 0 and h0 == 0 and rc1 == 0 and h1 > 0 and s0 != s1)}")
+
+# A17 line clearance (clearance.mjs): selftest, then the page CLI on a page drawn clear (flowchart demo)
+# vs a page issued before the clearance classes existed (the rev-1-pinned audit page): WARN only, never a build stop
+fresh(); rcs, outs = run("node", "tools/archdiag/clearance.mjs", "--selftest")
+last = outs.strip().splitlines()[-1] if outs.strip() else ""
+FD = f"{EX}/flowchart-notation-demo.html"
+rc0, out0 = run("node", "tools/archdiag/clearance.mjs", FD); m0 = re.search(r"(\d+) warning\(s\)", out0)
+rc1, out1 = run("node", "tools/archdiag/clearance.mjs", OUT); m1 = re.search(r"(\d+) warning\(s\)", out1)
+w0, w1 = (int(m0.group(1)) if m0 else -1), (int(m1.group(1)) if m1 else -1)
+print(f"A17 selftest exit={rcs}: {last} | clear page exit={rc0} warnings={w0} | pre-clearance page exit={rc1} warnings={w1} "
+      f"-> {verdict(rcs == 0 and rc0 == 0 and w0 == 0 and rc1 == 1 and w1 > 0)}")
 shutil.rmtree(work)

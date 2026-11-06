@@ -2,6 +2,30 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
+## v1.2.0 — 2026-11-07
+
+Line clearance as one shared module, router revision 3 by default, and audit pages that know which
+view set they were checked against. Fixed at the origin and copied by the refresh script; example
+page bytes unchanged (A1/A2, 13 of 13 controls ok).
+
+- **archdiag `clearance.mjs` (new):** classes L4 and L8–L15 — a line inside a foreign group box, over
+  a container title, near a foreign node, parallel and too close to another line, opposite flow on a
+  shared track, back toward its own endpoints, through a gap too narrow for its lines. One module
+  feeds three callers: `layout.mjs` (`layout WARN`), the router's soft costs, and a page CLI
+  (`node tools/archdiag/clearance.mjs <page.html>`, `--selftest` 31/31). WARN only.
+- **Router `rev: 3` (new default):** `rev: 2` plus clearance costs and a gap-capacity warning. Pages
+  that pin an older revision keep their bytes. Origin A/B on one audit page, layout held fixed: 17
+  clearance warnings under rev 2, 0 under rev 3.
+- **View-set versioning:** `archview.viewSet` records the audit view set a page was declared against;
+  an older or absent set warns at build and in the origin's freshness report until re-declared.
+- **diagram-authoring:** structure, module and org-chart asks are its own (C4 with containment); a
+  reader's question picks lead views (structure plus one task flow) that audience-fit redraws; audit
+  builds read audited sources frozen at a commit (carrier-playbook).
+- **Acceptance:** new A17 (clearance selftest, a clear page at 0, a pre-clearance page warns).
+  A14's counts rise from 59/21 to 194/97 because the audit page predates the new classes.
+- **Known gap, not fixed:** a line that detours outside every box raises no warning (an origin
+  proposal is open).
+
 ## v1.1.0 — 2026-11-05
 
 A default visual vocabulary for reader diagrams, field-tested on this README's own workflow figure.

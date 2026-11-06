@@ -34,6 +34,16 @@ in the same directory.
 | Editable slides humans will present/annotate | Deck | PPTX via anthropic-skills:pptx — native shapes + bound connectors, never baked images |
 | Reconstruct an EXISTING system from data and find holes（體檢繪圖、找缺口） | Audit drawing | any of the above + mandatory gap report; precision view-set → `tools/archdiag` (carrier-playbook §archdiag) |
 
+**Structure / module / org-chart asks are this skill's** (結構圖、模組圖、
+組織圖: what units exist and how they interact): the precise view is the
+C4/component overview drawn with containment (units nested by belonging);
+only its reader version is audience-fit A1 (owner ruling 2026-11-06).
+A reader's question picks LEAD views (representation-models.md «Lead
+views»; 「X 長怎樣」 → structure view + one task flow): draw them first,
+hand their reader version to audience-fit A1, and deliver the rest of the
+audit set after them as by-product. The question never shrinks the
+coverage declaration.
+
 ## Workflow
 
 **Step 0 — Source-data gate (the fabrication firewall).** List the inputs
@@ -164,7 +174,12 @@ per multi-step procedure that branches on a check or loops back on failure —
 a failure or handoff path counts, notation-precision.md §3) as DRAWN or
 EXPLICITLY EXCLUDED with a reason — the `explicitExclusions` vocabulary of
 code-review-deep-checklist's `coverage.json`, so the two deliverables read
-alike. A view absent without a name is an undeclared blind spot, not a
+alike. The declaration is checked against the CURRENT set: pass
+`archview.viewSet` = the `audit-view-set:` line of representation-models.md;
+a page on an older set warns at build and in archviews.freshness until its
+declaration is re-run, and a re-issue that only rebuilds geometry does not
+clear it ("it was only a re-issue" is the excuse: 2026-11-01, 14 pages, no
+flowchart row). A view absent without a name is an undeclared blind spot, not a
 scoping choice: this skill audits one question per view and carries no
 inventory duty, so the declaration is the only place a reader learns what
 was never looked at (AWD 2026-09-03: statecharts drawn, no process/

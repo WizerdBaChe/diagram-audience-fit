@@ -28,6 +28,32 @@ const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const AWARE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
+// The audit view set's version has ONE copy: the `audit-view-set: N` line of
+// representation-models.md. A page records the version its coverage
+// declaration was checked against (archview.viewSet); older or absent warns at
+// build and in archviews.freshness until the declaration is re-run.
+export const VIEW_SET_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
+  '../../skills/product-design-thinking/references/representation-models.md');
+const VIEW_SET_LINE = /^audit-view-set:\s*(\d+)\s*$/m;
+
+/** Current view-set version, or null when the defining file cannot be read. */
+export function currentViewSet(file = VIEW_SET_FILE) {
+  try {
+    const m = VIEW_SET_LINE.exec(fs.readFileSync(file, 'utf8'));
+    return m ? Number(m[1]) : null;
+  } catch { return null; }
+}
+
+/** A warning line when a stored block's view_set is behind `current`; null when current or unknown. */
+export function viewSetNotice(av, current = currentViewSet()) {
+  if (!current || !av) return null;
+  const v = av.view_set;
+  if (Number.isInteger(v) && v >= current) return null;
+  return `archview WARN view-set: coverage declared against view set ${Number.isInteger(v) ? v : '1 (unrecorded)'}, `
+    + `current is ${current} — re-run the coverage declaration (SKILL.md "Coverage declaration"), `
+    + `then pass archview.viewSet: ${current}. A rebuild alone does not clear this.`;
+}
+
 export function viewId(outPath) {
   const base = path.basename(outPath).replace(/\.html?$/i, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-');
   return 'archview-' + base.replace(/^-+|-+$/g, '');
@@ -74,6 +100,11 @@ export function validateDeclaration(d) {
     p.push('archview.maxVerifyAgeDays must be a positive number');
   if (d.title !== undefined && (typeof d.title !== 'string' || !d.title)) p.push('archview.title must be a non-empty string');
   if (d.anchors !== undefined) p.push(...validateAnchorDecl(d.anchors));
+  if (d.viewSet !== undefined) {
+    const cur = currentViewSet();
+    if (!(Number.isInteger(d.viewSet) && d.viewSet >= 1)) p.push('archview.viewSet must be a positive integer');
+    else if (cur && d.viewSet > cur) p.push(`archview.viewSet ${d.viewSet} does not exist (current view set is ${cur})`);
+  }
   return p;
 }
 
@@ -88,6 +119,7 @@ function block(d, anchors) {
     rung: d.rung || 'R2',
     max_verify_age_s: Math.round((d.maxVerifyAgeDays || DEFAULT_MAX_VERIFY_AGE_DAYS) * 86400),
     ...(anchors ? { anchors } : {}),
+    ...(d.viewSet !== undefined ? { view_set: d.viewSet } : {}),
   };
 }
 
@@ -123,8 +155,9 @@ export function writeEnvelope({ outPath, decl, changed, title, producer, remedy,
     retired = prev.retired;
     ttl = prev.title;
   }
+  const notice = retired ? null : viewSetNotice(av);
   const same = prev && JSON.stringify(prev.archview) === JSON.stringify(av) && prev.retired === retired && prev.title === ttl;
-  if (same && !changed) return { path: ep, written: false, reason: 'unchanged' };
+  if (same && !changed) return { path: ep, written: false, reason: 'unchanged', notice };
   const stamp = now.toISOString().replace(/\.\d{3}Z$/, 'Z');
   const env = {
     envelope: ENVELOPE,
@@ -147,7 +180,7 @@ export function writeEnvelope({ outPath, decl, changed, title, producer, remedy,
   const tmp = ep + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(env, null, 2) + '\n', 'utf8');
   fs.renameSync(tmp, ep);
-  return { path: ep, written: true, reason: decl ? 'declared' : 'refreshed' };
+  return { path: ep, written: true, reason: decl ? 'declared' : 'refreshed', notice };
 }
 
 // `node envelope.mjs --selftest` — two-sided controls over a temp folder;
@@ -188,6 +221,24 @@ async function selftest() {
     let threw = false;
     try { writeEnvelope({ outPath: out, decl: { covers: {} , verifiedAt: 'x' }, changed: true }); } catch { threw = true; }
     ok(threw, 'malformed declaration throws before writing');
+    // view-set versioning (2026-11-06): positive controls warn, negative stays silent
+    const cur = currentViewSet();
+    ok(Number.isInteger(cur) && cur >= 2, `representation-models.md carries audit-view-set >= 2 (read ${cur})`);
+    const vsFile = path.join(dir, 'vs.md');
+    fs.writeFileSync(vsFile, 'x\n\naudit-view-set: 7\n', 'utf8');
+    ok(currentViewSet(vsFile) === 7 && currentViewSet(path.join(dir, 'none.md')) === null, 'version line parsed; unreadable -> null');
+    ok(viewSetNotice({ profile: PROFILE }, 2) !== null, 'positive control: no view_set recorded -> warns');
+    ok(viewSetNotice({ view_set: 1 }, 2) !== null, 'positive control: older view_set -> warns');
+    ok(viewSetNotice({ view_set: 2 }, 2) === null, 'negative control: current view_set -> silent');
+    ok(viewSetNotice({}, null) === null, 'unknown current set -> no claim');
+    ok(validateDeclaration({ ...good, viewSet: cur + 50 }).some((p) => p.includes('does not exist')), 'future viewSet is a declaration defect');
+    ok(validateDeclaration({ ...good, viewSet: 0 }).some((p) => p.includes('positive integer')), 'viewSet 0 rejected');
+    const out2 = path.join(dir, 'vs audit.html');
+    r = writeEnvelope({ outPath: out2, decl: good, changed: true, title: 'fx' });
+    ok(!('view_set' in JSON.parse(fs.readFileSync(r.path, 'utf8')).archview) && r.notice, 'no viewSet -> no key (M1 bytes) and a notice');
+    r = writeEnvelope({ outPath: out2, decl: { ...good, viewSet: cur }, changed: false, title: 'fx' });
+    ok(r.written && JSON.parse(fs.readFileSync(r.path, 'utf8')).archview.view_set === cur && r.notice === null,
+      're-declared at the current set -> stored and silent');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

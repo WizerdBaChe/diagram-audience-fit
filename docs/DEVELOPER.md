@@ -16,7 +16,7 @@ diagram-audience-fit/
 ├── THIRD_PARTY_NOTICES.md        借用的外部材料與授權
 ├── docs/
 │   ├── DEVELOPER.md              本頁
-│   ├── BUILD-SPEC.md             規格（英文）：§0–§9，驗收表 A1–A16
+│   ├── BUILD-SPEC.md             規格（英文）：§0–§9，驗收表 A1–A17
 │   ├── EVIDENCE.md               實測紀錄、規則出處、沒有宣稱的事
 │   ├── self-portrait/            用本 repo 的方法畫本 repo：探針、工程版、讀者版（各附建置腳本）
 │   └── assets/                   README 用圖＋重生腳本 build_assets.py、運作流程圖 pipeline.build.mjs
@@ -123,7 +123,7 @@ flowchart TB
 python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新資料夾>
 ```
 
-腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.1.0，乾淨 clone）：A1–A5、A7、A10、A11、A13–A16 共 12 項全過。
+腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.2.0，乾淨 clone）：A1–A5、A7、A10、A11、A13–A17 共 13 項全過。
 
 ## 設計上刻意的幾件事（改之前請先看）
 
@@ -136,7 +136,7 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 7. **不重疊優先於少交叉**：路由器會為了讓線分開而多一些交叉，這是刻意的；剩下的交叉用跳線畫，讓它看起來不像相接。不要為了壓低交叉數把線併回去。
 8. **可讀性只發警告**：排成一直線、線擠在同一段、「+」交叉這類問題，程式只警告、不讓建置失敗，因為「好不好讀」不是幾何算得出來的；會讓建置失敗的警告，最後會被關掉而不是被讀。
 
-上面 8 條中，第 4、5、7、8 條有程式執行（第 7 條只在路由器 rev 2）；第 1、3、6 條是流程規矩，程式不會擋；第 2 條程式只檢查宣告的格式（頁面有宣告 `archview` 時），不檢查覆蓋是否完整。逐條的檔案與行號見 [EVIDENCE · 規則執行表 (Enforcement map)](EVIDENCE.md#enforcement-map--which-rules-a-program-enforces-which-only-the-workflow-asks-for)。
+上面 8 條中，第 4、5、7、8 條有程式執行（第 7 條只在路由器 rev 2 與 rev 3）；第 1、3、6 條是流程規矩，程式不會擋；第 2 條程式只檢查宣告的格式（頁面有宣告 `archview` 時），不檢查覆蓋是否完整。逐條的檔案與行號見 [EVIDENCE · 規則執行表 (Enforcement map)](EVIDENCE.md#enforcement-map--which-rules-a-program-enforces-which-only-the-workflow-asks-for)。
 
 ## 範圍與限制
 

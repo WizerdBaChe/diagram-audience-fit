@@ -138,6 +138,8 @@ Four principles run through everything: **a diagram without a model is a screens
 
 ## This release
 
+**v1.2.0 (2026-11-07)**: line clearance becomes one shared module: a line through a foreign group box, over a title, hugging a node, crowding another line or turning back on its own endpoints raises a warning (WARN only, never a build stop), and the check also runs standalone on a page. The router now defaults to revision 3, which avoids these while placing lines. Audit pages record which standard view set they were checked against and warn once the set moves on. Audit builds read the audited sources frozen at a commit, never the live working tree. Example page bytes unchanged; new machine control A17, all 13 pass.
+
 **v1.1.0 (2026-11-05)**: reader diagrams gain a default visual vocabulary, rule R14: one accent path numbered with a step list under the figure; at most four edge kinds, told apart by colour and line style; name and role in two text sizes; at least one node width between nodes. Nothing that encodes no meaning is added, and no icons or logos (R7). The "How it works" figure above is the first one drawn under R14, with its build script and two-sided checks. Example page bytes unchanged; all 12 machine controls pass.
 
 **v1.0.2 (2026-11-01)**: correctness fixes in both checkers (numbers glued to Chinese text were missed, plain long numbers were taken for hashes, malformed models crashed the build), each with self-test cases; `docs/EVIDENCE.md` gains an enforcement map (which rules code enforces, which are process only), `AGENTS.md` opens with facts, `llms.txt` gains a read-only route. Example page bytes unchanged.

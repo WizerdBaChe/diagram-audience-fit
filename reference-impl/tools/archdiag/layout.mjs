@@ -14,12 +14,17 @@
 //                         tell which arrow goes where (e.g. a write and a
 //                         read-only poll merged into one line)
 //   L4 on-container-edge  an edge runs on a container's dashed border
-// Not determinable as defects, so not here: an edge passing close to a node,
-// a pill sitting on a container border (lane diagrams do this by design).
+// A pill sitting on a container border is not here (lane diagrams do this by
+// design). An edge passing close to a node was listed here as not determinable
+// until 2026-11-07; it is now L11, a WARN (owner saw it as the defect).
 // The geometry is the emitted geometry: pill rect = emit.mjs pill formula.
+
+//   L8–L15               clearance classes, owned by clearance.mjs (one source
+//                         for builds, the page CLI and owner-view sweeps)
 
 import { cjkW, textLayout } from './emit.mjs';
 import { hopPlan, bareCrossings } from './hops.mjs';
+import { clearanceWarnings, archdiagTitleBox } from './clearance.mjs';
 //   L5 hop-no-room        (crossingStyle 'hop' views) a crossing with no room
 //                         for a hop is drawn bare — the fix is a reroute
 //   L7 bare-crossing      (crossingStyle 'plain' views) a crossing drawn as a
@@ -46,8 +51,6 @@ function runOverlap(s, t, gap = 0) {
   }
   return 0;
 }
-const sides = (r) => [[[r.x, r.y], [r.x + r.w, r.y]], [[r.x, r.y + r.h], [r.x + r.w, r.y + r.h]],
-  [[r.x, r.y], [r.x, r.y + r.h]], [[r.x + r.w, r.y], [r.x + r.w, r.y + r.h]]];
 const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
 export function layoutWarnings(views, grid = 8) {
@@ -73,14 +76,30 @@ export function layoutWarnings(views, grid = 8) {
       for (const s of segsOf(a.pts)) for (const t of segsOf(b.pts)) run += Math.max(0, runOverlap(s, t));
       if (run > grid) add('L3', v.id, `shared-track ${a.id} (${a.from}→${a.to}) and ${b.id} (${b.from}→${b.to}) share ${run}px of line`);
     }
-    for (const e of edges) for (const c of v.containers || []) {
-      let run = 0;
-      for (const s of segsOf(e.pts)) for (const t of sides(c)) run += Math.max(0, runOverlap(s, t, 2));
-      if (run > 2 * grid) add('L4', v.id, `on-container-edge ${e.id} runs ${run}px on the border of ${c.id}`);
-    }
+    // L4 on-container-edge lives in clearance.mjs since 2026-11-07 (one source
+    // with owner-view sweeps); it is reported through the call below
+    const conts = (v.containers || []).map((c) => (c.title ? { ...c, titleBox: archdiagTitleBox(c, cjkW(c.title, 12)) } : c));
+    const pills = edges.filter((e) => e.pill && e.pillAt).map((e) => {
+      const w = Math.ceil(cjkW(e.pill, 11)) + 12;
+      return { x: e.pillAt[0] - w / 2, y: e.pillAt[1] - 9, w, h: 18, text: e.pill };
+    });
+    for (const w of clearanceWarnings({ id: v.id, nodes, edges, containers: conts, pills })) add(w.code, v.id, w.message);
     for (const p of hopPlan(v).problems) add('L5', v.id, p.message);
     for (const c of bareCrossings(v))
       add('L7', v.id, `bare-crossing ${c.edge} × ${c.other} at (${c.at}) drawn as "+" (crossingStyle 'plain') — re-issue with the default hop style`);
+    // L6 for every other kind (2026-11-07): a title or sub-line wider than the
+    // box runs out over its border and onto the lines leaving that side
+    for (const n of nodes) {
+      if (n.kind === 'decision' || n.kind === 'note' || !Number.isFinite(n.w)) continue;
+      const t = textLayout(n);
+      const room = t.anchor === 'middle' ? n.w - 16 : n.w - 12 - 4;
+      const lines = [[n.t, t.titleSize], ...(n.l || []).map((ln) => [ln, 11])];
+      for (const [ln, size] of lines) {
+        if (!ln) continue;
+        const w = cjkW(ln, size);
+        if (w > room) { add('L6', v.id, `node-text ${n.id}: 「${ln}」 is ~${Math.round(w)}px in ${Math.round(room)}px of box — widen the node or shorten the line`); break; }
+      }
+    }
     for (const n of nodes) {
       if (n.kind !== 'decision') continue;
       const t = textLayout(n);

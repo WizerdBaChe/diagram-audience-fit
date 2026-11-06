@@ -1,6 +1,6 @@
 ---
 name: audience-fit
-description: 'Post-production audience-adaptation pass (受眾調校) for anything a NON-BUILDER reads: (A) turn an engineering-voiced deliverable (report, summary HTML, README, release notes) into a reader-facing version in a NEW file, or draw a NEW diagram for a non-builder reader (public README flow, promo/ad image, audience page) even with no engineering original; (B) write or fix UI copy (設定頁、狀態列、錯誤訊息) from the user''s stance, not the engine''s. Trigger on 「使用者導向」「白話版」「寫給非工程師看」「UI 文案」「這段太工程」「AI味」 "rewrite for end users"; OFFER once, unprompted, after any skill produces a deliverable whose primary consumer is not its builder. NOT machine-read docs (phase logs, specs), NOT layout/theming (→ artifact-design), NOT technical docs from code (→ engineering:documentation), NOT task/flow/state evaluation 「走得通嗎」「停用還是隱藏」 (→ ux-walkthrough; findings hand off both ways).'
+description: 'Post-production audience-adaptation pass (受眾調校) for anything a NON-BUILDER reads: (A) turn an engineering-voiced deliverable (report, summary HTML, README, release notes) into a reader-facing version in a NEW file, or draw a NEW diagram for a non-builder reader (README flow, promo image, audience page) even with no original; (B) write or fix UI copy (設定頁、狀態列、錯誤訊息) from the user''s stance, not the engine''s. Trigger on 「使用者導向」「白話版」「寫給非工程師看」「UI 文案」「這段太工程」「AI味」 "rewrite for end users"; OFFER once, unprompted, after any skill produces a deliverable whose primary consumer is not its builder. NOT machine-read docs (phase logs, specs), NOT layout/theming (→ artifact-design), NOT technical docs from code (→ engineering:documentation), NOT task/flow/state evaluation 「走得通嗎」「停用還是隱藏」 (→ ux-walkthrough; findings hand off both ways).'
 ---
 
 # audience-fit — adapt finished output to the human who will actually read it
@@ -101,6 +101,13 @@ the wrong output):
   diagram-authoring. The card-grid form is a named user rejection
   (G-7), never a fallback (round-2 field proof:
   `ccfg-retrieval-audit-f1-owner-view.html` v2, user gate PASS 2026-08-31).
+  **Lead views first:** when the reader asked a question (「X 長怎樣」), the
+  A1 page opens with that question's lead views
+  (`skills/product-design-thinking/references/representation-models.md`
+  «Lead views»: structure view + one task flow) redrawn from
+  diagram-authoring's precise versions; other views of the round follow as
+  analysis material. A1 never invents the structure: units and edges come
+  from the precise view (owner ruling 2026-11-06).
   **A1 with no original:** a diagram whose reader is not its builder (a
   public README's pipeline, a promo or ad image) is an A1 product whether
   or not an engineering original exists; a diagram's reader decides its

@@ -20,8 +20,9 @@
 // Determinism: fixed iteration orders, no randomness — routed output is a
 // pure function of the view model (receipt-friendly, same contract as emit).
 //
-// Revisions (opts.rev, default 2 since 2026-10-24). A page built before that
-// date pins rev: 1 in its build script so its receipt never moves (user ruling
+// Revisions (opts.rev, default 3 since 2026-11-07; 2 from 2026-10-24). A page
+// built before a default changed pins the rev it was built with in its build
+// script so its receipt never moves (user ruling
 // 2026-10-24: "enable from now on, already-issued pages stay as they are").
 //   rev 1 — the original scoring and pill placer.
 //   rev 2 — legibility (the layout.mjs L1-L4 classes, found on tg-outpost-audit-f1):
@@ -38,6 +39,12 @@
 //     * corridor pools hold every grid track of a free band, not only its
 //       midpoint (without this, every edge through a narrow band is forced onto
 //       one line and the shared-track penalty has nothing to choose from).
+//   rev 3 — rev 2 plus the clearance classes (clearance.mjs L8–L13: foreign
+//     group box, title band, near-parallel, foreign-node clearance and border,
+//     own-end hug) priced into the score through the module the build warns
+//     with, so the router and the check cannot disagree. Node positions stay
+//     inputs: when every route still costs, the build's L14 gap-capacity
+//     warning names the gap to widen.
 //
 // Borrow ledger (prior-art mandate): B-r1 candidate-generation + predicate-
 // filter shape and outward-stub discipline follow archify routeVia /
@@ -46,6 +53,7 @@
 // budget, pill placement, and B-1 output are archdiag-native.
 
 import { cjkW, textLayout } from './emit.mjs';
+import { clearanceWarnings, archdiagTitleBox } from './clearance.mjs';
 import {
   segmentIntersectsRect,
   routeHonorsEndpointSides,
@@ -243,8 +251,8 @@ function estimateTextRects(view) {
 // ---------- the default provider: channel router ----------
 function channelRouter(view, opts = {}) {
   const grid = opts.grid || 8;
-  const rev = opts.rev ?? 2;
-  if (rev !== 1 && rev !== 2) throw new Error(`route(): unknown rev ${rev} (known: 1, 2)`);
+  const rev = opts.rev ?? 3;
+  if (rev !== 1 && rev !== 2 && rev !== 3) throw new Error(`route(): unknown rev ${rev} (known: 1, 2, 3)`);
   const [vbW, vbH] = view.vb;
   const nodeRects = view.nodes.map(R);
   const contRects = (view.containers || []).map(R);
@@ -277,21 +285,39 @@ function channelRouter(view, opts = {}) {
       groups.get(key).push({ p, end, sortCoord });
     }
   }
+  // rev 3: a top-side anchor under a container's title would bring its line
+  // down through the title text (clearance L9); keep top anchors right of the
+  // title when the side still has room there
+  const titleCut = (rect, side, lo, hi) => {
+    if (rev !== 3 || side !== 'top') return [lo, hi];
+    for (const c of view.containers || []) {
+      if (!c.title || rect.x < c.x || rect.x + rect.width > c.x + c.w || rect.y < c.y) continue;
+      const tb = archdiagTitleBox(c, cjkW(c.title, 12));
+      const right = snap(tb.x + tb.w + grid, grid);
+      if (right > lo && right <= hi) lo = right;
+    }
+    return [lo, hi];
+  };
   const anchors = new Map(); // `${edgeId}|from` -> [x,y]
   for (const [key, list] of groups) {
     const cut = key.lastIndexOf('|'); // a node id may itself contain '|'; the side never does
     const nodeId = key.slice(0, cut), side = key.slice(cut + 1);
     const rect = byId[nodeId];
     list.sort((a, b) => a.sortCoord - b.sortCoord || (a.p.e.id < b.p.e.id ? -1 : 1));
-    const [lo, hi] = sideRange(rect, side);
+    const [lo0, hi0] = sideRange(rect, side);
+    const [lo, hi] = titleCut(rect, side, lo0, hi0);
     if (list.length === 1) {
       // single occupant: project the far end for a straight-line chance
       const item = list[0];
       const other = item.end === 'from' ? item.p.to : item.p.from;
-      anchors.set(`${item.p.e.id}|${item.end}`, projectedAnchor(rect, side, other, grid));
+      const a = projectedAnchor(rect, side, other, grid);
+      anchors.set(`${item.p.e.id}|${item.end}`, lo !== lo0 && a[0] < lo ? sidePoint(rect, side, lo) : a);
     } else {
+      // rev 3: when interior slots would sit closer than the near-parallel
+      // distance (2 grid), spread to the range's ends instead
+      const tight = rev === 3 && (hi - lo) / (list.length + 1) < 2 * grid;
       list.forEach((item, i) => {
-        const t = (i + 1) / (list.length + 1);
+        const t = tight ? i / (list.length - 1) : (i + 1) / (list.length + 1);
         const coord = snap(lo + (hi - lo) * t, grid);
         anchors.set(`${item.p.e.id}|${item.end}`, sidePoint(rect, side, clampNum(coord, lo, hi)));
       });
@@ -299,7 +325,7 @@ function channelRouter(view, opts = {}) {
   }
 
   // -- candidate parameter pools
-  const bands = rev === 2 ? freeBandTracks : freeBandMids;
+  const bands = rev >= 2 ? freeBandTracks : freeBandMids;
   const xPool = bands(nodeRects, 'x', 8, vbW - 8, grid);
   const yPool = bands(nodeRects, 'y', 8, vbH - 8, grid);
 
@@ -357,6 +383,22 @@ function channelRouter(view, opts = {}) {
   }
   const sharesEnd = (a, b) => a.from === b.from || a.from === b.to || a.to === b.from || a.to === b.to;
 
+  // rev 3: the clearance classes (clearance.mjs, the same rules the build
+  // warns with) priced into the route score, so the router avoids what the
+  // check would report. A foreign box or a title costs a little less than a
+  // crossing (1200): one honest hopped crossing beats a line through a group.
+  const CLEAR_COST = { L8: 1000, L9: 900, L10: 600, L11: 300, L12: 900, L13: 900 };
+  const clearConts = (view.containers || []).map((c) => (c.title ? { ...c, titleBox: archdiagTitleBox(c, cjkW(c.title, 12)) } : c));
+  function clearancePen(pts, p) {
+    const others = [...routed.entries()].filter(([id]) => id !== p.e.id)
+      .map(([id, r]) => { const e = plan.find((q) => q.e.id === id).e; return { id, from: e.from, to: e.to, pts: r.pts }; });
+    const ws = clearanceWarnings({ id: view.id, nodes: view.nodes, containers: clearConts,
+      edges: [{ id: p.e.id, from: p.e.from, to: p.e.to, pts }, ...others] }, { focus: p.e.id });
+    // opposite flow on one track misleads the direction: priced like a shared
+    // track with an unrelated edge, above a crossing
+    return ws.reduce((s, w) => s + (w.message.startsWith('opposite-flow') ? ALIEN_PEN : CLEAR_COST[w.code] || 0), 0);
+  }
+
   function candidatesFor(A, B, fs, ts) {
     const out = [];
     const push = (mids) => out.push(normalizeRoutePoints([A, ...mids, B]));
@@ -396,7 +438,7 @@ function channelRouter(view, opts = {}) {
       ? [[p.fs, p.ts]]
       : [[p.fs, p.ts], ...ALL_SIDES.flatMap((a) => ALL_SIDES.map((b) => [a, b]))];
     let best = null;
-    const alienSegs = rev === 2
+    const alienSegs = rev >= 2
       ? [...routed.entries()].filter(([id]) => id !== p.e.id && !sharesEnd(plan.find((q) => q.e.id === id).e, p.e)).flatMap(([, r]) => segs(r.pts))
       : [];
     for (const [fs, ts] of sidePairs) {
@@ -412,7 +454,7 @@ function channelRouter(view, opts = {}) {
       const groupCount = (nodeId, side) => (groups.get(`${nodeId}|${side}`) || []).length;
       const horizPair = (fs === 'right' && ts === 'left') || (fs === 'left' && ts === 'right');
       const vertPair = (fs === 'bottom' && ts === 'top') || (fs === 'top' && ts === 'bottom');
-      if (rev === 2 && (horizPair || vertPair)) {
+      if (rev >= 2 && (horizPair || vertPair)) {
         // generalized slide: any common coordinate both sides allow, kept >= one
         // grid unit from the other anchors already slotted on either side
         const [alo, ahi] = sideRange(p.from, fs), [blo, bhi] = sideRange(p.to, ts);
@@ -442,7 +484,7 @@ function channelRouter(view, opts = {}) {
         if (!routeHonorsEndpointSides(pts, fs, ts)) continue;
         if (throughNode(pts, obs)) continue;
         const { crossings, overlap } = scoreAgainst(pts, routedSegs);
-        const leg = rev === 2 ? legibility(pts, alienSegs) : 0;
+        const leg = (rev >= 2 ? legibility(pts, alienSegs) : 0) + (rev === 3 ? clearancePen(pts, p) : 0);
         const score = crossings * 1200 + overlap * 300 + (pts.length - 2) * 40 +
           lengthOf(pts) * 0.5 + tightness(pts, obs) + (fs !== p.fs || ts !== p.ts ? 25 : 0) + leg;
         if (!best || score < best.score) best = { pts, score, crossings, fs, ts, leg };
@@ -569,9 +611,13 @@ function channelRouter(view, opts = {}) {
   // other placed pill. Runs after all pills are placed, so it never takes a
   // slot another pill needed (placing 'all-clear' first did, and left pills
   // unplaced on two accepted models).
-  if (rev === 2) {
+  // rev 3 adds: a pill touching ANOTHER edge's line (a crossing, a parallel
+  // run) moves too, and no candidate may touch one (clearance L15).
+  if (rev >= 2) {
+    const foreignSegs = (id) => [...routed.entries()].filter(([k]) => k !== id).flatMap(([, r]) => segs(r.pts));
+    const onForeign = (rect, id) => rev === 3 && foreignSegs(id).some(([a, b]) => segmentIntersectsRect({ start: a, end: b }, rect, 0));
     for (const job of pillJobs) {
-      if (!nodeRects.some((q) => rectsOverlap(job.rect, q, 0))) continue;
+      if (!nodeRects.some((q) => rectsOverlap(job.rect, q, 0)) && !onForeign(job.rect, job.id)) continue;
       const others = placedPills.filter((q) => q !== job.rect);
       for (const c of job.candidates) {
         const px = Math.round(c[0]), py = Math.round(c[1]);
@@ -580,6 +626,7 @@ function channelRouter(view, opts = {}) {
         if (others.some((q) => rectsOverlap(rect, q, PAD))) continue;
         if (textRects.some((q) => rectsOverlap(rect, q, PAD))) continue;
         if (nodeRects.some((q) => rectsOverlap(rect, q, 0))) continue;
+        if (onForeign(rect, job.id)) continue;
         placedPills[placedPills.indexOf(job.rect)] = rect;
         job.rect = rect;
         pillAt.set(job.id, [px, py]);

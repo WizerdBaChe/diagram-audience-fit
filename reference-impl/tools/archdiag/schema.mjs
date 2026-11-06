@@ -9,6 +9,7 @@
 // actually renders (variant-recall rule: fix the source, never enumerate).
 
 import { FILL, EDGE } from './emit.mjs';
+import { ROLES } from './clearance.mjs';
 
 export const NODE_KINDS = [...Object.keys(FILL), 'stateT'];
 export const EDGE_TYPES = Object.keys(EDGE);
@@ -85,6 +86,7 @@ export function validateViews(views) {
       if (isNum(c.w) && c.w <= 0) P(`${vid}/${c.id}.w: must be > 0`);
       if (isNum(c.h) && c.h <= 0) P(`${vid}/${c.id}.h: must be > 0`);
       if (c.title !== undefined && !isStr(c.title)) P(`${vid}/${c.id}.title: must be a string ('' allowed for lifelines)`);
+      if (c.role !== undefined && !ROLES.includes(c.role)) P(`${vid}/${c.id}.role: unknown "${c.role}" (known: ${ROLES.join(', ')}; omit to infer)`);
     }
     const eids = new Set();
     for (const e of edges) {

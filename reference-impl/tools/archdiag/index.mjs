@@ -95,6 +95,7 @@ export function build(opts) {
       console.log('archview WARN undeclared: no envelope beside', outPath,
         '— system-hmi cannot see this view; pass archview:{covers,verifiedAt} (or archview:false for a page that is not an audit view)');
     else if (envelope.written) console.log('archview envelope', envelope.reason + ':', envelope.path);
+    if (envelope.notice) console.log(envelope.notice);
   }
   const sha256 = crypto.createHash('sha256').update(html).digest('hex');
   // bytes = ENCODED length (utf8), never html.length: the string length counts

@@ -470,6 +470,62 @@ legibility router, already-issued pages (tg-outpost included) are not redrawn.
   in-page geometry PASS on all 14 rebuilt pages. Mutants: related test removed → 1 FAIL;
   branch test removed → 1 FAIL. system-hmi-audit-f1 still cannot build (its own tripwire).
 
+## Log — 2026-11-07: clearance classes (`clearance.mjs`, layout L8–L13)
+
+- **Why**: the owner saw memory-system-audit-f1 V1 lines inside other groups' boxes, over
+  their titles, 8 px apart and on node borders while selfcheck, layout and topology all
+  passed; the owner view's own sweep passed b8, a line on its target's border that hooked
+  back into it. Router: containers were never obstacles and an edge's own ends never cost.
+- **Changed**: new `clearance.mjs` (six classes, container roles, page CLI, selftest);
+  `layout.mjs` calls it; `schema.mjs` validates an optional `container.role`.
+- **Calibration**: `--selftest` 18 cases, each class fired and quiet. Mutants on a copy:
+  L13 body removed → the b8-shape case FAILs (17/18, exit 2); the lane-axis filter removed →
+  the lane-crossing case FAILs. Pages: memory-system-audit-f1 fires 17 (V1 12), its owner
+  view fires only b8, flowchart-notation-demo 0. Across all 33 pages: 7 measured clean,
+  18 warn, 8 NOT MEASURED (hand-drawn markup). First-run false positives fixed before
+  logging: a row of group boxes read as lanes (shape test added), grid-scaled distances
+  (fixed reading distances now), sequence `par` frames (fragment role).
+- **M1**: 20 builds, receipts unmoved by this change. health-checks-audit-f1 moved because
+  its build reads `hooks/ops_health_nudge.py` line numbers live (pre-existing source drift,
+  restored, not committed); system-hmi-audit-f1 still cannot build (its own tripwire).
+
+## Log — 2026-11-07 (later): L4 shared, L10 extended, L14/L15, router rev 3, L6 widened
+
+- **Why**: the first clearance pass caught the owner-reported lines but the router still
+  produced them, and the owner sweep kept its own copy of the parallel/through-node checks.
+- **Changed**: `clearance.mjs` takes L4 from `layout.mjs`; L10 now flags fans side by side
+  (only d = 0 merges are exempt) and opposite flow (head-to-tail on one track, or collinear
+  with a gap < 2·sep or lying beside the shared node); L14 `gap-capacity`; L15
+  `pill-ambiguous`. `route.mjs` rev 3 (default) prices each clearance class, keeps top
+  anchors right of a container title, spreads tight anchor slots and moves pills off
+  foreign lines. Seven issued build scripts pin `rev: 2`. L6 `node-text` covers every node
+  kind except decision/note. The owner-view sweep of memory-system-audit-f1 calls
+  `clearanceWarnings` (sep 20) instead of its own checks.
+- **Calibration**: selftest 31/31. Mutants on a copy, each FAILs the selftest: fan skip
+  restored, `through` test removed, L14 body removed, L15 body removed, L4 body removed,
+  L13 body removed. A/B on memory-system-audit-f1 with layout unchanged: rev 2 → 17
+  warnings, rev 3 → 0. After redraw: both memory-system pages 0 (owner sweep 0,
+  SWEEP_MUTANT still FAILs); flowchart-notation-demo 0. All 33 pages: 8 clean, 16 warn
+  (issued, not redrawn), 9 NOT MEASURED. L15 review: sampled hits sit on a track shared by
+  two unrelated edges (claude-home dfa d2/a4 at y = 208) — true ambiguity, rule kept.
+- **M1**: receipts move only for the two memory-system pages; health-checks-audit-f1 drift
+  and the system-hmi-audit-f1 tripwire are pre-existing, as above.
+
+## Log — 2026-11-07 (final acceptance): monitoring-audit-f1 pair, frozen source reads
+
+- **Frozen reads**: system-hmi-audit-f1 and health-checks-audit-f1 builds now read their
+  sources with `git show <SRC_AT>:path` (02ea9708 / 9e21f1aa) instead of the live tree,
+  which closes the M1 drift and tripwire named above (9ac9198e; rule in
+  diagram-authoring carrier-playbook, 39cb74ba). M1 after the round: 22 builds, 0 changed.
+- **Field use**: monitoring-audit-f1 (precise, viewSet 2, anchors 84/84 at 39cb74ba) and
+  its owner view: clearance 0, topology 0, layout WARN 0, owner sweep 0 with SWEEP_MUTANT
+  FAIL, fill gate PASS, afgate 0 WARN. User visual gate PASS 2026-11-07.
+- **Gap found, left open**: a route that detours outside every lane or group (over the
+  top of the drawing, past the last lane) passes clearance, layout and topology with 0
+  warnings; caught by eye twice. Feedback row e637d843; proposal
+  `outputs/archdiag-detour-check-20261107/提案單_路線繞行檢查_20261107.md` (L16
+  out-of-frame, L17 detour ratio).
+
 ## Review-when
 
 - A text or surface colour is added to `emit.mjs` → add it to `TEXT`/`SURFACE`

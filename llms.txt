@@ -14,7 +14,7 @@ Start at AGENTS.md. Pin a release tag, not main. Code MIT, documentation CC BY 4
 ## Entry points
 
 - [AGENTS.md](AGENTS.md): reading order, first command, install table into ~/.claude, adaptation rules, what not to adopt
-- [docs/BUILD-SPEC.md](docs/BUILD-SPEC.md): the contract; §2 diagram workflow, §3 library contract, §4 audience-fit contract, §5 gate design, §7 acceptance A1-A16, §8 environment adaptation, §9 declared edits
+- [docs/BUILD-SPEC.md](docs/BUILD-SPEC.md): the contract; §2 diagram workflow, §3 library contract, §4 audience-fit contract, §5 gate design, §7 acceptance A1-A17, §8 environment adaptation, §9 declared edits
 - [docs/EVIDENCE.md](docs/EVIDENCE.md): what this release measured, origin records behind each rule, what is not claimed
 
 ## Run

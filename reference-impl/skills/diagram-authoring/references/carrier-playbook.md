@@ -123,6 +123,12 @@ of the model/build script AND of each rendered artifact. A passing Step-5
 run freezes the artifact; any later edit — appearance-review fixes
 included — reopens Step 5 before the receipt is re-issued. An artifact
 that no longer matches its receipt is not the delivered artifact.
+A build that derives content from the audited code reads it frozen: from
+an inputs folder beside the page, or with `git show <commit>:<path>` at
+the commit it was drawn from — never the live tree, or the issued page
+moves (or its tripwires throw) when the code is fixed; the current state
+goes in a new audit, not into the old page (2026-11-07: system-hmi and
+health-checks F1).
 
 ## Deliverable location & verification environment (this machine)
 
