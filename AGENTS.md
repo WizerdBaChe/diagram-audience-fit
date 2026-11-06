@@ -87,7 +87,7 @@ scripts import `../../tools/archdiag/*.mjs` relative to `outputs/diagram-authori
 ## What not to adopt
 
 Mentions of hooks, a browser-pane protocol, a process ledger, `ops/*` files and "user ruling" are the
-origin environment's mechanisms and decision records. Read them as the reason a rule exists. The 52
+origin environment's mechanisms and decision records. Read them as the reason a rule exists. The 56
 paths listed in `verify/unshipped_paths.txt` are not shipped; none is needed to run the library, the
 gate or the examples (`tools/archdiag/m1.mjs` is the one shipped file that needs them).
 

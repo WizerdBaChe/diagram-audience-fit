@@ -162,6 +162,19 @@ layout per artifact; never transplant it.
     least one node width apart; an edge label fits on its segment with
     ≥ 14px clear at each end, or the nodes move (R10), never the label onto
     a node.
+- **R15 A line stays near its relation.** A group box tells a non-builder
+  "these belong together", so a line between two members that leaves the
+  box reads as an outward link, and a line that wanders away from its
+  target outside every box sends the reader round the page; a line leaving
+  a box to reach something outside it is honest. Owner ruling 2026-11-07
+  (「出框的重點…是否壓住其他呈現以及是否跳脫關係」, option 乙). The closing
+  sweep catches both, never the eye alone: the page's own geometry through
+  `clearanceWarnings()` (`tools/archdiag/clearance.mjs`) gives L16
+  (own-box exit, backtrack outside every box; a loop back to an earlier
+  step against the flow is exempt) and L17 (detour ratio > 3). A hit is a
+  move of nodes or a reroute, never an accepted warning. Excuse answered:
+  "the long way avoids a crossing" — R13's hop makes a crossing cheap to
+  read; a detour is not.
 
 ## Boundary (D-071, user ruling 2026-10-23)
 

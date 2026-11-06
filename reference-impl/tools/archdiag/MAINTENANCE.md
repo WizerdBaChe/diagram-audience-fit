@@ -71,6 +71,27 @@ is a property of these assets, event-triggered — not a schedule.
   measured (see selfcheck.mjs) — a report without it is not comparable
   across environments.
 
+- **M7 — A new router rev ships with an A/B record (born 2026-11-07, rev 4).**
+  M1 only proves issued pages kept their pinned bytes; it is blind to what a
+  new rev does to drawings. Before the default `rev` changes:
+
+  ```git bash
+  node ~/.claude/tools/archdiag/rev-ab.mjs --old <cur> --new <next> --out <scratch dir> --codes <codes the new rev prices>
+  ```
+
+  Every UNEXPLAINED edge is either a bug (rev 4's lost title-anchor guard:
+  7 views) or a deliberate general cost term, and the latter's views go to a
+  blind review (unlabeled pairs, own key written first) before the owner
+  rules. Excluded builds are named with their error. "M1 is green, the old
+  pages did not move" is the excuse this answers: the new rev's drawings are
+  the ones no check has seen.
+  The same change is not done until its rule reaches the readers: the line
+  rules in `skills/diagram-authoring/references/notation-precision.md` §2,
+  the R-list in `skills/audience-fit/references/presentational-view.md`, and
+  the public pack (its next release). "The tool already enforces it" is no answer: a
+  skill reader draws by hand from the list (rev 4 shipped without both lists;
+  the owner caught it, 2026-11-07).
+
 ## Reference (參考) — procedures
 
 - **R1 — Render-verify recipe**: serve the folder
@@ -525,6 +546,108 @@ legibility router, already-issued pages (tg-outpost included) are not redrawn.
   warnings; caught by eye twice. Feedback row e637d843; proposal
   `outputs/archdiag-detour-check-20261107/提案單_路線繞行檢查_20261107.md` (L16
   out-of-frame, L17 detour ratio).
+
+## Log — 2026-11-07 (later): L16 out-of-frame, L17 detour ratio
+
+- **Why**: the gap above. User ruling 2026-11-07: 「前者開工」 on the proposal (now spent).
+- **Changed**: `clearance.mjs` L16 (frame = bounding box of the view's group/lane
+  containers; lifelines and fragments are not a frame; a view without groups/lanes is
+  skipped) and L17 (length / max(Manhattan distance of the ends, 80) > 3, and excess
+  > 80 px). WARN only, through `layout.mjs` and the page CLI. `route.mjs` does not price
+  them, so no route moves.
+- **Known-bad controls (real history, replayed from the 2026-11-06 session's edits)**:
+  monitoring-audit-f1 at its 17:00 state: f4 fires L16 (447 px outside) and L17 (×3.6);
+  owner view at its 17:09 state: b2 「判決記為部分」 fires L16 + L17 (×3.5), b7 「是」
+  fires L16. The fixed states give neither on those edges.
+- **Calibration**: selftest 40/40. Mutants on a copy, each FAILs the selftest: L16 body
+  removed, L17 body removed, L17 floor removed, L16 role filter removed. L17 threshold
+  sweep over 80 measured views: ratio 2 → 7 hits, 2.5 → 2, 3 → 1, 4 → 0; 3 keeps both
+  known-bads (×3.5, ×3.6). Pages: 26 measured, 7 gain L16 (14 edges, all margin runs
+  8–32 px outside the frame, incl. monitoring-audit-f1 V1 e1/e20, which the owner
+  accepted), 1 gains L17 (claude-home-audit-f1 lc t2, ×3.9). Issued pages keep their
+  warnings, not redrawn.
+- **M1**: 22 builds, 0 changed.
+- **Open**: whether a tight margin run (e1/e20 shape) is a defect is the owner's visual
+  call; if not, L16 needs a reach test (how far along the frame the run goes, or ratio),
+  not a distance threshold — the f4 known-bad was also only 8 px outside.
+
+## Log — 2026-11-07 (L16 redefined by owner ruling)
+
+- **Ruling** (owner, same day, option 乙): 「出框的重點並不是畫面本身，而是是否壓住其他呈現
+  以及是否跳脫關係（同框代表相關模組，合理的出框應視為對外連結）」. Leaving a box is not
+  the defect; breaking what the box means is. Covering other content stays with
+  L8/L9/L11/L12/L15.
+- **Changed**: L16 now fires on `own-box-exit` (both ends in one group/lane, the line
+  leaves it) or `out-of-frame-backtrack` (outside the frame of every group/lane the line
+  moves more than 2·sep = 32 px away from its target). A forward margin run no longer
+  fires. L17 unchanged.
+- **Known-bad controls (replayed)**: f4 → backtrack 632 px (+ L17 ×3.6); b2 → own-box-exit
+  L3 + backtrack 260 px (+ L17 ×3.5); b7 「是」 → own-box-exit L4 (L17 alone missed it,
+  ×1.7). monitoring-audit-f1 e1/e20 (owner-accepted margin runs, away 24 / 0 px): quiet.
+- **Pages**: 14 → 6 L16 hits on issued pages; each was looked at on a screenshot and is a
+  detour or own-box exit (claude-home a2 over the top across a title; memory-system e9,
+  f15; mfp-f3 i14 backtracks; mfp-f3 p13, mvlab w13 leave their own group and run over a
+  pill). Issued pages keep their warnings.
+- **Calibration**: selftest 44/44. Mutants, each FAILs: own-box removed, backtrack
+  removed, direction test removed (any exit counts → the e1-shape case fires), L17 body,
+  L17 floor, role filter.
+- **Router**: the score already has a proximity term (length 0.5/px, 40/bend), but one
+  crossing (1200) buys ~2400 px of detour, and L16/L17 are not priced; that is how f4 was
+  produced. Pricing them is a new router rev (issued routes would move): proposal
+  `outputs/archdiag-detour-check-20261107/提案單_路由就近原則_20261107.md`.
+
+## Log — 2026-11-07 (late): router rev 4 (proximity)
+
+- **Ruling**: owner 「開始rev4，記得做對照測試…並且要派工做盲測以及和你對答案」 on the
+  proposal above (now spent). Default rev 3 → 4; every issued page pins its rev (the four
+  that used the default now say `rev: 3`), M1 0 changed.
+- **Changed** (`route.mjs`): L16 `own-box-exit` 1000, `out-of-frame-backtrack` 1300 and
+  L17 1300 priced (`REV4_COST`); the router passes every edge's from/to as `links` so the
+  return-edge exemption sees cycles. Detour term `DETOUR_W` 0.5/px on length beyond the
+  ends' Manhattan distance (a long loop could otherwise outbid one L10, 600: mvlab w14 went
+  from 568 px to 1952 px at ratio 2.7, under L17). L16 return-edge exemption (clearance):
+  an edge on a directed cycle whose target lies before the source's leading side along the
+  main flow (column lanes ⇒ top-down, else a per-edge sign vote) — the owner-praised b8
+  「接回工作」 stays quiet.
+- **Bug caught by the explained-change check**: the rev-3 title-anchor guard read
+  `rev !== 3`, so rev 4 dropped it and lines entered groups through their titles (7 views
+  moved with no L16/L17 to explain them). Now `rev < 3`. Check (scratch,
+  `explain_check.mjs`): every edge rev 4 moves must carry a rev-3 L16/L17 (direct) or sit in
+  a view that has one (ripple); positive control = the bug build (11 UNEXPLAINED), negative
+  = the fixed build (0). The detour term is a general cost, so it trips the check by design
+  (17 lines in memory-compaction life, mfp tsm, tg-outpost): those went to blind round 2.
+- **A/B** (50 views of 18 issued models, every route forced to rev 3 vs rev 4; ccfg-retrieval
+  and claude-home excluded: their builds fail at both revs): 7 views / 32 of 716 edges move;
+  warnings 72 → 67 (L16 8 → 2, L17 1 → 0, L9 2 → 1, L10 18 → 16; L11 23 → 25, L8 0 → 1,
+  L12 0 → 1, L14 2 → 3); crossings 57 → 58; length −4712 px; bends 645 → 635. Known-bads
+  replayed: f4, b2, b7 — rev 3 fires, rev 4 quiet.
+- **Blind test** (sonnet reviewers, unlabeled pairs, my key written first): round 1 (13 pairs,
+  pre-fix) 3 reviewers; round 2 (4 pairs, rev 4 with vs without the detour term) 3 reviewers:
+  with wins mvlab 4/4, life 4/4, tsm 3/4, tg-outpost 2/2 split; round 3 (rev 3 vs final rev 4)
+  2 reviewers: known-bad f4 and owner b2/b7 rev 4 unanimous, mvlab 1/1 split. Disputed:
+  mvlab map, tg-outpost map, mfp-f5 gfs — referred to the owner.
+- **Overlay**: a red/blue diff of two renders (no alpha: per-pixel darker-in-old / darker-
+  in-new masks over a faded copy) shows only what moved; an unchanged view comes out blank.
+
+## Log — 2026-11-07 (close): `rev-ab.mjs` kit (M7), M1 widened, rev 4 vs crossing budgets
+
+- **Ruling**: owner 「選rev4，然後把提案單做掉，補進去當維護工具」 — the three split
+  drawings (mvlab, tg-outpost, mfp-f5 gfs) keep rev 4; the scratch A/B scripts become
+  `rev-ab.mjs` (proposal `outputs/archdiag-rev-ab-20261107/提案單_路由改版對照工具_20261107.md`).
+- **Controls**: rev 3→4 reproduces the scratch record (50 views, 7 changed, 32/716 edges,
+  17 UNEXPLAINED from the detour term); rev 4→4 gives 0. Selftest 7/7.
+- **M1 widened**: builds were selected by an `index.mjs` import, so 7 owner-view builds
+  (importing `route.mjs`/`emit.mjs` directly) were never rebuilt. Now any archdiag module.
+  The first widened run found memory-compaction-audit-f2-owner-view stale (its source was
+  re-issued with hops after it was built); rebuilt, provenance hash line only.
+- **Rev 4 vs declared crossings**: newly in the A/B set, mfp-audit-f4 (pins rev 1) fails at
+  rev 4: in `afm` the only in-budget routes leave their own box, and L16 pricing buys 3
+  undeclared crossings (`crossing-over-declared`, error). Tried and dropped: (a) dropping
+  only the detour term in the repair pass, (b) the same for the whole view, (c) falling
+  back to rev 3 when over budget — (c) restored the owner-rejected f4 detour behind a WARN.
+  Kept: rev 4 reports the overrun (the router never exceeds SILENTLY); the author declares
+  the crossing or adds side hints, as rev 2 already expected. mfp-audit-f3 `l2p` (3 vs 1
+  declared at rev 4) is in the same class; its build does not stop on diagnostics.
 
 ## Review-when
 

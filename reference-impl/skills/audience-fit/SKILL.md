@@ -95,7 +95,7 @@ the wrong output):
   audience-fit owns the presentational view end to end, content and
   rendering (D-071): it reads diagram-authoring's structural model as input
   data (R5 maps to its element ids) and renders a node-and-edge SVG page
-  per that file's R1–R14 (R13: crossings hop via the shared
+  per that file's R1–R15 (R15: a line stays near its relation; R13: crossings hop via the shared
   `tools/archdiag/hops.mjs` `hopEdges()`), calling a shared `tools/` renderer directly when
   the node count outgrows hand placement — never by handing the job to
   diagram-authoring. The card-grid form is a named user rejection

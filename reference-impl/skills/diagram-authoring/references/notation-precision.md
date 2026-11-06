@@ -51,6 +51,21 @@ in parentheses so the source stays traceable (list verified by web search
   you drew, never merge lines back or squeeze a label onto a box to get
   the number down (owner ruling 2026-10-24, router rev 2 review: offered
   "too many crossings", chose rev 2).
+- **A line stays near its relation (proximity).** A group or lane box says
+  its members belong together, so a line between two members that leaves
+  the box reads as a link out of it, and a line that heads away from its
+  target outside every box is a detour; leaving a box to reach something
+  outside it is an honest outward link. Covering other content stays with
+  the clearance rules above. Owner ruling 2026-11-07: 「出框的重點並不是畫面
+  本身，而是是否壓住其他呈現以及是否跳脫關係」. archdiag: clearance L16
+  (`own-box-exit`, `out-of-frame-backtrack` > 2·sep; a loop back to an
+  earlier step against the main flow is exempt) and L17 (`detour-ratio`
+  > 3 × the ends' Manhattan distance, 80 px floor) warn; router rev 4 (the
+  default) prices both plus the length beyond the Manhattan distance.
+  Excuse answered: "the detour avoids a crossing" — a crossing hops (next
+  rule) and costs the reader a glance; a detour sends them round the
+  drawing. Where only a detour fits `declaredCrossings`, declare the
+  crossing.
 - **A crossing that remains is drawn so it cannot be misread as a join**
   (schematic convention, IEEE 315 / IEC 60617 practice): two lines that
   merely pass each other cross with a line hop (a small semicircle on ONE of

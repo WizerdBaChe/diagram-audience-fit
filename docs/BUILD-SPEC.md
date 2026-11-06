@@ -1,7 +1,7 @@
 ---
 layer: share-repo spec
 audience: agent (builder)
-version: 1.2.0
+version: 1.3.0
 snapshot: 2026-11-07
 ---
 
@@ -30,6 +30,13 @@ were checked against (`archview.viewSet`) and warn when the set has moved on; st
 org-chart asks belong to diagram authoring, and a reader's question picks the lead views (structure
 plus one task flow) that audience-fit redraws; audit builds read the audited sources frozen at a commit,
 never the live tree. Example page bytes unchanged (A1/A2); A14 counts rise with the new classes; new A17.
+**Since 1.2.0 (release 1.3.0):** a line stays near its relation — clearance classes L16 (a line with
+both ends in one box leaves it, or a line outside every box moves away from its target; a loop back
+against the flow is exempt) and L17 (drawn length > 3 × the ends' Manhattan distance), WARN only;
+router `rev: 4` as the default (rev 3 plus their costs and a length term on any detour);
+`rev-ab.mjs`, an origin maintenance kit that rebuilds every build at two revisions and requires each
+changed edge to be explained by a warning class; audience-fit R15 and diagram-authoring
+notation-precision §2 state the rule. Example page bytes unchanged (A1/A2); A14 and A17 counts rise.
 
 ## 0. What it is, in one paragraph
 
@@ -49,7 +56,7 @@ owner is **re-drawn** as a presentational view, not annotated.
 | `skills/diagram-authoring/SKILL.md` + `references/{notation-precision,carrier-playbook}.md` | agent instructions | mode router, Steps 0–6, coverage declaration, drawing rules (incl. hops and junction dots, §2), carrier choice and precision ceilings |
 | `skills/product-design-thinking/references/representation-models.md` | theory | which view answers which question; per-tier view sets; blind-spot pairing |
 | `skills/product-design-thinking/references/view-integrity-checks.md` | theory + format | §1 per-view checks, §2 cross-view correspondence, §3 gap-report fields |
-| `tools/archdiag/` | Node ESM library, no npm deps | structural model → schema → build-time asserts → emit HTML/SVG → a11y assert → write + sha256 receipt; in-page geometry self-check; orthogonal router (rev 1 / rev 2 / rev 3); line clearance (`clearance.mjs`); hop plan; model differ; topology and layout warnings; archview envelope; evidence anchors; `m1.mjs` receipt regression (origin maintenance tool, needs unshipped parts) |
+| `tools/archdiag/` | Node ESM library, no npm deps | structural model → schema → build-time asserts → emit HTML/SVG → a11y assert → write + sha256 receipt; in-page geometry self-check; orthogonal router (rev 1–4); line clearance (`clearance.mjs`); hop plan; model differ; topology and layout warnings; archview envelope; evidence anchors; `m1.mjs` receipt regression (origin maintenance tool, needs unshipped parts); `rev-ab.mjs` router revision A/B (origin maintenance tool, runs over `m1.mjs --list`) |
 | `skills/audience-fit/SKILL.md` + 5 references | agent instructions | when to fire, modes A1/A2/B/C, guardrails, paired delivery, R1–R14 for re-drawn views (R14: default visual vocabulary when none is inherited) |
 | `tools/audience-fit-gate/afgate.py` (+ `vendor/term_match.py`) | Python CLI, stdlib only | rules on what is determinable in a rewrite: `voice`, `values`; reports `limits`; screens `scope`, `terms`, `sums`, `style` (WARN only) |
 | `rules/{figure-self-read,layout-convergence,deliverable-doc-refs,verification-ladder}.md` | cross-cutting rules | evidence for rendered figures; when to stop moving a layout; reader editions of documents; which rung of evidence a check carries |
@@ -117,17 +124,20 @@ report reviewed by a clean-context reader → (optional) audience-fit A1 owner v
   one line with no edges; an edge labelled as containment. A page whose markup it does not recognise
   is printed as NOT MEASURED, never as a pass. Keep the WARN severity in a re-implementation: a
   readability warning that fails a build gets suppressed instead of read.
-- **Router revision**: `route(view, {grid, rev})` defaults to `rev: 3` (since 1.2.0). `rev: 2` spreads
+- **Router revision**: `route(view, {grid, rev})` defaults to `rev: 4` (since 1.3.0). `rev: 2` spreads
   edges over every free grid track and avoids pills over nodes, shared tracks and border-riding edges;
   `rev: 3` adds soft costs for the line-clearance classes below (a line through a foreign group box,
   over a title, near a node, against another line or its own endpoints: L8–L13). The gap-capacity
   warning (L14, a gap too narrow for the lines it must carry) comes from the build's layout check at
-  every revision, not from the router. Pages already issued pin their revision so their
+  every revision, not from the router. `rev: 4` also prices L16/L17 (below) and adds 0.5 per px a
+  line runs beyond its ends' Manhattan distance, so a long detour no longer buys away one crossing;
+  a view whose declared crossing budget then overflows reports `crossing-over-declared` — declare the
+  crossing or add side hints, the router never falls back silently. Pages already issued pin their revision so their
   accepted bytes do not move (the shipped audit page pins `rev: 1`).
-- **Line clearance** (`clearance.mjs`, 1.2.0) is one shared module: the same classes (L4, L8–L15) are
-  logged by `layout.mjs` as `layout WARN`, priced by the router at `rev: 3`, and run standalone as a page
+- **Line clearance** (`clearance.mjs`, 1.2.0) is one shared module: the same classes (L4, L8–L17) are
+  logged by `layout.mjs` as `layout WARN`, priced by the router at `rev: 3`/`rev: 4`, and run standalone as a page
   CLI (`node tools/archdiag/clearance.mjs <page.html>`: exit 0 clean, 1 warnings, `--selftest`). WARN
-  only, like topology. Known gap: a line that detours outside every box raises nothing.
+  only, like topology. Since 1.3.0, L16/L17 close the old gap of a line detouring outside every box.
 - **Priority, by design:** no overlap or collision (two unrelated edges on one line, a label on a box,
   an edge riding a border) outranks fewer crossings. rev 2 deliberately trades extra crossings for
   separated lines and labels; the origin owner reviewed exactly this trade and kept it. A rev-2 view
@@ -208,19 +218,19 @@ review items. Re-run the script after adapting anything.
 | A11 | afgate `voice` | the shipped owner view's main text → 0 FAIL / insert a file path into a reader paragraph → FAIL |
 | A12 | paired delivery | an owner view ships with its original, the R5 mapping table and both renders (text rewrites: 3–6 verbatim excerpts) / a rewrite alone is rejected at review |
 | A13 | topology warnings fire on a degenerate layout | `topology.mjs --selftest` → `calibration: PASS`; shipped audit page → exit 0, 0 WARN / every node moved into one column → exit 1, `single-line` WARN; one pill renamed `包含` → a `contain-edge` WARN |
-| A14 | layout warnings are WARN only and measured | audit build as shipped (`rev: 1`) → exit 0, 194 `layout WARN`, page sha = A2 / same build with `rev: 2` → exit 0, a different count (97) and different bytes |
+| A14 | layout warnings are WARN only and measured | audit build as shipped (`rev: 1`) → exit 0, 196 `layout WARN`, page sha = A2 / same build with `rev: 2` → exit 0, a different count (103) and different bytes |
 | A15 | envelope and anchors self-tests | `envelope.mjs --selftest` and `anchors.mjs --selftest` → `SELFTEST PASS` / any failing case → non-zero exit |
 | A16 | flowchart kinds and hops | `flow-selftest.mjs` → PASS (58 `ok` cases); audit build as shipped (hops) → 0 `L7 bare-crossing` / same build with `crossingStyle: 'plain'` → 2 `L7` and different bytes (they equal the 2026-10-24 edition's page, `b1377243…`) |
-| A17 | line clearance warns, never fails | `clearance.mjs --selftest` → 31/31; page CLI on the flowchart specimen → exit 0, 0 warnings / page CLI on the audit page (issued before the classes) → exit 1, 134 warnings, page bytes untouched |
+| A17 | line clearance warns, never fails | `clearance.mjs --selftest` → 46/46; page CLI on the flowchart specimen → exit 0, 0 warnings / page CLI on the audit page (issued before the classes) → exit 1, 136 warnings, page bytes untouched |
 
 ## 8. Adapt to your environment (re-check before trusting)
 
 - Paths in the shipped text (`~/.claude/...`, `tools/...`, `rules/...`, `ops/...`) are the origin
-  environment's layout; `reference-impl/` mirrors it so relative imports resolve. 52 referenced paths
+  environment's layout; `reference-impl/` mirrors it so relative imports resolve. 56 referenced paths
   are **not shipped** (generated by scanning every shipped file for environment paths and resolving each
   against the repo — `verify/list_unshipped.py`, full list in `verify/unshipped_paths.txt`). Grouped:
   `ops/*` (judgment, UAT, integrity sweep, rules index); rules `office-deck-deliverables`,
-  `html-page-style`; two hooks; origin review records and proposals under `outputs/` and
+  `html-page-style`; three hooks; origin review records and proposals under `outputs/` and
   `references/`; two writing-norm notes (`references/writing-norms/`) the audience-fit skill cites;
   other skills (`motion-video`, `paper-story`, `media-fetch-pipeline`); tools
   `page-fill-gate`, `pptx-presentation-gate`, `token-key-gate`, `ui-shot`,
@@ -266,3 +276,6 @@ third party or a private location, and to keep everything that carries informati
    origin's §18, the owner's personal writing-voice notes (owner decision 2026-11-05: personal, not a
    reusable principle); `skills/audience-fit/references/de-ai-flavor.md` drops its pointer to that
    section and keeps the rule it pointed from. No tool reads either file (A10 unchanged).
+7. **Maintainer's share folder.** `tools/archdiag/MAINTENANCE.md` (step M7): the local folder and
+   release step of the maintainer's share control → "the public pack (its next release)". No tool
+   reads the file.

@@ -1,7 +1,7 @@
 ---
 layer: share-repo evidence
 audience: agent (builder) and human
-version: 1.2.0
+version: 1.3.0
 ---
 
 # Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
@@ -36,8 +36,8 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   runs with a planted positive control in the same invocation (a drive path, a home path, an e-mail
   and every excluded name on the list must all fire: at least 3 plus the number of excluded names;
   this run: 10 hits, 5 excluded names) and then reports 0 hits on the repo. The screen and its
-  name list are the maintainer's and not shipped. The six declared edits are in spec §9.
-- **M8 Unshipped references.** 52 origin paths are mentioned but not shipped
+  name list are the maintainer's and not shipped. The seven declared edits are in spec §9.
+- **M8 Unshipped references.** 56 origin paths are mentioned but not shipped
   (`verify/unshipped_paths.txt`, produced by `verify/list_unshipped.py`). The count is higher than the
   2026-10-24 edition's 43 because four reference files were added and they cite further records; v1.0.2
   adds two writing-norm notes the audience-fit skill now cites (de-ai-flavor check 12 states its
@@ -48,10 +48,11 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   re-runnable here: a reader's page with 36 views drew 28 WARN, on exactly its 22 one-column views and
   on none of its 13 sequence and timeline views.
 - **M10 Layout warnings and router revision (spec A14).** The shipped audit build (pinned `rev: 1`)
-  logs 194 `layout WARN` and still emits the A2 bytes. Switched to `rev: 2` it logs 97 and emits
+  logs 196 `layout WARN` and still emits the A2 bytes. Switched to `rev: 2` it logs 103 and emits
   different bytes. v1.1.0 measured 59 and 21 (its transcript, not this run): the rise comes from
   v1.2.0's layout changes, which this page predates — the new line-clearance kinds L8–L15, L4 moved
-  into `clearance.mjs` (now container borders), and L6 widened to every node kind (the 2026-10-24 edition measured 18 before hops).
+  into `clearance.mjs` (now container borders), and L6 widened to every node kind (the 2026-10-24 edition measured 18 before hops). v1.2.0 measured 194 and 97; v1.3.0's
+  L16/L17 add the rest.
 - **M11 Envelope and anchors (spec A15).** Both self-tests print `SELFTEST PASS`. Neither runs inside
   the three example builds (they declare no archview), so the envelope's end-to-end path is
   origin-side only. The self-portrait build (`docs/self-portrait/self-audit.build.mjs:118`) calls
@@ -62,12 +63,15 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   topology CLI's exit 3).
   Audit page as shipped: 0 `L7 bare-crossing`. Pinned plain: 2 `L7` (`tsm` t5×t7, `txd` d5×d9) and the
   old page bytes.
-- **M13 Line clearance (spec A17, new in v1.2.0).** `clearance.mjs --selftest`: 31/31 cases, each
+- **M13 Line clearance (spec A17, new in v1.2.0).** `clearance.mjs --selftest`: 46/46 cases (31 until v1.2.0; L16/L17 added 15), each
   class with a known-bad and a known-good input. Page CLI on the flowchart specimen (drawn clear):
-  exit 0, 0 warnings. On the audit page (issued before the classes existed): exit 1, 134 warnings,
+  exit 0, 0 warnings. On the audit page (issued before the classes existed): exit 1, 136 warnings (134 in v1.2.0),
   page untouched. Origin-side, not re-runnable here: router rev 3 on an origin audit page with the
   layout held fixed, 17 clearance warnings under rev 2 → 0 under rev 3; of 33 origin pages measured,
-  8 clean, 16 warn (issued, not redrawn), 9 not measurable by the CLI.
+  8 clean, 16 warn (issued, not redrawn), 9 not measurable by the CLI. Router rev 4 (v1.3.0),
+  origin A/B over 50 views (`rev-ab.mjs`, rev 3 → 4): warnings 72 → 67 (L16 8 → 2, L17 1 → 0),
+  crossings 57 → 58, total line length −4712 px; a blind review by separate reviewers preferred
+  rev 4 on the known-bad pages and split on three, which the owner kept at rev 4.
 
 ## Origin records behind the rules (read the cited file for the full account)
 
@@ -112,11 +116,11 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 | an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:49` (Step 0) | — |
 | a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:81` | — |
 | the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:141` | — |
-| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:181`, `:207`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:161`) |
+| same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:189`, `:215`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:161`) |
 | sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:100-107`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:172`); verifying means rebuilding and comparing |
 | at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:52` (build fails) | the declared count; over 3 means split the view |
-| no overlap outranks fewer crossings | code, router `rev: 2` and `rev: 3` (default since v1.2.0): `tools/archdiag/route.mjs:69` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
-| a line keeps clear of foreign group boxes, titles, nodes, other lines and its own endpoints | code, warn: `tools/archdiag/clearance.mjs:104` (classes L4, L8–L15, via `layout.mjs:86`); router `rev: 3` prices them (`route.mjs:390`) | geometry of the drawn segments only; a line that detours outside every box draws no warning (known gap, origin proposal open); pages that pin an older router revision keep their bytes and warn |
+| no overlap outranks fewer crossings | code, router `rev: 2` and `rev: 3` (default since v1.2.0): `tools/archdiag/route.mjs:76` (shared-track penalty 1500 > crossing 1200) | edges without a common endpoint; the shipped audit page pins `rev: 1` (spec §3) |
+| a line keeps clear of foreign group boxes, titles, nodes, other lines and its own endpoints | code, warn: `tools/archdiag/clearance.mjs:115` (classes L4, L8–L17, via `layout.mjs:86`); router `rev: 3`/`rev: 4` prices them (`route.mjs:398`) | geometry of the drawn segments only; a line that leaves its own box or detours outside every box warns as L16/L17 since v1.3.0; pages that pin an older router revision keep their bytes and warn |
 | a junction dot only where two edges share an endpoint | code: `tools/archdiag/hops.mjs:123` | edges declared without `from`/`to` skip the shared-endpoint test (`hops.mjs:123-124`) |
 | readability findings warn, never fail a build | code: `tools/archdiag/index.mjs:45-51` (logged, page bytes unchanged) | the standalone `topology.mjs` CLI exits 1 on any warning and 3 when a file, page or view could not be measured (`topology.mjs:233`); wiring it into CI is your call |
 | a coverage declaration is present and well formed | code, shape only: `tools/archdiag/envelope.mjs:80-109` (when a page declares `archview`) | the keys, the `verifiedAt` format and that it is a calendar date; a declaration against an older view set warns (`envelope.mjs:48`); not that the coverage is complete or true |

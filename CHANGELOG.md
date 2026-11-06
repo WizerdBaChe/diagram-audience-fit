@@ -2,6 +2,33 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
+## v1.3.0 — 2026-11-07
+
+A line stays near its relation: two new clearance classes and router revision 4 by default. Fixed at
+the origin and copied by the refresh script; example page bytes unchanged (A1/A2, 13 of 13 controls ok).
+
+- **archdiag `clearance.mjs`:** L16 out-of-frame — a line with both ends in one box that runs outside
+  it, or a line outside every box that moves away from its target (an edge on a directed cycle that
+  heads back against the main flow is exempt); L17 detour-ratio — drawn length > 3 × the ends'
+  Manhattan distance, floor 80 px. WARN only. `--selftest` 46/46.
+- **Router `rev: 4` (new default):** `rev: 3` plus costs for L16/L17 and 0.5 per px beyond the ends'
+  Manhattan distance; the rev-3 title-anchor guard now applies from rev 3 up. A view that overflows its
+  `declaredCrossings` reports `crossing-over-declared` — no silent fallback to an older revision.
+  Origin A/B over 50 views: warnings 72 → 67 (L16 8 → 2, L17 1 → 0), crossings 57 → 58, length
+  −4712 px. Pages that pin an older revision keep their bytes.
+- **`rev-ab.mjs` (new, origin maintenance tool):** rebuilds every build at two revisions, reports
+  per-view metrics and an explained-change check (each changed edge must carry a warning class that
+  explains it), and draws a red/blue overlay; `--selftest` 7/7. Needs `m1.mjs --list`, so it does not
+  run in this repo. `m1.mjs` now covers every build that imports any archdiag module.
+- **Skills:** audience-fit gains R15 (a line stays near its relation; the closing sweep uses
+  L16/L17); diagram-authoring notation-precision §2 gains the same rule.
+- **Unshipped references:** 52 → 56 (`verify/unshipped_paths.txt`; new MAINTENANCE log lines cite
+  origin proposals and a hook).
+- **Declared edits:** a seventh (spec §9): the maintainer's share folder in MAINTENANCE step M7.
+- **Acceptance:** A14 counts 194/97 → 196/103 and A17 31/31, 134 → 46/46, 136, both from the new
+  classes on a page issued before them.
+- **Closed:** the v1.2.0 known gap (a line that detours outside every box raised nothing).
+
 ## v1.2.0 — 2026-11-07
 
 Line clearance as one shared module, router revision 3 by default, and audit pages that know which

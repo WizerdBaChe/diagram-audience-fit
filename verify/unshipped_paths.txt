@@ -1,12 +1,15 @@
 hooks/instructions_loaded_logger.py	<- tools/archdiag/MAINTENANCE.md
 hooks/notice_budget.py	<- skills/diagram-authoring/SKILL.md
+hooks/ops_health_nudge.py	<- tools/archdiag/MAINTENANCE.md
 ops/30-judgment.md	<- rules/layout-convergence.md
 ops/lessons.md	<- skills/ux-walkthrough/references/decision-point-contract.md
 ops/references/integrity-sweep.md	<- tools/archdiag/MAINTENANCE.md, tools/archdiag/README.md
 ops/references/rule-narratives-2026-10-12.md	<- rules/verification-ladder.md
 ops/references/uat.md	<- skills/audience-fit/SKILL.md
 ops/rules-usage-dict.md	<- skills/product-design-thinking/references/view-integrity-checks.md
+outputs/archdiag-detour-check-20261107	<- tools/archdiag/MAINTENANCE.md
 outputs/archdiag-m1-reach-20261024	<- tools/archdiag/MAINTENANCE.md
+outputs/archdiag-rev-ab-20261107	<- tools/archdiag/MAINTENANCE.md
 outputs/archview-coverage-20261021	<- tools/archdiag/MAINTENANCE.md
 outputs/archview-coverage-20261021/backfill-envelopes.mjs	<- tools/archdiag/MAINTENANCE.md
 outputs/diagram-authoring/archdiag-capability-set-v1	<- outputs/skill-reviews/archify-integration-analysis-2026-08-28.md
@@ -45,9 +48,10 @@ tools/page-fill-gate/fill_gate.py	<- rules/deliverable-doc-refs.md, skills/diagr
 tools/pptx-presentation-gate	<- skills/diagram-authoring/SKILL.md
 tools/system-hmi/SNAPSHOT-ENVELOPE.md	<- tools/archdiag/README.md, tools/archdiag/envelope.mjs
 tools/system-hmi/controls.py	<- tools/archdiag/envelope.mjs
+tools/system-hmi/emitters/archviews.py	<- skills/product-design-thinking/references/representation-models.md
 tools/system-hmi/hmi/envelopes.py	<- tools/archdiag/m1.mjs
 tools/token-key-gate/token_key_gate.py	<- rules/deliverable-doc-refs.md
-tools/ui-shot	<- tools/archdiag/MAINTENANCE.md
+tools/ui-shot	<- tools/archdiag/MAINTENANCE.md, tools/archdiag/rev-ab.mjs
 tools/x.py	<- tools/archdiag/anchors.mjs
 tools/xi_scan.py	<- tools/audience-fit-gate/afgate.py
-total: 52
+total: 56

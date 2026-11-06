@@ -19,7 +19,7 @@
 // until 2026-11-07; it is now L11, a WARN (owner saw it as the defect).
 // The geometry is the emitted geometry: pill rect = emit.mjs pill formula.
 
-//   L8–L15               clearance classes, owned by clearance.mjs (one source
+//   L8–L17               clearance classes, owned by clearance.mjs (one source
 //                         for builds, the page CLI and owner-view sweeps)
 
 import { cjkW, textLayout } from './emit.mjs';

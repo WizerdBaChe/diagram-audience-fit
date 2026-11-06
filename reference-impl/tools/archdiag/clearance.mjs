@@ -25,6 +25,17 @@
 //   L14 gap-capacity       a gap carries more lines than its width allows:
 //                          names the gap to widen (positions are inputs)
 //   L15 pill-ambiguous     a label touches two or more edges' lines
+//   L16 out-of-frame       leaving a box is fine; breaking what the box means
+//                          is not: own-box-exit (both ends in one group/lane,
+//                          the line leaves it) and out-of-frame-backtrack
+//                          (outside every group/lane the line moves > 2·sep
+//                          away from its target); views without groups/lanes
+//                          are skipped
+//   L17 detour-ratio       drawn length > 3 × the ends' Manhattan distance
+//                          (distance floored at 80 px, excess > 80 px)
+// L16/L17 (2026-11-07 later): a line outside every box has nothing to come
+// close to, so the distance classes cannot see it. The router does not price
+// them (CLEAR_COST in route.mjs), so issued routes are unchanged.
 // L10 also reports two edges that meet head to tail (one enters the node the
 // other leaves) on ONE track: fan-out/fan-in may bundle, opposite flow may not.
 // Readability, not correctness ⇒ WARN, never FAIL (gate-design: not
@@ -108,6 +119,9 @@ export function clearanceWarnings(view, opts = {}) {
   const clear = opts.clear ?? 8;               // L11/L13 distance
   const sep = opts.sep ?? 16;                  // L10 distance
   const minRun = opts.minRun ?? 8;             // shortest run that counts
+  const detourRatio = opts.detourRatio ?? 3;   // L17 length / end distance
+  const detourFloor = opts.detourFloor ?? 80;  // L17 end distance floor and minimum excess
+  const backtrack = opts.backtrack ?? 2 * sep; // L16 px moved away from the target outside the frame
   const focus = opts.focus;                    // router: only warnings that involve this edge
   const W = [];
   const add = (code, message) => W.push({ code, view: view.id, message });
@@ -162,6 +176,87 @@ export function clearanceWarnings(view, opts = {}) {
       for (const s of ss.slice(1, -1)) run += runIn(s, n, clear, true);
       if (run > 0) add('L13', `own-end-hug ${e.id} runs ${Math.round(run)}px within ${clear}px of its own end ${end}`);
     }
+  }
+  // L16 / L17: how far a line itself wanders, which the distance classes above
+  // cannot see (a line outside every box has nothing to come close to)
+  const frameConts = conts.filter((c) => /^(group|lane)/.test(roles.get(c.id)));
+  const frame = frameConts.length && {
+    x: Math.min(...frameConts.map((c) => c.x)), y: Math.min(...frameConts.map((c) => c.y)),
+  };
+  if (frame) {
+    frame.w = Math.max(...frameConts.map((c) => c.x + c.w)) - frame.x;
+    frame.h = Math.max(...frameConts.map((c) => c.y + c.h)) - frame.y;
+  }
+  const inFrame = (p) => p[0] >= frame.x - 0.5 && p[0] <= frame.x + frame.w + 0.5 && p[1] >= frame.y - 0.5 && p[1] <= frame.y + frame.h + 0.5;
+  const segLen = (s) => Math.abs(s[1][0] - s[0][0]) + Math.abs(s[1][1] - s[0][1]);
+  // main flow: column lanes run top-down, row lanes left-right; otherwise a
+  // per-edge vote (a sum of displacements is dominated by the long return
+  // edges it is meant to find)
+  const cen = (id) => rect[id] && [rect[id].x + rect[id].w / 2, rect[id].y + rect[id].h / 2];
+  // `links` = every edge of the view as {from,to}, routed or not: the router
+  // passes it so the loop and flow tests see the whole graph mid-routing
+  const links = opts.links || edges;
+  let fx = 0, fy = 0;
+  // (row strips are as often layers crossed top-down as lanes run left-right,
+  // so only column lanes fix the axis)
+  if ([...roles.values()].includes('lane:col')) fy = 1;
+  else for (const e of links) {
+    const s = cen(e.from), t = cen(e.to);
+    if (s && t) { fx += Math.sign(t[0] - s[0]); fy += Math.sign(t[1] - s[1]); }
+  }
+  // a return edge closes a loop: its target reaches its source along the
+  // arrows (a forward edge, or any edge of an acyclic dependency or data
+  // view, never qualifies), AND the target lies before the source
+  const succ = new Map();
+  for (const e of links) (succ.get(e.from) || succ.set(e.from, []).get(e.from)).push(e.to);
+  const reaches = (from, to) => {
+    const seen = new Set([from]), stack = [from];
+    while (stack.length) for (const n of succ.get(stack.pop()) || []) {
+      if (n === to) return true;
+      if (!seen.has(n)) { seen.add(n); stack.push(n); }
+    }
+    return false;
+  };
+  const isReturn = (e) => {
+    const s = rect[e.from], t = cen(e.to);
+    if (!s || !t || !reaches(e.to, e.from)) return false;
+    // the target must lie wholly before the source's leading side, not merely level with it
+    if (Math.abs(fy) >= Math.abs(fx)) return fy >= 0 ? t[1] < s.y : t[1] > s.y + s.h;
+    return fx >= 0 ? t[0] < s.x : t[0] > s.x + s.w;
+  };
+  for (const e of edges) {
+    if (focus && e.id !== focus) continue;
+    const ss = segsOf(e.pts), a = e.pts[0], b = e.pts[e.pts.length - 1];
+    // L16 out-of-frame (user ruling 2026-11-07): leaving a box is not the
+    // defect; a box means "these belong together", so a line leaving one
+    // reads as an outward link. Two shapes break that reading:
+    //  own-box exit: both ends sit in one group/lane, the line leaves it
+    //  backtrack:    outside the frame of all groups/lanes, the line moves
+    //                AWAY from its target by more than `backtrack` px (a run
+    //                along the outside toward the target is a margin route)
+    // Covering other content is L8/L9/L11/L12/L15's.
+    const own = frameConts.filter((c) => contains(c, { x: a[0], y: a[1], w: 0, h: 0 }) && contains(c, { x: b[0], y: b[1], w: 0, h: 0 }));
+    for (const c of own) {
+      let out = 0;
+      for (const s of ss) out += segLen(s) - runIn(s, c, 0.5, true);
+      if (out > minRun) add('L16', `own-box-exit ${e.id} (${e.from}→${e.to}) has both ends in ${c.id} but runs ${Math.round(out)}px outside it — it reads as a link out of ${c.id}`);
+    }
+    // a return edge (its target lies before its source along the view's main
+    // flow) is a loop back; a loop round the outside is the flowchart
+    // convention for it (owner-accepted 「接回工作」, memory-system owner view
+    // b8), so only forward edges are held to the backtrack test
+    if (frame && inFrame(a) && inFrame(b) && !isReturn(e)) {
+      let away = 0;
+      const dist = (p) => Math.abs(b[0] - p[0]) + Math.abs(b[1] - p[1]);
+      for (const s of ss) if (segLen(s) - runIn(s, frame, 0.5, true) > 0.5) away += Math.max(0, dist(s[1]) - dist(s[0]));
+      if (away > backtrack) add('L16', `out-of-frame-backtrack ${e.id} (${e.from}→${e.to}) moves ${Math.round(away)}px away from its target outside every group/lane — a detour round the drawing`);
+    }
+    // L17 detour-ratio: drawn length against the Manhattan distance of its
+    // ends; a floor keeps a short hop between neighbours from reading as a detour
+    const len = ss.reduce((t, s) => t + segLen(s), 0);
+    const direct = Math.abs(b[0] - a[0]) + Math.abs(b[1] - a[1]);
+    const ratio = len / Math.max(direct, detourFloor);
+    if (ratio > detourRatio && len - direct > detourFloor) add('L17', `detour-ratio ${e.id} (${e.from}→${e.to}) is ${Math.round(len)}px long for ends ${Math.round(direct)}px apart (×${ratio.toFixed(1)}, want ≤ ${detourRatio})`);
   }
   // L10
   for (let i = 0; i < edges.length; i++) for (let j = i + 1; j < edges.length; j++) {
@@ -366,6 +461,44 @@ function selftest() {
       { id: 'y', from: 'b', to: 'a', pts: [[60, -60], [60, -50], [80 + w / 2 + 4, -50], [80 + w / 2 + 4, 270], [60, 270], [60, 300]] }] });
   run('L14 fires', 'L14', gap(24), true);
   run('L14 quiet', 'L14', gap(64), false);
+  // L16: the V2 f4 shape (over the top of every group) and the owner-view
+  // shape (past the last lane) vs the same ends routed inside the frame
+  run('L16 fires over the top', 'L16', { ...base(), edges: [{ id: 'x', from: 'a', to: 'b', pts: [[60, 40], [60, -40], [460, -40], [460, 40]] }] }, true);
+  run('L16 quiet inside the frame', 'L16', { ...base(), edges: [{ id: 'x', from: 'a', to: 'b', pts: [[100, 60], [420, 60]] }] }, false);
+  const past = (x) => ({ id: 'p', containers: [C('L0', 0, 0, 200, 600), C('L1', 200, 0, 200, 600), C('L2', 400, 0, 200, 600)],
+    nodes: [N('s', 420, 100, 160, 60), N('t', 420, 400, 160, 60)],
+    edges: [{ id: 'x', from: 's', to: 't', pts: [[580, 130], [x, 130], [x, 430], [580, 430]] }] });
+  run('L16 fires past the last lane', 'L16', past(640), true);
+  run('L16 quiet inside the last lane', 'L16', past(592), false);
+  // the e1 shape: two groups stacked, the line steps 24px out of the frame and
+  // runs down the margin toward its target — a margin route, not a detour
+  const stack = { id: 'm', containers: [C('GT', 40, 0, 400, 120), C('GD', 40, 200, 400, 120)], nodes: [N('s', 48, 40), N('t', 48, 240)] };
+  run('L16 quiet on a forward margin run (e1 shape)', 'L16', { ...stack, edges: [{ id: 'x', from: 's', to: 't', pts: [[48, 60], [24, 60], [24, 260], [48, 260]] }] }, false);
+  run('L16 fires when the margin run starts backwards', 'L16', { ...stack, edges: [{ id: 'x', from: 's', to: 't', pts: [[100, 40], [100, -40], [24, -40], [24, 260], [48, 260]] }] }, true);
+  // the b7 shape: both ends in one lane, the line leaves the lane into the gutter beside it
+  const lane3 = { id: 'k', containers: [C('L0', 0, 0, 200, 600), C('L1', 200, 0, 200, 600), C('L2', 400, 0, 200, 600)], nodes: [N('d', 220, 100), N('s', 220, 300)] };
+  run('L16 own-box exit fires (b7 shape)', 'L16', { ...lane3, edges: [{ id: 'x', from: 'd', to: 's', pts: [[300, 120], [420, 120], [420, 320], [300, 320]] }] }, true);
+  run('L16 own-box quiet when the line stays in its lane', 'L16', { ...lane3, edges: [{ id: 'x', from: 'd', to: 's', pts: [[260, 140], [260, 300]] }] }, false);
+  // the b8 shape: a loop back up round the outside of column lanes
+  const loopV = (withForward) => ({ id: 'b', containers: [C('L0', 40, 0, 200, 800), C('L1', 240, 0, 200, 800), C('L2', 440, 0, 200, 800)],
+    nodes: [N('W', 460, 100, 160, 60), N('K', 260, 600, 160, 60)],
+    edges: [...(withForward ? [{ id: 'f', from: 'W', to: 'K', pts: [[540, 160], [540, 630], [420, 630]] }] : []),
+      { id: 'x', from: 'K', to: 'W', pts: [[260, 630], [20, 630], [20, 130], [460, 130]] }] });
+  run('L16 quiet on a loop back round the margin (b8 shape)', 'L16', loopV(true), false);
+  run('L16 fires on the same route when nothing loops back', 'L16', loopV(false), true);
+  run('L16 quiet with no group or lane', 'L16', { id: 'n', containers: [], nodes: [N('a', 0, 0), N('b', 400, 0)],
+    edges: [{ id: 'x', from: 'a', to: 'b', pts: [[40, 0], [40, -60], [440, -60], [440, 0]] }] }, false);
+  // L17: a loop out and back vs the plain elbow between the same ends
+  const pair = { id: 'r', containers: [], nodes: [N('a', 0, 0), N('b', 200, 200)] };
+  run('L17 fires', 'L17', { ...pair, edges: [{ id: 'x', from: 'a', to: 'b', pts: [[80, 20], [600, 20], [600, 400], [240, 400], [240, 240]] }] }, true);
+  run('L17 quiet', 'L17', { ...pair, edges: [{ id: 'x', from: 'a', to: 'b', pts: [[80, 20], [240, 20], [240, 200]] }] }, false);
+  // a side loop to a neighbour 40px away: ×4.5 on the raw distance, ×2.25 on the floor
+  run('L17 quiet on a side loop between neighbours', 'L17', { id: 'h', containers: [], nodes: [N('a', 0, 0), N('b', 0, 50)],
+    edges: [{ id: 'x', from: 'a', to: 'b', pts: [[80, 20], [150, 20], [150, 60], [80, 60]] }] }, false);
+  // a self-message loops right of the last lifeline: lifelines are not a frame
+  run('L16 quiet on a sequence self-message', 'L16', { id: 'q', containers: [C('LA', 0, 0, 10, 400, { title: '' }), C('LB', 200, 0, 10, 400, { title: '' })],
+    nodes: [N('A', 0, 0, 10, 400), N('B', 200, 0, 10, 400)],
+    edges: [{ id: 'x', from: 'B', to: 'B', pts: [[210, 100], [250, 100], [250, 130], [210, 130]] }] }, false);
   // roles
   const r = inferRoles(lanes.containers);
   cases.push(['roles: tiled columns are lanes', r.get('L1') === 'lane:col', r.get('L1')]);

@@ -10,7 +10,7 @@
 // plus outputs/diagram-authoring/ as a floor for pages that have no envelope.
 //
 // What it does, per folder: hash every file directly in the folder, run every
-// *.build.mjs there that imports archdiag's index.mjs, hash again, and report
+// *.build.mjs there that imports an archdiag module, hash again, and report
 // each file whose bytes changed, that appeared, or that disappeared.
 // The baseline is the bytes on disk before the run. So that a drifted page left
 // uncommitted cannot become its own baseline, an .html or .snapshot.json that
@@ -37,7 +37,9 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const HOME = path.resolve(HERE, '..', '..');
 const FLOOR = path.join(HOME, 'outputs', 'diagram-authoring');
-const IMPORTS_ARCHDIAG = /archdiag\/index\.mjs['"]/;
+// any archdiag module, not only index.mjs: owner-view builds import route.mjs /
+// emit.mjs directly and were outside M1 until 2026-11-07 (7 builds)
+const IMPORTS_ARCHDIAG = /archdiag\/[\w.-]+\.mjs['"]/;
 const FLAGS = new Set(['--restore', '--list', '-h', '--help']);
 
 const argv = process.argv.slice(2);

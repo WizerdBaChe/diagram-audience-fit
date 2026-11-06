@@ -20,7 +20,8 @@
 // Determinism: fixed iteration orders, no randomness — routed output is a
 // pure function of the view model (receipt-friendly, same contract as emit).
 //
-// Revisions (opts.rev, default 3 since 2026-11-07; 2 from 2026-10-24). A page
+// Revisions (opts.rev, default 4 since 2026-11-07 late; 3 earlier that day;
+// 2 from 2026-10-24). A page
 // built before a default changed pins the rev it was built with in its build
 // script so its receipt never moves (user ruling
 // 2026-10-24: "enable from now on, already-issued pages stay as they are").
@@ -45,6 +46,12 @@
 //     with, so the router and the check cannot disagree. Node positions stay
 //     inputs: when every route still costs, the build's L14 gap-capacity
 //     warning names the gap to widen.
+//   rev 4 — rev 3 plus proximity: clearance L16 (own-box exit, backtrack
+//     outside the frame of all groups/lanes) and L17 (detour ratio > 3) are
+//     priced (REV4_COST), so the router stops buying a long detour with one
+//     avoided crossing; length beyond the ends' Manhattan distance costs
+//     DETOUR_W more per px. Owner ruling 2026-11-07 (proposal 路由就近原則);
+//     A/B + blind test in MAINTENANCE.md.
 //
 // Borrow ledger (prior-art mandate): B-r1 candidate-generation + predicate-
 // filter shape and outward-stub discipline follow archify routeVia /
@@ -67,6 +74,7 @@ const CAP_TOL = 2;      // max gap (px) between an anchor and a capsule's drawn 
 const CLEAR = 8;        // preferred clearance from non-endpoint nodes
 const PAD = 2;          // pill/text separation, mirrors in-page check #1
 const ALIEN_PEN = 1500; // rev 2: shared track with an unrelated edge (crossing = 1200)
+const DETOUR_W = 0.5;   // rev 4: extra cost per px of length beyond the ends' Manhattan distance
 
 // ---------- rect adapters (our {x,y,w,h} -> vendored {x,y,width,height}) ----------
 const R = (n) => ({
@@ -251,8 +259,8 @@ function estimateTextRects(view) {
 // ---------- the default provider: channel router ----------
 function channelRouter(view, opts = {}) {
   const grid = opts.grid || 8;
-  const rev = opts.rev ?? 3;
-  if (rev !== 1 && rev !== 2 && rev !== 3) throw new Error(`route(): unknown rev ${rev} (known: 1, 2, 3)`);
+  const rev = opts.rev ?? 4;
+  if (![1, 2, 3, 4].includes(rev)) throw new Error(`route(): unknown rev ${rev} (known: 1, 2, 3, 4)`);
   const [vbW, vbH] = view.vb;
   const nodeRects = view.nodes.map(R);
   const contRects = (view.containers || []).map(R);
@@ -289,7 +297,7 @@ function channelRouter(view, opts = {}) {
   // down through the title text (clearance L9); keep top anchors right of the
   // title when the side still has room there
   const titleCut = (rect, side, lo, hi) => {
-    if (rev !== 3 || side !== 'top') return [lo, hi];
+    if (rev < 3 || side !== 'top') return [lo, hi];
     for (const c of view.containers || []) {
       if (!c.title || rect.x < c.x || rect.x + rect.width > c.x + c.w || rect.y < c.y) continue;
       const tb = archdiagTitleBox(c, cjkW(c.title, 12));
@@ -315,7 +323,7 @@ function channelRouter(view, opts = {}) {
     } else {
       // rev 3: when interior slots would sit closer than the near-parallel
       // distance (2 grid), spread to the range's ends instead
-      const tight = rev === 3 && (hi - lo) / (list.length + 1) < 2 * grid;
+      const tight = rev >= 3 && (hi - lo) / (list.length + 1) < 2 * grid;
       list.forEach((item, i) => {
         const t = tight ? i / (list.length - 1) : (i + 1) / (list.length + 1);
         const coord = snap(lo + (hi - lo) * t, grid);
@@ -388,15 +396,28 @@ function channelRouter(view, opts = {}) {
   // check would report. A foreign box or a title costs a little less than a
   // crossing (1200): one honest hopped crossing beats a line through a group.
   const CLEAR_COST = { L8: 1000, L9: 900, L10: 600, L11: 300, L12: 900, L13: 900 };
+  // rev 4: proximity (owner ruling 2026-11-07: a box means "these belong
+  // together", so a line leaving its own box reads as an outward link, and a
+  // line must not take the long way round). Without these the length term
+  // (0.5/px) let one avoided crossing (1200) buy ~2400 px of detour.
+  // own-box exit = a foreign box (L8); backtrack outside the frame and a
+  // detour ratio > 3 cost more than the crossing they avoid.
+  const REV4_COST = { 'own-box-exit': 1000, 'out-of-frame-backtrack': 1300, 'detour-ratio': 1300 };
   const clearConts = (view.containers || []).map((c) => (c.title ? { ...c, titleBox: archdiagTitleBox(c, cjkW(c.title, 12)) } : c));
+  const viewLinks = view.edges.map((e) => ({ from: e.from, to: e.to }));
   function clearancePen(pts, p) {
     const others = [...routed.entries()].filter(([id]) => id !== p.e.id)
       .map(([id, r]) => { const e = plan.find((q) => q.e.id === id).e; return { id, from: e.from, to: e.to, pts: r.pts }; });
     const ws = clearanceWarnings({ id: view.id, nodes: view.nodes, containers: clearConts,
-      edges: [{ id: p.e.id, from: p.e.from, to: p.e.to, pts }, ...others] }, { focus: p.e.id });
+      edges: [{ id: p.e.id, from: p.e.from, to: p.e.to, pts }, ...others] }, { focus: p.e.id, links: viewLinks });
     // opposite flow on one track misleads the direction: priced like a shared
     // track with an unrelated edge, above a crossing
-    return ws.reduce((s, w) => s + (w.message.startsWith('opposite-flow') ? ALIEN_PEN : CLEAR_COST[w.code] || 0), 0);
+    return ws.reduce((s, w) => {
+      const kind = w.message.split(' ')[0];
+      if (kind === 'opposite-flow') return s + ALIEN_PEN;
+      if (w.code === 'L16' || w.code === 'L17') return s + (rev >= 4 ? REV4_COST[kind] || 0 : 0);
+      return s + (CLEAR_COST[w.code] || 0);
+    }, 0);
   }
 
   function candidatesFor(A, B, fs, ts) {
@@ -484,9 +505,13 @@ function channelRouter(view, opts = {}) {
         if (!routeHonorsEndpointSides(pts, fs, ts)) continue;
         if (throughNode(pts, obs)) continue;
         const { crossings, overlap } = scoreAgainst(pts, routedSegs);
-        const leg = (rev >= 2 ? legibility(pts, alienSegs) : 0) + (rev === 3 ? clearancePen(pts, p) : 0);
+        const leg = (rev >= 2 ? legibility(pts, alienSegs) : 0) + (rev >= 3 ? clearancePen(pts, p) : 0);
+        // rev 4: length beyond the ends' Manhattan distance (the detour part)
+        // costs double, so a long loop can no longer outbid one clearance hit
+        const a0 = pts[0], a1 = pts[pts.length - 1];
+        const excess = rev >= 4 ? Math.max(0, lengthOf(pts) - Math.abs(a1[0] - a0[0]) - Math.abs(a1[1] - a0[1])) * DETOUR_W : 0;
         const score = crossings * 1200 + overlap * 300 + (pts.length - 2) * 40 +
-          lengthOf(pts) * 0.5 + tightness(pts, obs) + (fs !== p.fs || ts !== p.ts ? 25 : 0) + leg;
+          lengthOf(pts) * 0.5 + excess + tightness(pts, obs) + (fs !== p.fs || ts !== p.ts ? 25 : 0) + leg;
         if (!best || score < best.score) best = { pts, score, crossings, fs, ts, leg };
       }
       // accept the planned pair without scanning alternates only when it is
@@ -615,7 +640,7 @@ function channelRouter(view, opts = {}) {
   // run) moves too, and no candidate may touch one (clearance L15).
   if (rev >= 2) {
     const foreignSegs = (id) => [...routed.entries()].filter(([k]) => k !== id).flatMap(([, r]) => segs(r.pts));
-    const onForeign = (rect, id) => rev === 3 && foreignSegs(id).some(([a, b]) => segmentIntersectsRect({ start: a, end: b }, rect, 0));
+    const onForeign = (rect, id) => rev >= 3 && foreignSegs(id).some(([a, b]) => segmentIntersectsRect({ start: a, end: b }, rect, 0));
     for (const job of pillJobs) {
       if (!nodeRects.some((q) => rectsOverlap(job.rect, q, 0)) && !onForeign(job.rect, job.id)) continue;
       const others = placedPills.filter((q) => q !== job.rect);
