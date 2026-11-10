@@ -4,7 +4,7 @@
 // → deterministic page emission → write + sha256 receipt line.
 // Contract: identical input (views + doc + sections + notes) => identical
 // bytes (receipt-friendly). Provenance: S1 of
-// outputs/diagram-authoring/selfbuild-scope-eval-2026-08-28.md.
+// view-pages/diagram-authoring/selfbuild-scope-eval-2026-08-28.md.
 
 import fs from 'node:fs';
 import crypto from 'node:crypto';

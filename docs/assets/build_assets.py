@@ -5,7 +5,7 @@ Maintainer tool, not part of the capability: needs Python Playwright with Chromi
 
     python -X utf8 docs/assets/build_assets.py            # from the repo root
 
-Inputs  : reference-impl/outputs/diagram-authoring/*.html (the shipped example pages)
+Inputs  : reference-impl/view-pages/diagram-authoring/*.html (the shipped example pages)
 Inputs also: docs/self-portrait/self-audit.html + self-owner-view.html (the hero pair)
 Outputs : docs/assets/hero.zh-TW.png, hero.en.png, audit-tabs.gif, line-hop.png,
           flowchart.png, owner-view.png, pipeline.zh-TW.png + pipeline.en.png (from the SVGs; run

@@ -157,7 +157,7 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 程式與測試證明不了的部分。
 
 **A 必驗**
-1. 在瀏覽器打開 `reference-impl/outputs/diagram-authoring/mfp-audit-f3.html`，切換各分頁：頁面上的幾何自檢報告 0 個問題，圖沒有被裁掉。這項和字型有關；若不是 0，先看是哪幾處、是不是字型較高造成的。
+1. 在瀏覽器打開 `reference-impl/view-pages/diagram-authoring/mfp-audit-f3.html`，切換各分頁：頁面上的幾何自檢報告 0 個問題，圖沒有被裁掉。這項和字型有關；若不是 0，先看是哪幾處、是不是字型較高造成的。
 2. 同一頁上，兩條線交叉的地方是小半圓跳線，真的相接的地方才有實心圓點，沒有看起來像相接的「+」。
 3. 工程原版和擁有者視圖（`mfp-audit-f3-owner-view-v3.html`）並排看：擁有者視圖沒有新增或刪掉任何發現，數字與限制對得上。
 4. agent 依規格畫出的第一張稽核圖：缺口表有 `reviewer` 欄，而且審的人不是畫圖的那個 session。
@@ -190,7 +190,7 @@ python -X utf8 reference-impl/tools/audience-fit-gate/afgate.py all docs/self-po
 
 ## README 圖片怎麼重生
 
-`docs/assets/` 的圖都由 [`docs/assets/build_assets.py`](assets/build_assets.py) 從 `reference-impl/outputs/diagram-authoring/` 的範例頁截出來，不是手工圖。需要 Python Playwright（含 Chromium）與 ffmpeg（只有 GIF 用到）：
+`docs/assets/` 的圖都由 [`docs/assets/build_assets.py`](assets/build_assets.py) 從 `reference-impl/view-pages/diagram-authoring/` 的範例頁截出來，不是手工圖。需要 Python Playwright（含 Chromium）與 ffmpeg（只有 GIF 用到）：
 
 ```text
 python -X utf8 docs/assets/build_assets.py

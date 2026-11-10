@@ -7,7 +7,7 @@
 // (<projects>\line-reply-agent tg-outpost-audit-f1) without anyone seeing it.
 // The list of folders is not kept by hand: it is the `output` field of every
 // archview envelope system-hmi discovers (tools/system-hmi/hmi/envelopes.py),
-// plus outputs/diagram-authoring/ as a floor for pages that have no envelope.
+// plus view-pages/diagram-authoring/ as a floor for pages that have no envelope.
 //
 // What it does, per folder: hash every file directly in the folder, run every
 // *.build.mjs there that imports an archdiag module, hash again, and report
@@ -36,7 +36,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const HOME = path.resolve(HERE, '..', '..');
-const FLOOR = path.join(HOME, 'outputs', 'diagram-authoring');
+const FLOOR = path.join(HOME, 'view-pages', 'diagram-authoring');
 // any archdiag module, not only index.mjs: owner-view builds import route.mjs /
 // emit.mjs directly and were outside M1 until 2026-11-07 (7 builds)
 const IMPORTS_ARCHDIAG = /archdiag\/[\w.-]+\.mjs['"]/;

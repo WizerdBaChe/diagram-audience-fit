@@ -1,7 +1,7 @@
 ---
 layer: share-repo evidence
 audience: agent (builder) and human
-version: 1.3.0
+version: 1.4.0
 ---
 
 # Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
@@ -99,7 +99,7 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   inside the provenance block and aggregation table the skill itself mandates; `voice` now rules only
   on the main text. → `tools/audience-fit-gate/README.md`.
 - **Example measurement.** How the shipped audit page was measured and accepted at the origin. →
-  `outputs/diagram-authoring/mfp-audit-f3-measurement.md`.
+  `view-pages/diagram-authoring/mfp-audit-f3-measurement.md`.
 - **Vendored geometry.** What was borrowed from the MIT-licensed upstream and what was not. →
   `outputs/skill-reviews/archify-integration-analysis-2026-08-28.md`, `THIRD_PARTY_NOTICES.md`.
 

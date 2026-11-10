@@ -1,8 +1,8 @@
 ---
 layer: share-repo spec
 audience: agent (builder)
-version: 1.3.0
-snapshot: 2026-11-07
+version: 1.4.0
+snapshot: 2026-11-11
 ---
 
 # BUILD SPEC — verifiable architecture/audit diagrams and their reader-facing editions
@@ -37,6 +37,11 @@ router `rev: 4` as the default (rev 3 plus their costs and a length term on any 
 `rev-ab.mjs`, an origin maintenance kit that rebuilds every build at two revisions and requires each
 changed edge to be explained by a warning class; audience-fit R15 and diagram-authoring
 notation-precision §2 state the rule. Example page bytes unchanged (A1/A2); A14 and A17 counts rise.
+**Since 1.3.0 (release 1.4.0):** gap-report `basis: tracer` — an edge observed by planting a uniquely
+marked synthetic record into an isolated copy and finding it in the stores the edge reaches, with one
+marker and one disabling mutant per filter (`view-integrity-checks.md` §3 «Tracer evidence»);
+diagram-authoring Step 0 sends doubted edges to it. Example pages move to
+`reference-impl/view-pages/diagram-authoring/` (origin move); their content is otherwise unchanged.
 
 ## 0. What it is, in one paragraph
 
@@ -62,8 +67,8 @@ owner is **re-drawn** as a presentational view, not annotated.
 | `rules/{figure-self-read,layout-convergence,deliverable-doc-refs,verification-ladder}.md` | cross-cutting rules | evidence for rendered figures; when to stop moving a layout; reader editions of documents; which rung of evidence a check carries |
 | `skills/ux-walkthrough/references/decision-point-contract.md` | reference | the per-decision-point contract audience-fit mode B (UI copy) writes against |
 | `references/design-axes/part-principles.md` | cross-medium principles (zh-TW) | §1 audience, §9 figures |
-| `outputs/diagram-authoring/mfp-audit-f3*` | worked example | one audit page (5 views), its measurement record, and its owner view; both pages regenerable |
-| `outputs/diagram-authoring/flowchart-notation-demo.*` | specimen | every flowchart kind, a decision, a hop and a junction dot on one page; regenerable |
+| `view-pages/diagram-authoring/mfp-audit-f3*` | worked example | one audit page (5 views), its measurement record, and its owner view; both pages regenerable |
+| `view-pages/diagram-authoring/flowchart-notation-demo.*` | specimen | every flowchart kind, a decision, a hop and a junction dot on one page; regenerable |
 | `outputs/skill-reviews/archify-integration-analysis-2026-08-28.md` | provenance | why and what was borrowed from the MIT-licensed upstream vendored in `tools/archdiag/vendor/` |
 
 Data flow (audit drawing): environment → Step 0 source list + env grep → text model (in the build
@@ -206,7 +211,7 @@ review items. Re-run the script after adapting anything.
 | id | property | positive / negative input |
 |---|---|---|
 | A1 | regeneration is deterministic | run the audit build twice → identical sha256 / change one node label → different sha256 |
-| A2 | examples regenerate byte-identical from this repo | `cd reference-impl && node outputs/diagram-authoring/<x>.build.mjs` → hashes in `verify/controls_run.txt` equal the shipped files / remove `tools/archdiag` → non-zero exit |
+| A2 | examples regenerate byte-identical from this repo | `cd reference-impl && node view-pages/diagram-authoring/<x>.build.mjs` → hashes in `verify/controls_run.txt` equal the shipped files / remove `tools/archdiag` → non-zero exit |
 | A3 | a dangling edge stops the build | valid model builds / an edge whose `to` id does not exist → non-zero exit; the router names the view, the edge and the missing id (before v1.0.2 it crashed with a `TypeError`) |
 | A4 | unknown `actor` fails | `actor: 'human'` builds / `actor: 'robot'` throws |
 | A5 | marker closure | as shipped builds / point an edge type at a marker id `DEFS` does not define → `DEFS FAILED` |

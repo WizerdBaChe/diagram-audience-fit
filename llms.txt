@@ -28,7 +28,7 @@ Start at AGENTS.md. Pin a release tag, not main. Code MIT, documentation CC BY 4
 - [reference-impl/skills/audience-fit/SKILL.md](reference-impl/skills/audience-fit/SKILL.md): reader-edition method
 - [reference-impl/tools/archdiag/README.md](reference-impl/tools/archdiag/README.md): renderer library API
 - [reference-impl/tools/audience-fit-gate/README.md](reference-impl/tools/audience-fit-gate/README.md): reader-edition gate
-- [reference-impl/outputs/diagram-authoring/](reference-impl/outputs/diagram-authoring/): worked example pages with their build scripts
+- [reference-impl/view-pages/diagram-authoring/](reference-impl/view-pages/diagram-authoring/): worked example pages with their build scripts
 
 ## Self-portrait (this repo drawn by its own method)
 

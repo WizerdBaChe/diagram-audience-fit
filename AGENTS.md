@@ -70,7 +70,7 @@ The tree under `reference-impl/` maps 1:1 onto a `~/.claude` home:
 | `reference-impl/outputs/` | optional | worked examples; regenerable |
 
 If the user's environment is not Claude Code, keep the same relative layout under any root: the build
-scripts import `../../tools/archdiag/*.mjs` relative to `outputs/diagram-authoring/`.
+scripts import `../../tools/archdiag/*.mjs` relative to `view-pages/diagram-authoring/`.
 
 ## Rules for adapting
 

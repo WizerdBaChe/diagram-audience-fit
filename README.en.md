@@ -76,7 +76,7 @@ This repository connects both ends:
 </tr>
 </table>
 
-<sub>The example is a real audit of a media downloader from the author's environment, so labels inside the figures are in Chinese; what transfers is the method. Source pages: [`reference-impl/outputs/diagram-authoring/`](reference-impl/outputs/diagram-authoring/) — open them in any browser.</sub>
+<sub>The example is a real audit of a media downloader from the author's environment, so labels inside the figures are in Chinese; what transfers is the method. Source pages: [`reference-impl/view-pages/diagram-authoring/`](reference-impl/view-pages/diagram-authoring/) — open them in any browser.</sub>
 
 ## Quick start: hand it to your agent
 
@@ -137,6 +137,8 @@ Four principles run through everything: **a diagram without a model is a screens
 | a machine-readable index (llms.txt) | [`llms.txt`](llms.txt) | English |
 
 ## This release
+
+**v1.4.0 (2026-11-11)**: an edge can be observed, not only inferred from code. New tracer evidence: plant a same-shape synthetic record with a unique marker into an isolated copy, run it, and look for the marker in the stores the edge reaches; found → the gap table's basis is `tracer`, missing → a gap row. Each filter gets a deliberately broken control that must fail. Example pages move to `reference-impl/view-pages/`, matching the origin. Full history: [CHANGELOG](CHANGELOG.md).
 
 **v1.3.0 (2026-11-07)**: a line stays near its relation. A line with both ends in one box that runs outside it (it reads as a link out), or one that wanders away from its target outside every box, now warns as L16; a line drawn more than 3× its ends' Manhattan distance warns as L17 (WARN only; a loop back against the flow is exempt). The router now defaults to revision 4, which prices both and the length of any detour, so it no longer trades one crossing for a long loop (a hopped crossing reads fine). Origin before/after over 50 views: warnings 72 → 67, crossings 57 → 58, total line length −4712 px. Ships `rev-ab.mjs`, the origin's router-revision A/B kit (its self-test runs here; the full A/B run needs the origin environment). Example page bytes unchanged; all 13 machine controls pass. Full history: [CHANGELOG](CHANGELOG.md).
 

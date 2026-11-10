@@ -130,7 +130,7 @@ Minimum fields (record type registered in `ops/rules-usage-dict.md` §7):
 | `element` | node / edge / state / cell affected (glossary name) |
 | `defect` | `integrity` (a §1 check failed) · `correspondence` (a §2 check failed) · `view-missing` (§2.4) · `data-gap` (source data cannot answer what the view requires) · `reality-gap` (the environment has it, the source and the drawing do not) |
 | `severity` | consumer's own scale (BLOCK/should-fix/… at design; findings.json levels at audit; open/assumed at drawing) |
-| `basis` | `user-data` · `code` · `env-grep` · `assumed` — what the row's judgment rests on |
+| `basis` | `user-data` · `code` · `env-grep` · `tracer` · `assumed` — what the row's judgment rests on (`tracer` = an observed flow, ranks above `env-grep`; see «Tracer evidence» below) |
 | `reviewer` | audit drawings only: who checked the gap table — never the session that drew it alone (diagram-authoring Step 5) |
 | `verifier` | per row: `builder-verified` (the builder re-read the anchor sentence by sentence) · `reviewer-verified` · `located` (anchor found, content not re-read — an inventory or subagent claim) · `refuted` (re-read and rejected; the row moves to a not-adopted list with the reason). A row's weight for routing and checks is read from this field, never from `severity` alone |
 
@@ -157,6 +157,33 @@ document as its source only proves the document agrees with itself (instance:
 the 2026-10-11 shared-design-layer audit drew three runners and never the main
 loop that made the 拾憶人 films — `references/formal-path-governance-design.md`
 §5).
+
+**Tracer evidence (`basis: tracer`).** `code` and `env-grep` prove a line of
+code would write somewhere, not that data reaches it: a filter, truncation or
+condition in between is invisible to both. A tracer run plants a synthetic
+record with a unique per-run marker at an entry, runs the pipeline, and greps
+for the marker in the stores the edge under test reaches. Drawn and found → the
+edge is observed (`tracer`); drawn and absent → `reality-gap` (flow broken or
+filtered). Only a wider sweep — every store on the drawing plus every
+`env-grep` referrer — can show the third outcome, found where nothing is
+drawn → `reality-gap` (an undrawn flow); the run's record says which sweep it
+did (the 2026-11-11 pilot did the narrow one, so that outcome is defined but
+not yet exercised). A tracer run is valid only with all three of:
+1. **same shape** — the marker sits in a field real data uses, in the real
+   record format, so the pipeline takes its normal path;
+2. **isolation** — it runs on a temp copy (paths redirected, side calls into
+   live stores stubbed) with a before/after fingerprint of the live stores
+   that must match; it never plants into a live store;
+3. **metabolites declared** — each edge's transforms (truncate, filter, hash,
+   summarise) are written down first, with what the marker becomes after each.
+One marker tests one filter: a marker two filters both remove cannot show
+that either works, so each filter gets its own marker and its own mutant
+(that filter disabled → the run must FAIL); a filter that cannot be disabled
+from outside is reported as observed, not calibrated. Excuse answered: "the
+code plainly writes there, a run adds nothing" — a node can merge two stores
+the reader cannot tell apart (2026-11-11: `DIG` drew digests and raw archive as
+one; the tracer showed recall's cards leg reads digests only, so tool output and
+long-message tails are unfindable through it; `outputs/r22-followups-20261111/試點紀錄_同位素標記_記憶管線_20261111.md`).
 
 ## 4. Interception-chain matrix（攔截鏈 — hooks, middleware, plugin chains, scheduler groups）
 

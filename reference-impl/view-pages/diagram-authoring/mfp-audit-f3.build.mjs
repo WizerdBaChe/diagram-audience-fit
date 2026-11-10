@@ -7,7 +7,7 @@
 // node positions are hand-authored (semantics, D-042); EVERY edge path and
 // pill anchor comes from route() with the 'channel' provider — no hand pts.
 // Measurement columns vs F1/F2 baselines live in
-// outputs/diagram-authoring/mfp-audit-f3-measurement.md.
+// view-pages/diagram-authoring/mfp-audit-f3-measurement.md.
 //
 // Branch premise (checked 2026-08-29): main @ 96e6673 (post-brief merged),
 // feat/transcribe-audio 70 commits ahead, NOT merged (six UAT documents
@@ -423,7 +423,7 @@ build({
     title: 'media-fetch-pipeline 稽核視圖組 F3',
     h1: 'media-fetch-pipeline 稽核視圖組 F3（main 基底＋feat/transcribe-audio 疊層·未驗收）',
     legendbar: '節點：藍＝模組方塊、灰膠囊＝外部、琥珀＝資料存放、綠圓角＝狀態（深框＝終態集）、紫＝上層埠、<b>橘虛框＋未驗收徽章＝branch 疊層</b>（feat/transcribe-audio，未合併、六份 UAT 未跑）。邊：灰開箭頭＝同步呼叫/匯入、黑實＝資料流、藍＝async 協議/SSE、紅＝出口（跨進程邊界）、紫虛線＝ε（崩潰恢復）、灰點虛＋✕＝契約性無依賴（D-109）。虛線大框＝layer／進程。<b>本輪全部邊路徑與 pill 佈點由 channel router 生成（S2 field half）——零手排走廊。</b>',
-    footerNote: '再生源：outputs/diagram-authoring/mfp-audit-f3.build.mjs（模型即資料；node 一跑即重生）。生成 2026-08-29。branch 前提：main @ 96e6673，feat/transcribe-audio 領先 70 commits 未合併——合併後清 overlay 旗標重生，差分表隨模型自動更新（delta.mjs）。F3＝archdiag S1+S2 聯合驗收儀器：節點座標人排（D-042 位置承載語意），邊/pill 全部 route() 生成。v1.1（2026-09-02）：副標基線 +3px＋自檢 render receipt——外部驗證回報 CJK 高 metric 字型下標題↔副標 bbox 間距不足 PAD（tools/archdiag/MAINTENANCE.md M6）；其餘幾何零變動。',
+    footerNote: '再生源：view-pages/diagram-authoring/mfp-audit-f3.build.mjs（模型即資料；node 一跑即重生）。生成 2026-08-29。branch 前提：main @ 96e6673，feat/transcribe-audio 領先 70 commits 未合併——合併後清 overlay 旗標重生，差分表隨模型自動更新（delta.mjs）。F3＝archdiag S1+S2 聯合驗收儀器：節點座標人排（D-042 位置承載語意），邊/pill 全部 route() 生成。v1.1（2026-09-02）：副標基線 +3px＋自檢 render receipt——外部驗證回報 CJK 高 metric 字型下標題↔副標 bbox 間距不足 PAD（tools/archdiag/MAINTENANCE.md M6）；其餘幾何零變動。',
   },
   views,
   sections: [

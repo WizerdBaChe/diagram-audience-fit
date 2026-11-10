@@ -104,7 +104,7 @@ Build through `~/.claude/tools/archdiag/`:
   `tools/archdiag/MAINTENANCE.md`; environment sweep item: integrity-sweep
   check 27.
 
-Reference builds: `outputs/diagram-authoring/mfp-audit-f3.build.mjs` (routed —
+Reference builds: `view-pages/diagram-authoring/mfp-audit-f3.build.mjs` (routed —
 current pattern); `dit-audit-f1.build.mjs` / `prism-audit-f2.build.mjs`
 (hand-routed pts, frozen receipts).
 
@@ -137,7 +137,7 @@ Adopted from the first field test (FT-1/FT-3/FT-5, ledger
 
 - **Location**: work belonging to a project lives in that project's tree;
   environment-level or standalone runs deliver to
-  `~/.claude/outputs/diagram-authoring/` (owner-first filenames). Derived
+  `~/.claude/view-pages/diagram-authoring/` (owner-first filenames). Derived
   renders (screenshots, exports) stay untracked — the HTML/model is the
   record and regenerates them.
 - **Headless verification**: this environment's playwright-headless blocks

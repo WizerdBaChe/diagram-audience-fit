@@ -19,7 +19,7 @@ is a property of these assets, event-triggered — not a schedule.
   Must exit 0 (every folder `ok`). The folder list is derived, not kept by
   hand: every folder an archview envelope's `output` names (system-hmi
   discovery, so out-of-tree pages such as tg-outpost are included) plus
-  `outputs/diagram-authoring/`. It compares bytes before vs after the run,
+  `view-pages/diagram-authoring/`. It compares bytes before vs after the run,
   and `--restore` writes the pre-run bytes back, so another repository is
   never left modified. Exit 2 = a build failed, or discovery failed and
   only the floor folder was checked (not a full M1). Any diff = receipts of ACCEPTED artifacts changed →
@@ -251,7 +251,7 @@ surface values against a snapshot of themselves.
   `diagram`. Receipt `0a3c67de9faf18700cff570a93ddced40a65fe0180ac9c6ef9e6b01a110eba6a`
   → `5fdd1dc70ad1b6abb5b5cc720f6161f73f27baea86d7126d2842f3f3701c2bea`
   (32868 → 32894 bytes). Now all 11 built pages declare a class. Dated measurement records under
-  `outputs/diagram-authoring/*-measurement.md` keep their historical receipts.
+  `view-pages/diagram-authoring/*-measurement.md` keep their historical receipts.
 
 ## Log — 2026-10-19: topology-readability warnings (`topology.mjs`)
 
@@ -349,7 +349,7 @@ surface values against a snapshot of themselves.
 Proposal `outputs/archdiag-m1-reach-20261024/提案單_收據回歸涵蓋庫外圖面_20261024.md` (甲, 乙), user ruling 2026-10-24.
 
 - **甲 — `m1.mjs`**: the M1 folder list is the `output` folder of every archview
-  envelope system-hmi discovers, plus `outputs/diagram-authoring/` as a floor.
+  envelope system-hmi discovers, plus `view-pages/diagram-authoring/` as a floor.
   Compares bytes before vs after per folder; `--restore` writes pre-run bytes back.
   Positive control: on the first run it reported `DIFF` for
   `<projects>/line-reply-agent/docs/architecture` (the known be621e13 drift), which
@@ -424,7 +424,7 @@ legibility router, already-issued pages (tg-outpost included) are not redrawn.
 
 ## Log — 2026-10-25: first field use of rev 2 default and `archview.anchors` (A3 memory-compaction-audit-f1)
 
-- **Page**: `outputs/diagram-authoring/memory-compaction-audit-f1.html` (6ff3ac24), 4 views
+- **Page**: `view-pages/diagram-authoring/memory-compaction-audit-f1.html` (6ff3ac24), 4 views
   (statechart `life`, seqView pair `seqok`/`seqfail`, statechart `memrec`), envelope
   `covers: memory`, R2.
 - **Router rev 2 (default, not pinned)**: topology 0 WARN; layout L1 pill warnings went to 0

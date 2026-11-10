@@ -41,7 +41,7 @@ mechanics. They are screens, so they WARN and never FAIL.
 its pit 7) is a screen for reports that
 SUMMARISE DATA (posts, corpora, runs): each hit sends you back to the raw data
 to count the proportion. First run, declined pile read by hand: the six
-accepted owner views in `outputs/diagram-authoring/` gave 24 single-file hits,
+accepted owner views in `view-pages/diagram-authoring/` gave 24 single-file hits,
 all mechanism guarantees ("每次開場都在", "重試一律重新探測") and 0 data
 over-generalisations — on a design document the single-file list is mostly
 noise; the two-file WARN (a quantifier the original never used) is the useful
@@ -95,7 +95,7 @@ leaky, widened, narrowed, glued, dated and table companions) and requires 52
 separations, each with a known-true and a known-false side, including "`limits`
 never returns FAIL", "33.6% is recognised as a named transform of 1.336" and the
 exit codes of the CLI. Artifact-level baseline: the three accepted owner views in
-`outputs/diagram-authoring/` return 0 FAIL.
+`view-pages/diagram-authoring/` return 0 FAIL.
 
 Calibration of the three screens (2026-10-23/24), on real files, with the declined pile read by hand:
 

@@ -15,7 +15,7 @@ if work.exists() and any(work.iterdir()):
 if work == src or src in work.parents or work in src.parents:
     sys.exit(f"refusing: {work} overlaps the source {src}")
 
-EX = "outputs/diagram-authoring"
+EX = "view-pages/diagram-authoring"
 F3 = f"{EX}/mfp-audit-f3.build.mjs"
 OUT = f"{EX}/mfp-audit-f3.html"
 OV = f"{EX}/mfp-audit-f3-owner-view-v3.html"

@@ -70,6 +70,16 @@ each referrer missing from the edge set into a `reality-gap` row, `basis:
 env-grep` (`view-integrity-checks.md` §3; for the design layer,
 `tools/design-axes-mount/parity_census.py`). That grep also produces the
 entry-point list the coverage declaration needs.
+**Doubted edges get a tracer run.** When a drawn edge passes through a
+filter, truncation or condition, or a store node stands for more than one
+physical store, its `env-grep` basis is not enough: run a tracer on an
+isolated copy and record the result as `basis: tracer` or a `reality-gap` row
+(`view-integrity-checks.md` §3 «Tracer evidence»: same shape, isolation,
+declared metabolites, one marker and one mutant per filter). The build record
+lists each doubted edge as `tracer-run: <record>` or `tracer-skipped: <why>`,
+so an unrun doubt stays visible. Excuse answered:
+"the grep found the writer" — a writer is not a flow (2026-11-11: memory
+audit G5). Working example: `outputs/r22-followups-20261111/tracer_pilot.py`.
 **Field completeness: a probe's key set is a claim, checked by a set
 difference.** For every structured input (registrations, configs, manifests,
 schema'd JSON), dump ALL keys the source carries, subtract the keys the probe
