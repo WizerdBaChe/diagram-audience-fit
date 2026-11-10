@@ -67,7 +67,8 @@ The tree under `reference-impl/` maps 1:1 onto a `~/.claude` home:
 | `reference-impl/tools/archdiag/` | `~/.claude/tools/archdiag/` | the renderer library (Node ≥ 24 tested, no npm install) |
 | `reference-impl/tools/audience-fit-gate/` | `~/.claude/tools/audience-fit-gate/` | the reader-edition gate (Python ≥ 3.12 tested, stdlib only) |
 | `reference-impl/rules/*.md`, `reference-impl/references/` | optional | cross-cutting rules the skills cite |
-| `reference-impl/outputs/` | optional | worked examples; regenerable |
+| `reference-impl/view-pages/` | optional | worked examples (example pages and their build scripts); regenerable |
+| `reference-impl/outputs/` | optional | provenance records (`skill-reviews/`) |
 
 If the user's environment is not Claude Code, keep the same relative layout under any root: the build
 scripts import `../../tools/archdiag/*.mjs` relative to `view-pages/diagram-authoring/`.
@@ -90,7 +91,7 @@ scripts import `../../tools/archdiag/*.mjs` relative to `view-pages/diagram-auth
 ## What not to adopt
 
 Mentions of hooks, a browser-pane protocol, a process ledger, `ops/*` files and "user ruling" are the
-origin environment's mechanisms and decision records. Read them as the reason a rule exists. The 56
+origin environment's mechanisms and decision records. Read them as the reason a rule exists. The 84
 paths listed in `verify/unshipped_paths.txt` are not shipped; none is needed to run the library, the
 gate or the examples (`tools/archdiag/m1.mjs` is the one shipped file that needs them).
 

@@ -6,7 +6,7 @@ version: 1.4.0
 
 # Evidence — what is measured, what each rule came from, which rules code enforces, what is not claimed
 
-Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-07
+Dates are the origin environment's local dates. "Measured for this release" = run on 2026-11-11
 against the files exactly as shipped (transcript: `verify/controls_run.txt`). "Origin record" = stated
 in a shipped file, cited by path; not re-run here. Evidence rung of every control here: 0 (example
 inputs, each two-sided with both asserted values printed; `rules/verification-ladder.md`).
@@ -14,10 +14,12 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
 ## Measured for this release
 
 - **M1 Regeneration.** All three example pages rebuild from `reference-impl/` byte-identical to the
-  shipped files (sha256 `5dad793e…077f` audit page, `3b773da1…7e78` owner view, `2c92bacb…285c`
-  flowchart specimen; full hashes in `verify/controls_run.txt`). The audit page's hash differs from the
-  2026-10-24 edition (`b1377243…`) only because the origin re-issued it with line hops: pinning
-  `crossingStyle: 'plain'` reproduces the old hash exactly (A16). Without `tools/archdiag` the build
+  shipped files (sha256 `8439fe9b…3053` audit page, `3b773da1…7e78` owner view, `2c92bacb…285c`
+  flowchart specimen; full hashes in `verify/controls_run.txt`). The audit page's hash changed in v1.4.0
+  (was `5dad793e…077f`) only because its footnote names the example folder, which moved to
+  `view-pages/`. Line hops remain the one rendering difference from the 2026-10-24 edition: pinning
+  `crossingStyle: 'plain'` gives 2 bare crossings and its own hash (`7b85b6aa…`; before the folder move
+  it equalled that edition's `b1377243…`) (A16). Without `tools/archdiag` the build
   exits 1 (`ERR_MODULE_NOT_FOUND`).
 - **M2 Determinism.** Two runs give the same hash; changing one node label changes it.
 - **M3 Build failures on determinable defects.** Unknown `actor` → `SCHEMA FAILED`; a marker renamed
@@ -37,8 +39,11 @@ inputs, each two-sided with both asserted values printed; `rules/verification-la
   and every excluded name on the list must all fire: at least 3 plus the number of excluded names;
   this run: 10 hits, 5 excluded names) and then reports 0 hits on the repo. The screen and its
   name list are the maintainer's and not shipped. The seven declared edits are in spec §9.
-- **M8 Unshipped references.** 56 origin paths are mentioned but not shipped
-  (`verify/unshipped_paths.txt`, produced by `verify/list_unshipped.py`). The count is higher than the
+- **M8 Unshipped references.** 84 origin paths are listed as mentioned but not shipped
+  (`verify/unshipped_paths.txt`: `verify/list_unshipped.py` plus the maintainer's path census, which
+  since v1.4.0 also indexes the origin's `view-pages/`; about five entries are files that do ship under
+  `reference-impl/` but are cited from the repo root, so the list over-counts slightly). v1.3.0 listed
+  56. The count is higher than the
   2026-10-24 edition's 43 because four reference files were added and they cite further records; v1.0.2
   adds two writing-norm notes the audience-fit skill now cites (de-ai-flavor check 12 states its
   three tests inline).
@@ -114,8 +119,9 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 | every node and edge carries a source (`ev`) | code: `tools/archdiag/schema.mjs:76`, `:107` (build fails) | that `ev` is a non-empty string; not that the source exists or supports the element; containers are not checked; `[assumed]` is not recognised |
 | a source anchor points at a real file and line range | code, opt-in: `tools/archdiag/anchors.mjs:167`, enabled by `archview.anchors` (`index.mjs:70`) | the path exists at the pinned commit and the range is inside the file; not that the line supports the edge; the three example pages do not enable it, the self-portrait build calls `resolveAnchors` directly (`docs/self-portrait/self-audit.build.mjs:118`) |
 | an untraced element is tagged `[assumed]` and gets a gap row | process only: `skills/diagram-authoring/SKILL.md:49` (Step 0) | — |
-| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:81` | — |
-| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:141` | — |
+| a reference with two or more candidates draws no edge, only a gap row | process only: `skills/diagram-authoring/SKILL.md:91` | — |
+| the drawing session does not sign its own gap table | process only: `skills/diagram-authoring/SKILL.md:151` | — |
+| a doubted edge (through a filter, truncation or condition, or a store node standing for two stores) gets a tracer run, listed as `tracer-run` or `tracer-skipped` | process only: `skills/diagram-authoring/SKILL.md:73` | — (no control here; see "Not claimed") |
 | same input, same bytes | code: no clock or randomness in the page bytes, LF normalised (`tools/archdiag/index.mjs:52`), sorted iteration in the router (`route.mjs:189`, `:215`); checked by control A1 in `verify/run_controls.py`, not by the build | reproducibility; not that the drawing is correct; the sidecar envelope does carry a clock stamp (`envelope.mjs:161`) |
 | sha256 receipt | code: printed to the terminal (`tools/archdiag/index.mjs:100-107`) | not written into the page; the sidecar's `fingerprint` is `none` (`envelope.mjs:172`); verifying means rebuilding and comparing |
 | at most 3 declared crossings per view | code: `tools/archdiag/schema.mjs:52` (build fails) | the declared count; over 3 means split the view |
@@ -143,6 +149,9 @@ does not. Line numbers are at this release's commit (paths under `reference-impl
 - `m1.mjs` was not run from this repo: it needs the origin's envelope discovery (not shipped).
 - The in-page geometry check (spec A6) was not executed in a browser for this release.
 - The example audit is of one product of the origin environment; its findings say nothing about yours.
+- Tracer evidence (`basis: tracer`, v1.4.0) is a method only here: no control in `verify/` exercises it,
+  and its one worked run (a memory pipeline in the origin environment) is cited but not shipped. Its
+  "found where nothing is drawn" outcome is defined and has not been observed anywhere yet.
 - afgate, known and not fixed in v1.0.2 (design-level; the correctness defects an outside read-only
   review and a follow-up audit found are fixed, see `CHANGELOG.md`): fenced code in Markdown is not
   read at all; the provenance split is the first line naming a marker, so a body sentence using one

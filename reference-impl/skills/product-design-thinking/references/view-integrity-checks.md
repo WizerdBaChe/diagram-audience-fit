@@ -128,7 +128,7 @@ Minimum fields (record type registered in `ops/rules-usage-dict.md` §7):
 |---|---|
 | `view` | which view/diagram the row belongs to |
 | `element` | node / edge / state / cell affected (glossary name) |
-| `defect` | `integrity` (a §1 check failed) · `correspondence` (a §2 check failed) · `view-missing` (§2.4) · `data-gap` (source data cannot answer what the view requires) · `reality-gap` (the environment has it, the source and the drawing do not) |
+| `defect` | `integrity` (a §1 check failed) · `correspondence` (a §2 check failed) · `view-missing` (§2.4) · `data-gap` (source data cannot answer what the view requires) · `reality-gap` (the environment and the drawing disagree: the environment has it and the source and drawing do not, or a drawn flow is not observed by a tracer run) |
 | `severity` | consumer's own scale (BLOCK/should-fix/… at design; findings.json levels at audit; open/assumed at drawing) |
 | `basis` | `user-data` · `code` · `env-grep` · `tracer` · `assumed` — what the row's judgment rests on (`tracer` = an observed flow, ranks above `env-grep`; see «Tracer evidence» below) |
 | `reviewer` | audit drawings only: who checked the gap table — never the session that drew it alone (diagram-authoring Step 5) |
@@ -147,7 +147,8 @@ unforgivable move; a diagram's job on real systems is to EXPOSE the hole.
 
 `reality-gap` is the mirror class: `data-gap` is "the source cannot answer
 what the view needs"; `reality-gap` is "the environment holds a reader, caller
-or entry point that neither the source nor the drawing has". It is decidable:
+or entry point that neither the source nor the drawing has" (and, from a tracer
+run, its converse: a drawn flow the run does not observe). It is decidable:
 for every store / shared-resource node, grep its path across the environment
 (`~/.claude` skills, rules, hooks, ops, tools; the labs; works) and any
 referrer that is not on the edge set is one row, `basis: env-grep`. For the

@@ -5,14 +5,16 @@ Versions are git tags; each GitHub release attaches a zip built from that tag.
 ## v1.4.0 — 2026-11-11
 
 Tracer evidence: an edge can be observed, not only inferred. Fixed at the origin and copied by the
-refresh script; example page content unchanged apart from the moved path string.
+refresh script. The audit page's bytes change (its footnote names the moved example folder; new
+sha256 `8439fe9b…`); the owner view and flowchart specimen keep theirs. 13 of 13 controls ok.
 
 - **Gap report `basis: tracer`** (`view-integrity-checks.md` §3 «Tracer evidence»): plant a synthetic
   record with a unique per-run marker into an isolated copy of the pipeline, run it, grep the stores
   the edge reaches. Valid only with same-shape data, isolation (live stores fingerprinted before and
   after) and declared transforms; one marker and one mutant per filter, and a filter that cannot be
   disabled from outside is reported as observed, not calibrated. The "found where nothing is drawn"
-  outcome is defined but not yet exercised.
+  outcome is defined but not yet exercised. `reality-gap` now covers both directions (the environment
+  has a flow the drawing lacks, or a drawn flow is not observed). Process only: no control here.
 - **diagram-authoring Step 0:** a doubted edge (through a filter, truncation or condition, or a store
   node standing for two stores) gets a tracer run; the build record lists each as `tracer-run` or
   `tracer-skipped`. First use: an origin memory-pipeline audit, where one store node hid that a search
@@ -21,7 +23,8 @@ refresh script; example page content unchanged apart from the moved path string.
   `reference-impl/view-pages/diagram-authoring/`, following the origin's move; docs, the image build
   script and the controls point at the new path. The self-portrait stays pinned at v1.0.0 and keeps
   the old path.
-- **Other origin syncs:** design-axes principles (one more project path, declared edit count 6 → 7),
+- **Other origin syncs:** design-axes principles (one more project path: drive-root replacements in
+  that file 6 → 7, 14 in all; the declared edits stay seven),
   carrier-playbook, archdiag README/MAINTENANCE/m1 and the afgate README follow the path move.
 - **Unshipped references:** 56 → 84 (`verify/unshipped_paths.txt`, regenerated; the path census now
   indexes the origin's `view-pages/`).

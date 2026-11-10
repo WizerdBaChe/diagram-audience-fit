@@ -23,7 +23,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 REPO = Path(__file__).resolve().parents[2]
-PAGES = REPO / "reference-impl" / "outputs" / "diagram-authoring"
+PAGES = REPO / "reference-impl" / "view-pages" / "diagram-authoring"
 OUT = REPO / "docs" / "assets"
 
 AUDIT = PAGES / "mfp-audit-f3.html"
