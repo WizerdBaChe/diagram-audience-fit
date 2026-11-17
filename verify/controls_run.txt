@@ -1,9 +1,9 @@
-# python -X utf8 verify/run_controls.py reference-impl <new-scratch-dir>   (2026-11-18; fresh git clone of 0eb2181 (v1.5.0 content); HOME, USERPROFILE and CLAUDE_CONFIG_DIR pointed at an empty scratch folder; Windows 11; node v24.22.1; Python 3.12.7)
+# python -X utf8 verify/run_controls.py reference-impl <new-scratch-dir>   (2026-11-18; fresh git clone of 83478ae (v1.5.0 content); HOME, USERPROFILE and CLAUDE_CONFIG_DIR pointed at an empty scratch folder; Windows 11; node v24.22.1; Python 3.12.7)
 # shipped page sha256 (before the run): 2754419b 3b773da1 989f5b0f (flowchart, owner view, audit) equal the A2 rebuilt hashes below
 A2 built flowchart-notation-demo.build.mjs exit=0
 A2 built mfp-audit-f3-owner-view-v3.build.mjs exit=0
 A2 built mfp-audit-f3.build.mjs exit=0
-   route stats: l1 17/17 x0/0 156.3ms | l2p 16/16 x0/0 41.8ms | l3i 14/14 x0/0 70.0ms | tsm 19/19 x1/2 109.3ms | txd 23/23 x1/1 197.7ms
+   route stats: l1 17/17 x0/0 155.4ms | l2p 16/16 x0/0 40.9ms | l3i 14/14 x0/0 70.5ms | tsm 19/19 x1/2 120.1ms | txd 23/23 x1/1 201.6ms
    2754419b4456993657fbb127e0ec59781b790b9c8e29d7abaec4b2d0a6fcac65  flowchart-notation-demo.html
    3b773da18f914c06b6541c80b6f10ac142a83a7fa6d305c0fa3741d189b47e78  mfp-audit-f3-owner-view-v3.html
    989f5b0f834203dfab2b83656f4c61f729fbeaa025badf5ffc0c2954f624fc57  mfp-audit-f3.html
