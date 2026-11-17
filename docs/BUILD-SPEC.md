@@ -1,8 +1,8 @@
 ---
 layer: share-repo spec
 audience: agent (builder)
-version: 1.4.0
-snapshot: 2026-11-11
+version: 1.5.0
+snapshot: 2026-11-18
 ---
 
 # BUILD SPEC — verifiable architecture/audit diagrams and their reader-facing editions
@@ -10,7 +10,7 @@ snapshot: 2026-11-11
 Audience: an agent that has never seen this capability and must build an equivalent in its own
 environment. Read this file fully, then `docs/EVIDENCE.md`, then the files under `reference-impl/`
 (the working originals this spec describes; adapt them, do not paste them wholesale). Snapshot date
-2026-11-07. Earlier editions (2026-10-11, 2026-10-19, 2026-10-24) were folder-and-zip packs; this repo
+2026-11-18. Earlier editions (2026-10-11, 2026-10-19, 2026-10-24) were folder-and-zip packs; this repo
 continues them as release `1.0.0` (see `CHANGELOG.md`).
 
 **What changed since the 2026-10-24 edition:** flowchart node kinds (`term`, `decision`, `note`) and
@@ -42,6 +42,14 @@ marked synthetic record into an isolated copy and finding it in the stores the e
 marker and one disabling mutant per filter (`view-integrity-checks.md` §3 «Tracer evidence»);
 diagram-authoring Step 0 sends doubted edges to it. Example pages move to
 `reference-impl/view-pages/diagram-authoring/` (origin move); their content is otherwise unchanged.
+**Since 1.4.0 (release 1.5.0):** clearance L10 `fan-mixed` (WARN only) and opt-in router `rev: 5`
+that prices it, with `rev: 4` still the default (§3); a pinned older revision prints a notice;
+audience-fit R16 and notation-precision §2 state the rule. diagram-authoring gains a Step 0
+dependency self-check: it stops and names `representation-models.md` or `view-integrity-checks.md`
+when either is missing (`AGENTS.md` install table: upgrade them together). §8 states how `~/.claude/`
+reads under a custom config root. A declaration against an older view set now prints a note instead
+of a warning, and `archview.covers.external` names an outside system audited for study. The audit page and the flowchart specimen change bytes by one
+narrow-screen style line (A2); A14 and A17 counts rise by the new warning.
 
 ## 0. What it is, in one paragraph
 
@@ -61,8 +69,8 @@ owner is **re-drawn** as a presentational view, not annotated.
 | `skills/diagram-authoring/SKILL.md` + `references/{notation-precision,carrier-playbook}.md` | agent instructions | mode router, Steps 0–6, coverage declaration, drawing rules (incl. hops and junction dots, §2), carrier choice and precision ceilings |
 | `skills/product-design-thinking/references/representation-models.md` | theory | which view answers which question; per-tier view sets; blind-spot pairing |
 | `skills/product-design-thinking/references/view-integrity-checks.md` | theory + format | §1 per-view checks, §2 cross-view correspondence, §3 gap-report fields |
-| `tools/archdiag/` | Node ESM library, no npm deps | structural model → schema → build-time asserts → emit HTML/SVG → a11y assert → write + sha256 receipt; in-page geometry self-check; orthogonal router (rev 1–4); line clearance (`clearance.mjs`); hop plan; model differ; topology and layout warnings; archview envelope; evidence anchors; `m1.mjs` receipt regression (origin maintenance tool, needs unshipped parts); `rev-ab.mjs` router revision A/B (origin maintenance tool, runs over `m1.mjs --list`) |
-| `skills/audience-fit/SKILL.md` + 5 references | agent instructions | when to fire, modes A1/A2/B/C, guardrails, paired delivery, R1–R14 for re-drawn views (R14: default visual vocabulary when none is inherited) |
+| `tools/archdiag/` | Node ESM library, no npm deps | structural model → schema → build-time asserts → emit HTML/SVG → a11y assert → write + sha256 receipt; in-page geometry self-check; orthogonal router (rev 1–5); line clearance (`clearance.mjs`); hop plan; model differ; topology and layout warnings; archview envelope; evidence anchors; `m1.mjs` receipt regression (origin maintenance tool, needs unshipped parts); `rev-ab.mjs` router revision A/B (origin maintenance tool, runs over `m1.mjs --list`) |
+| `skills/audience-fit/SKILL.md` + 5 references | agent instructions | when to fire, modes A1/A2/B/C, guardrails, paired delivery, R1–R16 for re-drawn views (R14: default visual vocabulary when none is inherited; R15: a line stays near its relation; R16: two kinds of line never share one run) |
 | `tools/audience-fit-gate/afgate.py` (+ `vendor/term_match.py`) | Python CLI, stdlib only | rules on what is determinable in a rewrite: `voice`, `values`; reports `limits`; screens `scope`, `terms`, `sums`, `style` (WARN only) |
 | `rules/{figure-self-read,layout-convergence,deliverable-doc-refs,verification-ladder}.md` | cross-cutting rules | evidence for rendered figures; when to stop moving a layout; reader editions of documents; which rung of evidence a check carries |
 | `skills/ux-walkthrough/references/decision-point-contract.md` | reference | the per-decision-point contract audience-fit mode B (UI copy) writes against |
@@ -138,11 +146,18 @@ report reviewed by a clean-context reader → (optional) audience-fit A1 owner v
   line runs beyond its ends' Manhattan distance, so a long detour no longer buys away one crossing;
   a view whose declared crossing budget then overflows reports `crossing-over-declared` — declare the
   crossing or add side hints, the router never falls back silently. Pages already issued pin their revision so their
-  accepted bytes do not move (the shipped audit page pins `rev: 1`).
+  accepted bytes do not move (the shipped audit page pins `rev: 1`); since 1.5.0 a build below the
+  default revision prints one stderr notice per process per pinned revision, naming the first view
+  that pins it (page bytes unchanged). `rev: 5`
+  (1.5.0, opt-in, never the default) is rev 4 plus a cost on the `fan-mixed` class below; the origin
+  owner kept rev 4 as the default after a blind review preferred it (EVIDENCE M13).
 - **Line clearance** (`clearance.mjs`, 1.2.0) is one shared module: the same classes (L4, L8–L17) are
   logged by `layout.mjs` as `layout WARN`, priced by the router at `rev: 3`/`rev: 4`, and run standalone as a page
   CLI (`node tools/archdiag/clearance.mjs <page.html>`: exit 0 clean, 1 warnings, `--selftest`). WARN
   only, like topology. Since 1.3.0, L16/L17 close the old gap of a line detouring outside every box.
+  Since 1.5.0, L10 also warns `fan-mixed`: two lines of different look (edge `type` in a build;
+  stroke, dash and marker on a page) merged into one run at a shared node, which then reads as one
+  kind of flow.
 - **Priority, by design:** no overlap or collision (two unrelated edges on one line, a label on a box,
   an edge riding a border) outranks fewer crossings. rev 2 deliberately trades extra crossings for
   separated lines and labels; the origin owner reviewed exactly this trade and kept it. A rev-2 view
@@ -223,15 +238,15 @@ review items. Re-run the script after adapting anything.
 | A11 | afgate `voice` | the shipped owner view's main text → 0 FAIL / insert a file path into a reader paragraph → FAIL |
 | A12 | paired delivery | an owner view ships with its original, the R5 mapping table and both renders (text rewrites: 3–6 verbatim excerpts) / a rewrite alone is rejected at review |
 | A13 | topology warnings fire on a degenerate layout | `topology.mjs --selftest` → `calibration: PASS`; shipped audit page → exit 0, 0 WARN / every node moved into one column → exit 1, `single-line` WARN; one pill renamed `包含` → a `contain-edge` WARN |
-| A14 | layout warnings are WARN only and measured | audit build as shipped (`rev: 1`) → exit 0, 196 `layout WARN`, page sha = A2 / same build with `rev: 2` → exit 0, a different count (103) and different bytes |
+| A14 | layout warnings are WARN only and measured | audit build as shipped (`rev: 1`) → exit 0, 201 `layout WARN`, page sha = A2 / same build with `rev: 2` → exit 0, a different count (105) and different bytes |
 | A15 | envelope and anchors self-tests | `envelope.mjs --selftest` and `anchors.mjs --selftest` → `SELFTEST PASS` / any failing case → non-zero exit |
 | A16 | flowchart kinds and hops | `flow-selftest.mjs` → PASS (58 `ok` cases); audit build as shipped (hops) → 0 `L7 bare-crossing` / same build with `crossingStyle: 'plain'` → 2 `L7` and different bytes (before the v1.4.0 folder move they equalled the 2026-10-24 edition's page, `b1377243…`) |
-| A17 | line clearance warns, never fails | `clearance.mjs --selftest` → 46/46; page CLI on the flowchart specimen → exit 0, 0 warnings / page CLI on the audit page (issued before the classes) → exit 1, 136 warnings, page bytes untouched |
+| A17 | line clearance warns, never fails | `clearance.mjs --selftest` → 51/51; page CLI on the flowchart specimen → exit 0, 0 warnings / page CLI on the audit page (issued before the classes) → exit 1, 141 warnings, page bytes untouched |
 
 ## 8. Adapt to your environment (re-check before trusting)
 
 - Paths in the shipped text (`~/.claude/...`, `tools/...`, `rules/...`, `ops/...`) are the origin
-  environment's layout; `reference-impl/` mirrors it so relative imports resolve. 84 referenced paths
+  environment's layout; `reference-impl/` mirrors it so relative imports resolve. 86 referenced paths
   are **not shipped** (generated by scanning every shipped file for environment paths and resolving each
   against the repo — `verify/list_unshipped.py`, full list in `verify/unshipped_paths.txt`). Grouped:
   `ops/*` (judgment, UAT, integrity sweep, rules index); rules `office-deck-deliverables`,
@@ -243,6 +258,10 @@ review items. Re-run the script after adapting anything.
   `system-hmi` (the envelope discovery `m1.mjs` reads); `tools/xi_scan.py` and `tools/x.py` appear
   only inside test fixture text. None is needed to run the library, the gate or the examples; `m1.mjs`
   is the one shipped file that does not run without them. Write your own env-grep for A9.
+- `~/.claude/` stands for the Claude Code config root. When yours is custom (`CLAUDE_CONFIG_DIR`
+  set), read every `~/.claude/` in the shipped text, the install table in `AGENTS.md` included, as
+  that root; the relative imports inside `reference-impl/` are unaffected (reported from outside,
+  2026-11-11).
 - `<projects>\…` / `<projects>/…` stands for the origin's project folder (the drive root was replaced,
   the project and file names were kept so the provenance still reads).
 - Mentions of a browser-pane protocol, hooks, a process ledger and "user ruling" are the origin's
@@ -256,14 +275,17 @@ review items. Re-run the script after adapting anything.
 
 ## 9. Declared edits relative to the origin (everything else is byte-identical)
 
-Applied to fresh copies on 2026-11-11 by an anchored script kept by the maintainer (each anchor must
+Applied to fresh copies on 2026-11-18 by an anchored script kept by the maintainer (each anchor must
 hit its stated count, or the run stops before writing). The policy is to remove what identifies a
 third party or a private location, and to keep everything that carries information.
 
 1. **Third party.** `tools/archdiag/MAINTENANCE.md` (2026-10-19 log): the name of the outside reader
    whose page set off the topology check → "a reader's". `tools/audience-fit-gate/README.md` and
    `afgate.py` (comment only): an exchange contact's folder and item id in the `scope` provenance line
-   → "its pit 7".
+   → "its pit 7". Since 1.5.0 also: the same contact's item id after "reported from outside" in
+   `clearance.mjs` and `route.mjs` (comments only), `MAINTENANCE.md`, `presentational-view.md` (R16) and
+   `notation-precision.md` (dropped, the date kept); and in `references/design-axes/part-principles.md`
+   the owner's personal notes-vault name in a provenance bracket (2 places) → 「作者的筆記庫」.
 2. **Session id and local page.** `skills/audience-fit/references/presentational-view.md`: a session id
    and a local path to an analysis page → "analysis kept locally, not shipped".
 3. **Drive root.** 14 occurrences in 6 files (`part-principles.md` 7, `notation-precision.md` 2,

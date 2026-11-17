@@ -38,12 +38,20 @@
 // them (CLEAR_COST in route.mjs), so issued routes are unchanged.
 // L10 also reports two edges that meet head to tail (one enters the node the
 // other leaves) on ONE track: fan-out/fan-in may bundle, opposite flow may not.
+// A fan bundles only when both lines LOOK the same (2026-11-11, fan-mixed;
+// reported from outside): a merged run is drawn once, so a data
+// line merged with a warn line shows one style and the reader loses the
+// difference. "Look" is the edge `type` at build time and the drawn
+// stroke/dash/marker on a page (pages carry no type). An edge without a look
+// keeps the old exemption. Priced by router rev 5 only (route.mjs).
 // Readability, not correctness ⇒ WARN, never FAIL (gate-design: not
 // determinable as a defect for every reader).
 //
-// Neutral input: { id, nodes:[{id,x,y,w,h}], edges:[{id,from,to,pts}],
+// Neutral input: { id, nodes:[{id,x,y,w,h}], edges:[{id,from,to,pts,type?,look?}],
 //   containers:[{id,x,y,w,h,title?,role?,titleBox?}], pills?:[{x,y,w,h,text?}] }.
 
+// what a reader sees of an edge: an explicit `look` (page adapter), else its type
+export const lookOf = (e) => e.look ?? e.type;
 const segsOf = (pts) => pts.slice(1).map((p, i) => [pts[i], p]);
 const vert = (s) => Math.abs(s[0][0] - s[1][0]) < 0.5;
 const span = (s, k) => [Math.min(s[0][k], s[1][k]), Math.max(s[0][k], s[1][k])];
@@ -123,6 +131,7 @@ export function clearanceWarnings(view, opts = {}) {
   const detourFloor = opts.detourFloor ?? 80;  // L17 end distance floor and minimum excess
   const backtrack = opts.backtrack ?? 2 * sep; // L16 px moved away from the target outside the frame
   const focus = opts.focus;                    // router: only warnings that involve this edge
+  const fanLooks = opts.fanLooks ?? true;      // L10 fan-mixed; router rev < 5 passes false (byte-stable)
   const W = [];
   const add = (code, message) => W.push({ code, view: view.id, message });
   const nodes = view.nodes || [], conts = view.containers || [];
@@ -269,15 +278,18 @@ export function clearanceWarnings(view, opts = {}) {
     // like any other pair)
     const fan = a.from === b.from || a.to === b.to;
     const chain = !fan && [a.from, a.to].some((x) => x === b.from || x === b.to);
+    // a fan of two different looks may not merge (header: fan-mixed)
+    const la = lookOf(a), lb = lookOf(b);
+    const mixed = fanLooks && fan && la !== undefined && lb !== undefined && la !== lb;
     let worst = null;
     for (const s of segsOf(a.pts)) for (const t of segsOf(b.pts)) {
       if (vert(s) !== vert(t)) continue;
       const k = vert(s) ? 0 : 1, o = vert(s) ? 1 : 0;
       const d = Math.abs(s[0][k] - t[0][k]);
-      if ((d === 0 && !chain) || d >= sep) continue;
+      if ((d === 0 && !chain && !mixed) || d >= sep) continue;
       const [a0, a1] = span(s, o), [b0, b1] = span(t, o);
       const ov = Math.min(a1, b1) - Math.max(a0, b0);
-      if (ov > minRun && (!worst || ov > worst.ov)) worst = { d, ov };
+      if (ov > minRun && (!worst || ov > worst.ov)) worst = { d, ov, mixed: mixed && d === 0 };
       // head-to-tail pair on one line with a short gap: drawn, it reads as
       // one line passing the node (the gap hides under the anchors)
       // short (< 2·sep), or lying alongside the common node's side: both stubs
@@ -293,7 +305,9 @@ export function clearanceWarnings(view, opts = {}) {
         if (!through && (-ov < 2 * sep || (along && g0 >= along[0] - sep && g1 <= along[1] + sep))) worst = { d, ov: 0, gap: -ov };
       }
     }
-    if (worst) add('L10', worst.gap !== undefined
+    if (worst) add('L10', worst.mixed
+      ? `fan-mixed ${a.id} (${la}) and ${b.id} (${lb}) share ${Math.round(worst.ov)}px of one line into their common node — the merged run shows one style, so two kinds of flow read as one`
+      : worst.gap !== undefined
       ? `opposite-flow ${a.id} (${a.from}→${a.to}) and ${b.id} (${b.from}→${b.to}) continue each other on one line with a ${worst.gap}px gap — it reads as one line through the node`
       : worst.d === 0
       ? `opposite-flow ${a.id} (${a.from}→${a.to}) and ${b.id} (${b.from}→${b.to}) share ${Math.round(worst.ov)}px of one line through their common node — the arrow reads as both directions`
@@ -364,7 +378,10 @@ export function viewsFromHtml(html, cjkW) {
     for (const t of svg.matchAll(/<path[^>]*data-edge="[^"]*"[^>]*>/g)) {
       const p = (attr(t[0], 'data-pts') || '').split(',').map(Number), pts = [];
       for (let i = 0; i + 1 < p.length; i += 2) pts.push([p[i], p[i + 1]]);
-      edges.push({ id: attr(t[0], 'data-edge'), from: attr(t[0], 'data-from'), to: attr(t[0], 'data-to'), pts });
+      // pages carry no edge type: the drawn style is what the reader compares
+      const stroke = attr(t[0], 'stroke');
+      const look = stroke ? [stroke, attr(t[0], 'stroke-dasharray') || '', attr(t[0], 'marker-end') || ''].join('|') : undefined;
+      edges.push({ id: attr(t[0], 'data-edge'), from: attr(t[0], 'data-from'), to: attr(t[0], 'data-to'), pts, look });
     }
     for (const t of svg.matchAll(/<polyline data-edge="[^"]*"[^>]*>/g)) {
       const pts = attr(t[0], 'points').trim().split(/\s+/).map((q) => q.split(',').map(Number));
@@ -444,6 +461,19 @@ function selftest() {
     { id: 'in2', from: 'o', to: 'M', pts: [[440, 200], [440, 112], [240, 112], [240, 40]] }] }, true);
   run('L10 fan-in quiet', 'L10', { ...tri, edges: [{ id: 'in', from: 'i', to: 'M', pts: [[40, 200], [40, 120], [240, 120], [240, 40]] },
     { id: 'in2', from: 'o', to: 'M', pts: [[440, 200], [440, 120], [240, 120], [240, 40]] }] }, false);
+  // fan-mixed (2026-11-11): the same merged fan-in, two looks vs one look
+  const fanIn = (t1, t2, key = 'type') => ({ ...tri, edges: [
+    { id: 'in', from: 'i', to: 'M', [key]: t1, pts: [[40, 200], [40, 120], [240, 120], [240, 40]] },
+    { id: 'in2', from: 'o', to: 'M', [key]: t2, pts: [[440, 200], [440, 120], [240, 120], [240, 40]] }] });
+  run('L10 fan-mixed: data+warn merged fires', 'L10', fanIn('data', 'warn'), true);
+  run('L10 fan-mixed: data+data merged quiet', 'L10', fanIn('data', 'data'), false);
+  run('L10 fan-mixed: one edge without a type keeps the old exemption', 'L10', fanIn('data', undefined), false);
+  run('L10 fan-mixed: page look (stroke|dash|marker) differs fires', 'L10', fanIn('#0f172a||url(#mFill)', '#b91c1c|6 4|url(#mEgr)', 'look'), true);
+  {
+    const page = '<svg class="dia" data-view="pv"><path d="M0 0" stroke="#b91c1c" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#mEgr)" class="edge" data-edge="w" data-from="a" data-to="b" data-pts="0,0,10,0"/></svg>';
+    const look = viewsFromHtml(page, () => 0)[0].edges[0].look;
+    cases.push(['page adapter reads the drawn look', look === '#b91c1c|6 4|url(#mEgr)', look]);
+  }
   // L4: the b8-v2 shape, a line on a lane's outer border vs one 20px outside it
   const edgeLane = (x) => ({ id: 'e', containers: [C('L0', 20, 0, 200, 600), C('L1', 220, 0, 200, 600), C('L2', 420, 0, 200, 600)],
     nodes: [N('s', 240, 500, 160, 60), N('t', 440, 100, 160, 60)],

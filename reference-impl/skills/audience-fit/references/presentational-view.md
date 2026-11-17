@@ -175,6 +175,13 @@ layout per artifact; never transplant it.
   move of nodes or a reroute, never an accepted warning. Excuse answered:
   "the long way avoids a crossing" — R13's hop makes a crossing cheap to
   read; a detour is not.
+- **R16 Two kinds of line never share one run.** Lines into or out of one
+  node may merge into one track only when they look the same; a merged run
+  is drawn once, so a dashed warn line merged with a solid data line loses
+  its dash and the reader sees one kind of flow. Reported from outside
+  2026-11-11. The closing sweep catches it through
+  `clearanceWarnings()`: L10 `fan-mixed` compares the drawn stroke, dash and
+  marker. A hit is a reroute, never an accepted warning.
 
 ## Boundary (D-071, user ruling 2026-10-23)
 

@@ -39,7 +39,7 @@ diagram-audience-fit/
     ├── run_controls.py           機器驗收（每項同時跑會過／不會過兩種輸入）
     ├── controls_run.txt          我們這邊的執行紀錄（從乾淨 clone 跑）
     ├── list_unshipped.py         產生「沒附路徑」清單
-    └── unshipped_paths.txt       原檔提到但沒附的 84 個路徑
+    └── unshipped_paths.txt       原檔提到但沒附的 86 個路徑
 ```
 
 ## 元件與呼叫關係
@@ -101,7 +101,7 @@ flowchart TB
 | `route.mjs` | 正交連線路由與標籤（pill）擺放 |
 | `hops.mjs` | 跳線與接點：只經過的交叉畫半圓，真相接畫實心點 |
 | `topology.mjs` / `layout.mjs` | 拓撲與版面可讀性**警告**（不會讓建置失敗） |
-| `clearance.mjs` | 連線間距 (line clearance) 檢查：版面警告、路由器第 3、4 版的避讓成本、單頁命令列共用同一套；L16/L17 抓「線離開自己的框、繞遠路」 |
+| `clearance.mjs` | 連線間距 (line clearance) 檢查：版面警告、路由器第 3、4 版的避讓成本、單頁命令列共用同一套；L16/L17 抓「線離開自己的框、繞遠路」；L10 `fan-mixed`（v1.5.0）抓「兩種外觀的線在同一節點前併成一段」，只有第 5 版（需自己指定）把它算進成本 |
 | `tokens.mjs` | 樣式 token 表＋對比度檢查 |
 | `emit.mjs` / `tables.mjs` | 輸出 SVG、頁面與節點／邊表 |
 | `selfcheck.mjs` | 頁內幾何自檢（瀏覽器打開時執行） |
@@ -126,7 +126,7 @@ flowchart TB
 python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新資料夾>
 ```
 
-腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.4.0，乾淨 clone）：A1–A5、A7、A10、A11、A13–A17 共 13 項全過。
+腳本把 `reference-impl/` 複製到那個資料夾、對副本做突變、跑完刪掉。每一項同時跑「該通過」與「該失敗」兩種輸入並印出兩邊的值，結尾 `-> ok` 才算過。和 [`verify/controls_run.txt`](../verify/controls_run.txt) 比對：sha256 與計數要一致，`route stats` 的毫秒數不用比。目前的紀錄（v1.5.0，乾淨 clone）：A1–A5、A7、A10、A11、A13–A17 共 13 項全過。
 
 ## 設計上刻意的幾件事（改之前請先看）
 
@@ -139,7 +139,7 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 7. **不重疊優先於少交叉**：路由器會為了讓線分開而多一些交叉，這是刻意的；剩下的交叉用跳線畫，讓它看起來不像相接。不要為了壓低交叉數把線併回去。
 8. **可讀性只發警告**：排成一直線、線擠在同一段、「+」交叉這類問題，程式只警告、不讓建置失敗，因為「好不好讀」不是幾何算得出來的；會讓建置失敗的警告，最後會被關掉而不是被讀。
 
-上面 8 條中，第 4、5、7、8 條有程式執行（第 7 條只在路由器 rev 2 到 rev 4）；第 1、3、6 條是流程規矩，程式不會擋；第 2 條程式只檢查宣告的格式（頁面有宣告 `archview` 時），不檢查覆蓋是否完整。逐條的檔案與行號見 [EVIDENCE · 規則執行表 (Enforcement map)](EVIDENCE.md#enforcement-map--which-rules-a-program-enforces-which-only-the-workflow-asks-for)。
+上面 8 條中，第 4、5、7、8 條有程式執行（第 7 條只在路由器 rev 2 以後，預設 rev 4，rev 5 需自己指定）；第 1、3、6 條是流程規矩，程式不會擋；第 2 條程式只檢查宣告的格式（頁面有宣告 `archview` 時），不檢查覆蓋是否完整。逐條的檔案與行號見 [EVIDENCE · 規則執行表 (Enforcement map)](EVIDENCE.md#enforcement-map--which-rules-a-program-enforces-which-only-the-workflow-asks-for)。
 
 ## 範圍與限制
 
@@ -148,7 +148,7 @@ python -X utf8 verify/run_controls.py reference-impl <一個還不存在的新�
 - `tools/archdiag/m1.mjs` 需要原環境另一個元件（沒附），在這裡跑不起來。
 - 模型裡有指向不存在節點的連線時，建置會失敗，路由器會點名是哪張圖、哪條連線、缺哪個 id（v1.0.2 起；之前是 `TypeError` 崩潰，規格 A3）。
 - 兩個檢查工具還沒修的已知缺口（設計層級，不是計算錯誤）列在 `docs/EVIDENCE.md` 的 Not claimed。
-- 原檔中提到的 84 個路徑**沒有附**（其他 skill、規則索引、審查紀錄、提案單、幾支別的檢查工具）；跑程式庫、檢查工具、範例都不需要它們。清單在 `verify/unshipped_paths.txt`。
+- 原檔中提到的 86 個路徑**沒有附**（其他 skill、規則索引、審查紀錄、提案單、幾支別的檢查工具）；跑程式庫、檢查工具、範例都不需要它們。清單在 `verify/unshipped_paths.txt`。
 - 文中的 hook、瀏覽器面板規則、決策紀錄、「使用者裁定」是原環境的機制，讀成「為什麼這樣設計」，不是你也得照做的規則。
 - 範例是原環境某個產品（一個貼文媒體下載工具）的稽核頁，內容與你無關，看的是做法與重畫前後的取捨。
 - 相對原檔的修改只有七類（其餘逐位元組相同）：外部交流對象的名稱與編號、一個 session 編號與本機分析頁路徑、原環境專案資料夾的磁碟根目錄改成 `<projects>`（工具類專案名與檔名保留）、家目錄路徑改成 `~/.claude`、研究專案的出處改寫成中性說法（日期與教訓編號保留）、作者個人寫作筆記的一節與指向它的一句不隨附、維護步驟 M7 裡維護者本機分享資料夾的位置改成「下一次發布」。逐條見規格第 9 節。

@@ -23,13 +23,24 @@ which view answers which question: `product-design-thinking/references/`
 `representation-models.md`; whether a view is sound: `view-integrity-checks.md`
 in the same directory.
 
+## Step 0 — dependency self-check (before the mode router)
+
+Read both theory files: `../product-design-thinking/references/representation-models.md`
+and `../product-design-thinking/references/view-integrity-checks.md` (relative to this
+skill's folder; under a custom config root, that root replaces `~/.claude/`). If either
+cannot be read, STOP and tell the user which file is missing and where it is expected;
+do not draw from memory of it. Excuse answered: "the rules are mostly in this file" —
+view choice and the integrity checks live only there, so a missing file silently drops
+them. The two files are upgraded together with this skill (an older pair cites checks
+this version no longer names).
+
 ## Mode router — settle this FIRST
 
 | Ask | Mode | Carrier default |
 |---|---|---|
 | Explain/discuss with a quick visual, in-chat, disposable | Sketch | mermaid fence / visualize widget — declare "auto-layout, no precision claim" |
 | Figure inside a builder doc (design doc, spec, internal README, report for builders) | Doc figure | mermaid if auto-layout suffices; inline SVG when position/alignment carry meaning |
-| Diagram whose reader is NOT its builder (public README flow, promo/ad image, audience page), with or without an engineering original | not this skill | → audience-fit A1 + `skills/audience-fit/references/presentational-view.md` R1–R14 (D-071, see Handoffs) |
+| Diagram whose reader is NOT its builder (public README flow, promo/ad image, audience page), with or without an engineering original | not this skill | → audience-fit A1 + `skills/audience-fit/references/presentational-view.md` R1–R16 (D-071, see Handoffs) |
 | Standalone deliverable to view/share | Standalone | self-contained HTML (inline SVG + pan/zoom) or an Artifact |
 | Editable slides humans will present/annotate | Deck | PPTX via anthropic-skills:pptx — native shapes + bound connectors, never baked images |
 | Reconstruct an EXISTING system from data and find holes（體檢繪圖、找缺口） | Audit drawing | any of the above + mandatory gap report; precision view-set → `tools/archdiag` (carrier-playbook §archdiag) |
@@ -186,10 +197,13 @@ EXPLICITLY EXCLUDED with a reason — the `explicitExclusions` vocabulary of
 code-review-deep-checklist's `coverage.json`, so the two deliverables read
 alike. The declaration is checked against the CURRENT set: pass
 `archview.viewSet` = the `audit-view-set:` line of representation-models.md;
-a page on an older set warns at build and in archviews.freshness until its
-declaration is re-run, and a re-issue that only rebuilds geometry does not
-clear it ("it was only a re-issue" is the excuse: 2026-11-01, 14 pages, no
-flowchart row). A view absent without a name is an undeclared blind spot, not a
+a page on an older set gets an info note at build and in archviews.freshness
+(user ruling 2026-11-15: a newer set alone does not make an unchanged system's
+view stale), and its declaration is re-run when the view is next re-verified;
+a re-issue that only rebuilds geometry does not clear it ("it was only a
+re-issue" is the excuse: 2026-11-01, 14 pages, no flowchart row). An audit of
+an outside system studied, not ours, declares `covers: {external: [names]}`:
+listed, never judged for coverage and never aged. A view absent without a name is an undeclared blind spot, not a
 scoping choice: this skill audits one question per view and carries no
 inventory duty, so the declaration is the only place a reader learns what
 was never looked at (AWD 2026-09-03: statecharts drawn, no process/

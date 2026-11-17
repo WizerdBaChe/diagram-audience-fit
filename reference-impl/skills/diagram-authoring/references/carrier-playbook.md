@@ -104,9 +104,11 @@ Build through `~/.claude/tools/archdiag/`:
   `tools/archdiag/MAINTENANCE.md`; environment sweep item: integrity-sweep
   check 27.
 
-Reference builds: `view-pages/diagram-authoring/mfp-audit-f3.build.mjs` (routed —
-current pattern); `dit-audit-f1.build.mjs` / `prism-audit-f2.build.mjs`
-(hand-routed pts, frozen receipts).
+Reference builds: `view-pages/diagram-authoring/monitoring-audit-f1.build.mjs`
+(routed — current pattern, frozen source reads); `dit-audit-f1.build.mjs`
+(hand-routed pts, frozen receipts). mfp-audit-f3 is retired (M1 skips its
+build) but stays in place as the public pack's worked example; prism-audit-f2
+moved to `archive/2026-11-18-diagram-cleanup/`.
 
 ## Source-of-truth & regeneration
 

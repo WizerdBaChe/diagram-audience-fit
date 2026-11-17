@@ -62,7 +62,7 @@ The tree under `reference-impl/` maps 1:1 onto a `~/.claude` home:
 |---|---|---|
 | `reference-impl/skills/diagram-authoring/` | `~/.claude/skills/diagram-authoring/` | the diagram skill |
 | `reference-impl/skills/audience-fit/` | `~/.claude/skills/audience-fit/` | the audience-fit skill |
-| `reference-impl/skills/product-design-thinking/references/` | `~/.claude/skills/product-design-thinking/references/` | view selection + integrity checks the diagram skill cites (only these two files; the rest of that skill is not shipped) |
+| `reference-impl/skills/product-design-thinking/references/` | `~/.claude/skills/product-design-thinking/references/` | view selection + integrity checks the diagram skill cites (only these two files; the rest of that skill is not shipped). Upgrade them together with `diagram-authoring`: the skill's Step 0 stops when either is missing, and an older pair cites checks the newer skill no longer names |
 | `reference-impl/skills/ux-walkthrough/references/decision-point-contract.md` | same path under `~/.claude` | audience-fit mode B |
 | `reference-impl/tools/archdiag/` | `~/.claude/tools/archdiag/` | the renderer library (Node ≥ 24 tested, no npm install) |
 | `reference-impl/tools/audience-fit-gate/` | `~/.claude/tools/audience-fit-gate/` | the reader-edition gate (Python ≥ 3.12 tested, stdlib only) |
@@ -91,7 +91,7 @@ scripts import `../../tools/archdiag/*.mjs` relative to `view-pages/diagram-auth
 ## What not to adopt
 
 Mentions of hooks, a browser-pane protocol, a process ledger, `ops/*` files and "user ruling" are the
-origin environment's mechanisms and decision records. Read them as the reason a rule exists. The 84
+origin environment's mechanisms and decision records. Read them as the reason a rule exists. The 86
 paths listed in `verify/unshipped_paths.txt` are not shipped; none is needed to run the library, the
 gate or the examples (`tools/archdiag/m1.mjs` is the one shipped file that needs them).
 

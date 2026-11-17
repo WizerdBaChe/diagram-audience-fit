@@ -25,6 +25,7 @@
 // a build failed or threw, envelope discovery failed or found malformed/duplicate
 // archview envelopes, a receipt file was already uncommitted, or an unknown flag.
 // Not recursive: a build writes beside its page. Symlinked files are skipped and named.
+// A build whose page's envelope is `retired: true` is skipped and named (2026-11-18).
 // A page whose folder holds no `<page>.build.mjs` is named as a WARN (it may be built
 // by another tool, e.g. a Python generator); it does not change the exit code.
 
@@ -60,15 +61,17 @@ function discover() {
     `sys.path.insert(0, ${JSON.stringify(path.join(HOME, 'tools', 'system-hmi'))})`,
     'from hmi import envelopes',
     'd = envelopes.discover(max_age_s=0)',
-    "outs = sorted({e['output'] for e in d['envelopes'] if isinstance(e.get('archview'), dict) and e['archview'].get('profile') == 'archview/1'})",
+    "av = [e for e in d['envelopes'] if isinstance(e.get('archview'), dict) and e['archview'].get('profile') == 'archview/1']",
+    "outs = sorted({e['output'] for e in av})",
+    "retired = sorted({e['output'] for e in av if e.get('retired') is True})",
     "bad = [str(m[0]) for m in d['malformed'] if '/archview-' in str(m[0]).replace(chr(92), '/')]",
     "dup = [v for v in d['duplicates'] if str(v).startswith('archview-')]",
-    "print(json.dumps({'outputs': outs, 'malformed': bad, 'duplicates': dup}))",
+    "print(json.dumps({'outputs': outs, 'retired': retired, 'malformed': bad, 'duplicates': dup}))",
   ].join('\n');
   const r = spawnSync('python', ['-X', 'utf8', '-c', py], { encoding: 'utf8', cwd: HOME });
-  if (r.status !== 0) return { outputs: [], malformed: [], duplicates: [], error: (r.stderr || r.error?.message || 'python failed').trim().split('\n').pop() };
-  try { return { ...JSON.parse(r.stdout.trim().split('\n').pop()), error: null }; }
-  catch (e) { return { outputs: [], malformed: [], duplicates: [], error: 'unparseable discovery output: ' + e.message }; }
+  if (r.status !== 0) return { outputs: [], retired: [], malformed: [], duplicates: [], error: (r.stderr || r.error?.message || 'python failed').trim().split('\n').pop() };
+  try { return { retired: [], ...JSON.parse(r.stdout.trim().split('\n').pop()), error: null }; }
+  catch (e) { return { outputs: [], retired: [], malformed: [], duplicates: [], error: 'unparseable discovery output: ' + e.message }; }
 }
 
 function snapshot(dir) {
@@ -104,10 +107,21 @@ for (const o of disc.outputs) {
   else { incomplete++; console.log(`m1 WARN envelope names a folder that does not exist: ${o}`); }
 }
 
+// A page whose envelope says `retired: true` is no longer a receipt anyone relies
+// on: its build is skipped (and named), so a retired view never forces a rebuild
+// or a fix. Owner ruling 2026-11-18: what a retired or superseded view keeps is
+// its relation chain (JSON), reached through an index, not a redrawn picture.
+const retiredBuilds = new Set(disc.retired.map((o) => norm(path.join(path.dirname(path.resolve(o)),
+  path.basename(o).replace(/\.html?$/i, '') + '.build.mjs'))));
 const plan = [...dirs.values()].sort().map((dir) => ({
   dir,
   builds: fs.readdirSync(dir).filter((n) => n.endsWith('.build.mjs'))
-    .filter((n) => IMPORTS_ARCHDIAG.test(fs.readFileSync(path.join(dir, n), 'utf8'))).sort(),
+    .filter((n) => IMPORTS_ARCHDIAG.test(fs.readFileSync(path.join(dir, n), 'utf8')))
+    .filter((n) => {
+      if (!retiredBuilds.has(norm(path.join(dir, n)))) return true;
+      console.log(`m1 skip retired: ${path.join(dir, n).replace(/\\/g, '/')} (envelope retired: true)`);
+      return false;
+    }).sort(),
 }));
 
 for (const o of disc.outputs) {

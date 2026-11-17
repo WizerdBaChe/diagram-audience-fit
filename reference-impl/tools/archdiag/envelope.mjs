@@ -30,7 +30,7 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 // The audit view set's version has ONE copy: the `audit-view-set: N` line of
 // representation-models.md. A page records the version its coverage
-// declaration was checked against (archview.viewSet); older or absent warns at
+// declaration was checked against (archview.viewSet); older or absent is a note at
 // build and in archviews.freshness until the declaration is re-run.
 export const VIEW_SET_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
   '../../skills/product-design-thinking/references/representation-models.md');
@@ -49,9 +49,11 @@ export function viewSetNotice(av, current = currentViewSet()) {
   if (!current || !av) return null;
   const v = av.view_set;
   if (Number.isInteger(v) && v >= current) return null;
-  return `archview WARN view-set: coverage declared against view set ${Number.isInteger(v) ? v : '1 (unrecorded)'}, `
-    + `current is ${current} — re-run the coverage declaration (SKILL.md "Coverage declaration"), `
-    + `then pass archview.viewSet: ${current}. A rebuild alone does not clear this.`;
+  // A note, not a warning (user ruling 2026-11-15): a newer view set alone is no reason to re-verify a
+  // view whose system has not changed; re-declare when the page is next re-verified for its own sake.
+  return `archview note view-set: coverage declared against view set ${Number.isInteger(v) ? v : '1 (unrecorded)'}, `
+    + `current is ${current} — when this view is next re-verified, re-run the coverage declaration `
+    + `(SKILL.md "Coverage declaration") and pass archview.viewSet: ${current}.`;
 }
 
 export function viewId(outPath) {
@@ -83,14 +85,16 @@ export function validateDeclaration(d) {
   const c = d.covers;
   if (!c || typeof c !== 'object') p.push('archview.covers must be {subsystems:[], projects:[], partial:[]}');
   else {
-    for (const k of ['subsystems', 'projects', 'partial']) {
+    // external (2026-11-15, user ruling): an outside system audited for study (not ours, not in the
+    // core tree); system-hmi lists it and judges neither its coverage nor its age.
+    for (const k of ['subsystems', 'projects', 'partial', 'external']) {
       if (c[k] !== undefined && !(Array.isArray(c[k]) && c[k].every((x) => typeof x === 'string' && x)))
         p.push(`archview.covers.${k} must be a list of non-empty strings`);
     }
     const named = [...(c.subsystems || []), ...(c.projects || [])];
-    if (!named.length && !d.retired) p.push('archview.covers names nothing (a view that covers nothing is not an archview)');
+    if (!named.length && !(c.external || []).length && !d.retired) p.push('archview.covers names nothing (a view that covers nothing is not an archview)');
     for (const x of c.partial || []) if (!named.includes(x)) p.push(`archview.covers.partial names ${x}, which covers does not list`);
-    for (const k of Object.keys(c)) if (!['subsystems', 'projects', 'partial'].includes(k)) p.push(`archview.covers.${k} is not a known key`);
+    for (const k of Object.keys(c)) if (!['subsystems', 'projects', 'partial', 'external'].includes(k)) p.push(`archview.covers.${k} is not a known key`);
   }
   if (typeof d.verifiedAt !== 'string' || !(DAY.test(d.verifiedAt) || AWARE.test(d.verifiedAt)))
     p.push('archview.verifiedAt must be YYYY-MM-DD or an aware ISO-8601 stamp');
@@ -114,7 +118,8 @@ function block(d, anchors) {
   const c = d.covers || {};
   return {
     profile: PROFILE,
-    covers: { subsystems: [...(c.subsystems || [])], projects: [...(c.projects || [])], partial: [...(c.partial || [])] },
+    covers: { subsystems: [...(c.subsystems || [])], projects: [...(c.projects || [])], partial: [...(c.partial || [])],
+      ...((c.external || []).length ? { external: [...c.external] } : {}) },
     verified_at: awareStamp(d.verifiedAt),
     rung: d.rung || 'R2',
     max_verify_age_s: Math.round((d.maxVerifyAgeDays || DEFAULT_MAX_VERIFY_AGE_DAYS) * 86400),
@@ -155,7 +160,8 @@ export function writeEnvelope({ outPath, decl, changed, title, producer, remedy,
     retired = prev.retired;
     ttl = prev.title;
   }
-  const notice = retired ? null : viewSetNotice(av);
+  const externalOnly = !(av.covers?.subsystems || []).length && !(av.covers?.projects || []).length;
+  const notice = retired || externalOnly ? null : viewSetNotice(av);
   const same = prev && JSON.stringify(prev.archview) === JSON.stringify(av) && prev.retired === retired && prev.title === ttl;
   if (same && !changed) return { path: ep, written: false, reason: 'unchanged', notice };
   const stamp = now.toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -221,14 +227,14 @@ async function selftest() {
     let threw = false;
     try { writeEnvelope({ outPath: out, decl: { covers: {} , verifiedAt: 'x' }, changed: true }); } catch { threw = true; }
     ok(threw, 'malformed declaration throws before writing');
-    // view-set versioning (2026-11-06): positive controls warn, negative stays silent
+    // view-set versioning (2026-11-06; a note, not a warn, since 2026-11-15): positive controls note, negative stays silent
     const cur = currentViewSet();
     ok(Number.isInteger(cur) && cur >= 2, `representation-models.md carries audit-view-set >= 2 (read ${cur})`);
     const vsFile = path.join(dir, 'vs.md');
     fs.writeFileSync(vsFile, 'x\n\naudit-view-set: 7\n', 'utf8');
     ok(currentViewSet(vsFile) === 7 && currentViewSet(path.join(dir, 'none.md')) === null, 'version line parsed; unreadable -> null');
-    ok(viewSetNotice({ profile: PROFILE }, 2) !== null, 'positive control: no view_set recorded -> warns');
-    ok(viewSetNotice({ view_set: 1 }, 2) !== null, 'positive control: older view_set -> warns');
+    ok(viewSetNotice({ profile: PROFILE }, 2) !== null, 'positive control: no view_set recorded -> note');
+    ok(viewSetNotice({ view_set: 1 }, 2) !== null, 'positive control: older view_set -> note');
     ok(viewSetNotice({ view_set: 2 }, 2) === null, 'negative control: current view_set -> silent');
     ok(viewSetNotice({}, null) === null, 'unknown current set -> no claim');
     ok(validateDeclaration({ ...good, viewSet: cur + 50 }).some((p) => p.includes('does not exist')), 'future viewSet is a declaration defect');
@@ -239,6 +245,18 @@ async function selftest() {
     r = writeEnvelope({ outPath: out2, decl: { ...good, viewSet: cur }, changed: false, title: 'fx' });
     ok(r.written && JSON.parse(fs.readFileSync(r.path, 'utf8')).archview.view_set === cur && r.notice === null,
       're-declared at the current set -> stored and silent');
+    // external scope (2026-11-15): an outside system validates, is stored, and gets no view-set notice
+    const ext = { covers: { external: ['outside-sys'] }, verifiedAt: '2026-10-01' };
+    ok(validateDeclaration(ext).length === 0, 'external-only declaration validates');
+    ok(validateDeclaration({ covers: { external: [''] }, verifiedAt: '2026-10-01' }).some((p) => p.includes('non-empty')),
+      'empty external name rejected');
+    r = writeEnvelope({ outPath: path.join(dir, 'ext audit.html'), decl: ext, changed: true, title: 'fx' });
+    const extEnv = JSON.parse(fs.readFileSync(r.path, 'utf8'));
+    ok(r.written && extEnv.archview.covers.external[0] === 'outside-sys' && r.notice === null,
+      'external stored, no view-set notice');
+    r = writeEnvelope({ outPath: path.join(dir, 'empty ext.html'), decl: { covers: { subsystems: ['sa'], external: [] }, verifiedAt: '2026-10-01' }, changed: true, title: 'fx' });
+    ok(!('external' in env.archview.covers) && !('external' in JSON.parse(fs.readFileSync(r.path, 'utf8')).archview.covers),
+      'no or empty external -> no key (M1 bytes)');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

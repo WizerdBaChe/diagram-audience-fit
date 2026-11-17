@@ -34,6 +34,7 @@ outputs/skill-reviews/archify-graphify-reborrow-2026-10-23.md	<- tools/archdiag/
 outputs/skill-reviews/diagram-authoring-gaps-2026-08-27.md	<- skills/diagram-authoring/references/carrier-playbook.md
 references/audience-fit-ux-gap-review-2026-09-07.md	<- skills/audience-fit/references/ui-copy-stance.md
 references/claude-config-decisions.md	<- rules/layout-convergence.md
+references/design-axes/reader-vocab.md	<- references/design-axes/part-principles.md
 references/formal-path-governance-design.md	<- skills/product-design-thinking/references/representation-models.md, skills/product-design-thinking/references/view-integrity-checks.md
 references/media-fetch-pipeline-context.md	<- view-pages/diagram-authoring/mfp-audit-f3.build.mjs
 references/media-fetch-pipeline-phase-log.md	<- view-pages/diagram-authoring/mfp-audit-f3.build.mjs
@@ -79,7 +80,8 @@ view-pages/diagram-authoring/archdiag-capability-set-v1.html	<- tools/archdiag/M
 view-pages/diagram-authoring/ccfg-retrieval-audit-f1-owner-view.html	<- skills/audience-fit/SKILL.md, skills/product-design-thinking/references/representation-models.md, tools/audience-fit-gate/README.md
 view-pages/diagram-authoring/dit-audit-f1.build.mjs	<- skills/diagram-authoring/references/carrier-playbook.md, tools/archdiag/README.md
 view-pages/diagram-authoring/memory-compaction-audit-f1.html	<- tools/archdiag/MAINTENANCE.md
+view-pages/diagram-authoring/monitoring-audit-f1.build.mjs	<- skills/diagram-authoring/references/carrier-playbook.md
 view-pages/diagram-authoring/mvlab-sync-audit-f1.html	<- tools/archdiag/MAINTENANCE.md
 view-pages/diagram-authoring/prism-audit-f2.build.mjs	<- skills/diagram-authoring/references/carrier-playbook.md, tools/archdiag/README.md
 view-pages/diagram-authoring/selfbuild-scope-eval-2026-08-28.md	<- tools/archdiag/README.md
-total: 84
+total: 86

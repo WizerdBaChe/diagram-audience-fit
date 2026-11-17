@@ -46,6 +46,8 @@ This repository connects both ends:
 
 <img src="docs/assets/audit-tabs.gif" alt="Cycling through the five tabs of the audit page, each with the in-page geometry self-check badge top right" width="100%">
 
+<sub>This page is pinned to router revision 1 (spec A14 uses it as the baseline), so a few arrows end on a run too short for their head and merge into the line; revision 2 and later avoid this, and revision 4 is the default.</sub>
+
 </td>
 <td width="50%" valign="top">
 
@@ -137,6 +139,8 @@ Four principles run through everything: **a diagram without a model is a screens
 | a machine-readable index (llms.txt) | [`llms.txt`](llms.txt) | English |
 
 ## This release
+
+**v1.5.0 (2026-11-18)**: two kinds of line never share one run. When two lines of different look (say a data flow and a warning flow) merge into one run before a shared node, the reader sees one style and reads one kind of flow; this now warns as `fan-mixed` (WARN only, never a build stop). Router revision 5 prices it, but in a blind review two reviewers preferred revision 4 (11 pairs: rev 4 on 6, rev 5 on 3, split on 2), so rev 4 stays the default and rev 5 is opt-in; a page pinned to an older revision now prints a notice when built. Diagram authoring first checks that its two method files are present and stops, naming the missing one, if not; the spec now says how to read `~/.claude/` under a custom config root. The audit and flowchart example pages gain one narrow-screen style line (tables scroll sideways), the drawings are unchanged; all 13 machine controls pass. Full history: [CHANGELOG](CHANGELOG.md).
 
 **v1.4.0 (2026-11-11)**: an edge can be observed, not only inferred from code. New tracer evidence: plant a same-shape synthetic record with a unique marker into an isolated copy, run it, and look for the marker in the stores the edge reaches; found → the gap table's basis is `tracer`, missing → a gap row. Each filter gets a deliberately broken control that must fail. Example pages move to `reference-impl/view-pages/`, matching the origin. Full history: [CHANGELOG](CHANGELOG.md).
 

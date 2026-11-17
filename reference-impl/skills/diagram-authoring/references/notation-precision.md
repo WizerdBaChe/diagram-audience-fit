@@ -51,6 +51,16 @@ in parentheses so the source stays traceable (list verified by web search
   you drew, never merge lines back or squeeze a label onto a box to get
   the number down (owner ruling 2026-10-24, router rev 2 review: offered
   "too many crossings", chose rev 2).
+- **A fan runs as one line only when its lines look the same.** Lines that
+  leave or enter one node may share a track (fan-out / fan-in), but a merged
+  run is drawn once, so it shows one style: a data line merged with a warn
+  line hides the warn. Lines of different type (colour, dash or marker) into
+  or out of one node keep their own tracks to the node. Reported from
+  outside 2026-11-11. archdiag: clearance L10 `fan-mixed`
+  warns (edge `type` at build time, drawn stroke|dash|marker on a page);
+  the default router (rev 4) does not avoid it, so a hit is fixed by hand
+  (move a node or give the edge a side hint); rev 5 prices it, opt-in only
+  (owner ruling 2026-11-18: it also split legal same-type fans).
 - **A line stays near its relation (proximity).** A group or lane box says
   its members belong together, so a line between two members that leaves
   the box reads as a link out of it, and a line that heads away from its

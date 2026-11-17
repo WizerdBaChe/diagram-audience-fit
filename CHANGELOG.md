@@ -2,6 +2,45 @@
 
 Versions are git tags; each GitHub release attaches a zip built from that tag.
 
+## v1.5.0 — 2026-11-18
+
+Two kinds of line never share one run. Fixed at the origin and copied by the refresh script; reported
+from outside on 2026-11-11 and checked here before adoption. The audit page and the flowchart
+specimen change bytes by one narrow-screen style line (new sha256 `989f5b0f…` and `2754419b…`); the
+owner view keeps its bytes. 13 of 13 controls ok.
+
+- **archdiag `clearance.mjs`, L10 `fan-mixed`:** two lines of different look (edge `type` in a build;
+  stroke, dash and marker on a page) merged into one run at a shared node now warn; same-look fans stay
+  quiet. WARN only. `--selftest` 46 → 51/51. On the shipped audit page: 136 → 141 warnings, all 5
+  new ones `fan-mixed`; A14 build counts 196/103 → 201/105.
+- **Router `rev: 5`, opt-in:** rev 4 plus a cost on `fan-mixed`. Origin A/B over 60 views (rev 4 → 5):
+  4 direct moves, 21 ripple, 3 unexplained; crossings 61 → 63; L11 25 → 30. A blind review of 11 pairs
+  by two reviewers preferred rev 4 on 6, rev 5 on 3, split on 2, so the owner kept `rev: 4` as the
+  default. A build that pins a revision below the default prints one notice per process per pinned
+  revision, naming the first view that pins it; bytes unchanged.
+- **Rules:** audience-fit R16 (two kinds of line never share one run) and a notation-precision §2
+  bullet; rev 4 does not avoid it, so a warned fan is fixed by hand or by opting into rev 5.
+- **diagram-authoring Step 0, dependency self-check:** before the mode router it reads
+  `representation-models.md` and `view-integrity-checks.md`; if either cannot be read it stops and
+  names the missing file. `AGENTS.md`'s install table now says to upgrade the pair with the skill.
+- **BUILD-SPEC §8, custom config root:** `~/.claude/` stands for the config root; with
+  `CLAUDE_CONFIG_DIR` set, read every `~/.claude/` (the install table included) as that root.
+- **archdiag `m1.mjs`:** receipt regression skips a build whose page's envelope is `retired: true`
+  and names it (origin maintenance; needs the origin environment).
+- **archdiag `envelope.mjs`:** a coverage declaration against an older view set prints a note, no
+  longer a warning (a newer view set alone is no reason to re-verify an unchanged view; re-declare at
+  the next re-verification); new `covers.external` for an outside system audited for study, which gets
+  no view-set notice. Envelopes without it keep their bytes. Self-test `SELFTEST PASS` (A15).
+- **Design-axes principles:** the reader-premise table gains two cells, end point and vocabulary
+  (the latter points at a reader-vocabulary file that stays at the origin, listed as unshipped).
+- **Page template:** tables scroll sideways and long cells wrap below 760 px width. The self-portrait
+  audit page (`docs/self-portrait/self-audit.html`) got a narrow-screen line by hand on `main` after
+  v1.4.0 (commit `7670cea`); its drawing is unchanged.
+- **Outbound edits** (BUILD-SPEC §9, item 1): an exchange contact's item id on the fan-mixed report and
+  the owner's notes-vault name in a design-axes provenance line are removed from the shipped copies.
+- **Unshipped references:** 84 → 86 (`verify/unshipped_paths.txt`; two new citations in shipped text).
+- **Enforcement map:** four new rows (fan-mixed, pin notice, Step 0, R16); 14 `file:line` refs moved.
+
 ## v1.4.0 — 2026-11-11
 
 Tracer evidence: an edge can be observed, not only inferred. Fixed at the origin and copied by the

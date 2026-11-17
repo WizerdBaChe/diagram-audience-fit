@@ -20,8 +20,8 @@
 // Determinism: fixed iteration orders, no randomness — routed output is a
 // pure function of the view model (receipt-friendly, same contract as emit).
 //
-// Revisions (opts.rev, default 4 since 2026-11-07 late; 3 earlier that day;
-// 2 from 2026-10-24). A page
+// Revisions (opts.rev, default 4 since 2026-11-07 late; 3
+// earlier that day; 2 from 2026-10-24). A page
 // built before a default changed pins the rev it was built with in its build
 // script so its receipt never moves (user ruling
 // 2026-10-24: "enable from now on, already-issued pages stay as they are").
@@ -52,6 +52,17 @@
 //     avoided crossing; length beyond the ends' Manhattan distance costs
 //     DETOUR_W more per px. Owner ruling 2026-11-07 (proposal 路由就近原則);
 //     A/B + blind test in MAINTENANCE.md.
+//   rev 5 — rev 4 plus clearance L10 fan-mixed (a fan-in/fan-out of two edge
+//     types merged into one run shows one style) priced like a shared track
+//     with an unrelated edge (ALIEN_PEN), and edge `type` passed to the check.
+//     Below rev 5 the check runs with fanLooks off, so rev 1–4 routes, and
+//     every page that pins them, are byte-identical. Reported from outside
+//     2026-11-11. OPT-IN, not the default (owner ruling
+//     2026-11-18): it prices the check on intermediate candidates, so it also
+//     splits same-type fans; blind test rev 4 6 / rev 5 3 / split 2, and the
+//     owner preferred rev 4 on the target case too. The L10 warning itself
+//     runs at every rev on built pages (build/page CLI), so a mixed fan is
+//     still named for a manual fix. MAINTENANCE.md log 2026-11-18.
 //
 // Borrow ledger (prior-art mandate): B-r1 candidate-generation + predicate-
 // filter shape and outward-stub discipline follow archify routeVia /
@@ -74,6 +85,19 @@ const CAP_TOL = 2;      // max gap (px) between an anchor and a capsule's drawn 
 const CLEAR = 8;        // preferred clearance from non-endpoint nodes
 const PAD = 2;          // pill/text separation, mirrors in-page check #1
 const ALIEN_PEN = 1500; // rev 2: shared track with an unrelated edge (crossing = 1200)
+
+// The default revision, and a one-line notice when a build pins an older one
+// (reported from outside 2026-11-11: a script that pins rev 2
+// never learns a newer default exists). stderr only, once per process per
+// pinned rev: the page bytes do not change, the pin is still honoured.
+export const DEFAULT_REV = 4;
+const noticed = new Set();
+function pinNotice(view, rev) {
+  if (noticed.has(rev)) return;
+  noticed.add(rev);
+  console.warn(`archdiag route(): view "${view.id}" pins rev ${rev}; the default is rev ${DEFAULT_REV} ` +
+    `(the pin keeps an issued page's bytes; drop it to adopt rev ${DEFAULT_REV}, see route.mjs "Revisions")`);
+}
 const DETOUR_W = 0.5;   // rev 4: extra cost per px of length beyond the ends' Manhattan distance
 
 // ---------- rect adapters (our {x,y,w,h} -> vendored {x,y,width,height}) ----------
@@ -259,8 +283,9 @@ function estimateTextRects(view) {
 // ---------- the default provider: channel router ----------
 function channelRouter(view, opts = {}) {
   const grid = opts.grid || 8;
-  const rev = opts.rev ?? 4;
-  if (![1, 2, 3, 4].includes(rev)) throw new Error(`route(): unknown rev ${rev} (known: 1, 2, 3, 4)`);
+  const rev = opts.rev ?? DEFAULT_REV;
+  if (![1, 2, 3, 4, 5].includes(rev)) throw new Error(`route(): unknown rev ${rev} (known: 1, 2, 3, 4, 5)`);
+  if (rev < DEFAULT_REV) pinNotice(view, rev);
   const [vbW, vbH] = view.vb;
   const nodeRects = view.nodes.map(R);
   const contRects = (view.containers || []).map(R);
@@ -407,14 +432,16 @@ function channelRouter(view, opts = {}) {
   const viewLinks = view.edges.map((e) => ({ from: e.from, to: e.to }));
   function clearancePen(pts, p) {
     const others = [...routed.entries()].filter(([id]) => id !== p.e.id)
-      .map(([id, r]) => { const e = plan.find((q) => q.e.id === id).e; return { id, from: e.from, to: e.to, pts: r.pts }; });
+      .map(([id, r]) => { const e = plan.find((q) => q.e.id === id).e; return { id, from: e.from, to: e.to, type: e.type, pts: r.pts }; });
     const ws = clearanceWarnings({ id: view.id, nodes: view.nodes, containers: clearConts,
-      edges: [{ id: p.e.id, from: p.e.from, to: p.e.to, pts }, ...others] }, { focus: p.e.id, links: viewLinks });
-    // opposite flow on one track misleads the direction: priced like a shared
-    // track with an unrelated edge, above a crossing
+      edges: [{ id: p.e.id, from: p.e.from, to: p.e.to, type: p.e.type, pts }, ...others] },
+      { focus: p.e.id, links: viewLinks, fanLooks: rev >= 5 });
+    // opposite flow on one track misleads the direction, and a mixed fan hides
+    // one of its two styles (rev 5): priced like a shared track with an
+    // unrelated edge, above a crossing
     return ws.reduce((s, w) => {
       const kind = w.message.split(' ')[0];
-      if (kind === 'opposite-flow') return s + ALIEN_PEN;
+      if (kind === 'opposite-flow' || kind === 'fan-mixed') return s + ALIEN_PEN;
       if (w.code === 'L16' || w.code === 'L17') return s + (rev >= 4 ? REV4_COST[kind] || 0 : 0);
       return s + (CLEAR_COST[w.code] || 0);
     }, 0);

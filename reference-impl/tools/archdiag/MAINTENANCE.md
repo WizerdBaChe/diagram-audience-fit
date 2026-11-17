@@ -19,7 +19,12 @@ is a property of these assets, event-triggered — not a schedule.
   Must exit 0 (every folder `ok`). The folder list is derived, not kept by
   hand: every folder an archview envelope's `output` names (system-hmi
   discovery, so out-of-tree pages such as tg-outpost are included) plus
-  `view-pages/diagram-authoring/`. It compares bytes before vs after the run,
+  `view-pages/diagram-authoring/`; a build whose envelope says `retired: true`
+  is skipped and named (owner ruling 2026-11-18: a retired or superseded view
+  keeps its JSON relation chain behind an index, not a redrawn picture; the
+  series predecessor memory-compaction-audit-f1 went to
+  `archive/2026-11-18-diagram-cleanup/series-predecessors/`, its two review
+  records into f2's inputs). It compares bytes before vs after the run,
   and `--restore` writes the pre-run bytes back, so another repository is
   never left modified. Exit 2 = a build failed, or discovery failed and
   only the floor folder was checked (not a full M1). Any diff = receipts of ACCEPTED artifacts changed →
@@ -648,6 +653,35 @@ legibility router, already-issued pages (tg-outpost included) are not redrawn.
   Kept: rev 4 reports the overrun (the router never exceeds SILENTLY); the author declares
   the crossing or adds side hints, as rev 2 already expected. mfp-audit-f3 `l2p` (3 vs 1
   declared at rev 4) is in the same class; its build does not stop on diagnostics.
+
+## Log — 2026-11-18: L10 fan-mixed, router rev 5 (opt-in), pinned-rev notice; M1 debt
+
+- **Reported from outside** 2026-11-11: a fan-in/fan-out of two edge looks
+  merged into one run is drawn once, so the second style disappears. Clearance L10
+  `fan-mixed` warns (look = edge `type` in a build, drawn `stroke|dash|marker` on a page);
+  an edge without a look keeps the old fan exemption. `route()` prints one stderr line per
+  process per pinned rev below the default (page bytes unchanged).
+- **Rev 5 is opt-in, the default stays rev 4** (owner ruling 2026-11-18, ledger row
+  `archdiag rev5 default`): rev 5 prices fan-mixed on intermediate candidates, so it also
+  split legal same-type fans. A/B rev 4 → 5 (60 views): 28 moved edges (4 direct,
+  21 ripple, 3 UNEXPLAINED in feedback-pool flow, all from that pricing: every other rev
+  gate is a monotonic `>=`), crossings 61 → 63, L11 25 → 30. Blind test (11 unlabeled
+  pairs, 2 sonnet reviewers, own key first): rev 4 6, rev 5 3, split 2; the owner picked
+  rev 4 on the target case too (feedback-pool state). Reopen only with pricing on final
+  geometry and a new A/B, when a real fan-mixed warning proves costly to fix by hand.
+- **Calibration**: clearance selftest 51/51 (+5: fires, quiet same type, quiet without a
+  type, page look, page adapter). Mutants on a copy, each FAILs it: type compare dropped
+  50/51, `fanLooks` default off 49/51, page adapter drops `look` 50/51. Build-path witness:
+  `layoutWarnings` on a merged data+warn fan → 1 fan-mixed, data+data → 0.
+- **M1 debt cleared first** (it was red on main before this work, 7 files): three owner
+  views and the obsidian reader view printed the hash of the LIVE canonical page, moved by
+  the 55b7b73a / f26c91e CSS line → frozen `git show` reads (d9b014ef; obsidian 11465e1);
+  deck-medium-flow-v1 was issued with `DECK_BUILT` set in the environment → the as-built
+  list is the default; the out-of-tree cc-telegram page lacked the 55b7b73a CSS line
+  (obsidian f26c91e). M1 after: 30 builds, 1 changed — memory-compaction-audit-f2-owner-view
+  provenance hash `63e6…`, which matches no committed canonical state (owner ruling pending).
+- **Readers**: notation-precision §2 bullet and presentational-view R16 (M7 reach rule).
+  Public pack: diagram-audience-fit v1.5.0 (with proposal items 甲3, 甲4).
 
 ## Review-when
 
